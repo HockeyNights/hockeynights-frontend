@@ -4,7 +4,7 @@
 
 import {Select, Switch, Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {useEffect, useMemo, useRef, useState} from 'react'
+import {type ReactNode, useEffect, useMemo, useRef, useState} from 'react'
 import {useSearchParams} from 'react-router'
 
 import type {PlayerPosition} from '@/entities/common'
@@ -19,6 +19,7 @@ import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 
 const DEFAULT_FILTERS: MarketplaceFilters = {sort: 'recommended', inStockOnly: false}
+const SHOP_CHIP_ID = 'shop-filter'
 
 const SORT_OPTIONS = [
   {value: 'recommended', content: 'Рекомендуемые'},
@@ -33,10 +34,10 @@ const POSITION_OPTIONS = [
   {value: 'goalie', content: 'Вратарь'},
 ]
 
-/** Сортировка не считается фильтром: она не сужает ленту. */
+/** Поиск не считается фильтром: его сбрасывает само поле. Сортировка ленту не сужает. */
 function countActiveFilters(filters: MarketplaceFilters): number {
   return (
-    [filters.q, filters.category, filters.position, filters.shopId].filter(Boolean).length +
+    [filters.category, filters.position, filters.shopId].filter(Boolean).length +
     (filters.inStockOnly ? 1 : 0)
   )
 }
@@ -44,7 +45,7 @@ function countActiveFilters(filters: MarketplaceFilters): number {
 /**
  * @spec SPEC-FR-9.3.1 - Маркетплейс экипировки (лента товаров)
  */
-export function MarketplacePage() {
+export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
   const [searchParams] = useSearchParams()
   const productIdFromUrl = searchParams.get('productId')
   const [filters, setFilters] = useState<MarketplaceFilters>(DEFAULT_FILTERS)
@@ -90,8 +91,18 @@ export function MarketplacePage() {
     [data?.categories, filters.category],
   )
 
+  const chips = useMemo(() => {
+    if (!filters.shopId) return categoryChips
+    const shopName =
+      data?.spotlightShops.find((item) => item.shop.id === filters.shopId)?.shop.name ??
+      data?.listings.find((listing) => listing.shopId === filters.shopId)?.shopName ??
+      'Магазин'
+    return [{id: SHOP_CHIP_ID, label: shopName, active: true}, ...categoryChips]
+  }, [categoryChips, data?.listings, data?.spotlightShops, filters.shopId])
+
   return (
     <PageHub className="marketplace" data-testid={testId('shops', 'marketplace', 'page')}>
+      {banner}
       <PageHeader
         title="Маркет экипировки"
         subtitle="Лента товаров от партнёрских магазинов — как маркетплейс, с приоритетом для продвигаемых продавцов."
@@ -110,16 +121,22 @@ export function MarketplacePage() {
         testIdSection="marketplace"
         sticky
         searchValue={filters.q ?? ''}
-        onSearchChange={(value) => patchFilters({q: value.trim() ? value : undefined})}
+        onSearchChange={(value) => patchFilters({q: value || undefined})}
         searchPlaceholder="Коньки, клюшка, Bauer…"
         searchLabel="Поиск по маркету"
-        chips={categoryChips}
-        onChipToggle={(chipId) =>
+        chips={chips}
+        onChipToggle={(chipId) => {
+          if (chipId === SHOP_CHIP_ID) {
+            patchFilters({shopId: undefined})
+            return
+          }
           patchFilters({category: filters.category === chipId ? undefined : chipId})
-        }
+        }}
         chipsLabel="Категория"
         activeCount={countActiveFilters(filters)}
-        onReset={() => setFilters(DEFAULT_FILTERS)}
+        onReset={() =>
+          setFilters((prev) => ({...DEFAULT_FILTERS, sort: prev.sort ?? 'recommended'}))
+        }
         resultsCount={listings.length}
         resultsPending={isFetching}
         advanced={

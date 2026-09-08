@@ -117,7 +117,7 @@ export function PlayerFilters({
       testIdPrefix="players"
       testIdSection="player-filters"
       searchValue={filters.q ?? ''}
-      onSearchChange={(value) => onChange({...filters, q: value.trim() ? value : undefined})}
+      onSearchChange={(value) => onChange({...filters, q: value || undefined})}
       searchPlaceholder="Имя или фамилия игрока…"
       searchLabel="Поиск игроков"
       chips={chips}

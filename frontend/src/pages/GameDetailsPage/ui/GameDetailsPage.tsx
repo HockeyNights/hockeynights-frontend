@@ -87,20 +87,6 @@ export function GameDetailsPage() {
           copy="Вернитесь к списку и выберите актуальную игру."
           testIdPrefix="events"
           data-testid={testId('events', 'game-page', 'empty')}
-          action={
-            <Link
-              to={routes.events}
-              data-testid={testId('events', 'game-page', 'link', 'back-empty')}
-            >
-              <HockeyButton
-                view="outlined"
-                size="s"
-                data-testid={testId('events', 'game-page', 'btn', 'back-empty')}
-              >
-                К списку игр
-              </HockeyButton>
-            </Link>
-          }
         />
       </PageHub>
     )
@@ -251,30 +237,23 @@ export function GameDetailsPage() {
               {organizerName}
             </Text>
             <div className="page-hub__actions">
-              <Link
+              <HockeyButton
+                view="outlined"
+                size="m"
+                component={Link}
                 to={`/messenger?userId=${event.organizerUserId}`}
-                data-testid={testId('events', 'game-page', 'link', 'messenger', event.id)}
+                data-testid={testId('events', 'game-page', 'btn', 'messenger', event.id)}
               >
-                <HockeyButton
-                  view="outlined"
-                  size="m"
-                  data-testid={testId('events', 'game-page', 'btn', 'messenger', event.id)}
-                >
-                  Связаться в мессенджере
-                </HockeyButton>
-              </Link>
-              <a
+                Связаться в мессенджере
+              </HockeyButton>
+              <HockeyButton
+                view="outlined"
+                size="m"
                 href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`}
-                data-testid={testId('events', 'game-page', 'link', 'phone', event.id)}
+                data-testid={testId('events', 'game-page', 'btn', 'phone', event.id)}
               >
-                <HockeyButton
-                  view="outlined"
-                  size="m"
-                  data-testid={testId('events', 'game-page', 'btn', 'phone', event.id)}
-                >
-                  {contactPhone}
-                </HockeyButton>
-              </a>
+                {contactPhone}
+              </HockeyButton>
             </div>
           </div>
         </IceCard>

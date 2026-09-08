@@ -2,13 +2,10 @@
  * HOCFRONT-25 — FSD page: создание команды
  */
 
-import {Link} from 'react-router'
-
 import {useSessionAccess} from '@/features/access'
 import {TeamCreateWizard} from '@/features/teams'
 import {routes} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
 import {PageBackLink} from '@/shared/ui/PageBackLink'
 import {PageHeader} from '@/shared/ui/PageHeader'
@@ -36,20 +33,6 @@ export function CreateTeamPage() {
           copy="Создавать команды могут капитан, организатор или администратор. Выберите подходящую роль при входе."
           testIdPrefix="teams"
           data-testid={testId('teams', 'create-page', 'card', 'denied')}
-          action={
-            <Link
-              to={routes.teams}
-              data-testid={testId('teams', 'create-page', 'link', 'back-denied')}
-            >
-              <HockeyButton
-                view="outlined"
-                size="s"
-                data-testid={testId('teams', 'create-page', 'btn', 'back-denied')}
-              >
-                К каталогу команд
-              </HockeyButton>
-            </Link>
-          }
         />
       </PageHub>
     )

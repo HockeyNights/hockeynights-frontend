@@ -41,20 +41,6 @@ export function CreateEventPage() {
           copy="Создавать игры и тренировки могут организатор тренировок, админ клуба, капитан, тренер или администратор."
           testIdPrefix="events"
           data-testid={testId('events', 'create-page', 'card', 'denied')}
-          action={
-            <Link
-              to={routes.events}
-              data-testid={testId('events', 'create-page', 'link', 'back-denied')}
-            >
-              <HockeyButton
-                view="outlined"
-                size="s"
-                data-testid={testId('events', 'create-page', 'btn', 'back-denied')}
-              >
-                К разделу
-              </HockeyButton>
-            </Link>
-          }
         />
       </PageHub>
     )

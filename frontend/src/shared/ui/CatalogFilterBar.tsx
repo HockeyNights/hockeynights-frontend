@@ -15,6 +15,13 @@ import {HockeyButton} from '@/shared/ui/HockeyButton'
 /** Дебаунс поиска — один для всех каталогов, чтобы фильтрация не «дёргалась». */
 const SEARCH_DEBOUNCE_MS = 250
 
+/** Совпадает с mobile-брейкпоинтом мессенджера: на desktop фильтры открыты. */
+const DESKTOP_FILTERS_QUERY = '(min-width: 769px)'
+
+function isDesktopViewport(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia(DESKTOP_FILTERS_QUERY).matches
+}
+
 /** Быстрый фильтр-таблетка над расширенными фильтрами. */
 export interface CatalogFilterChip {
   id: string
@@ -30,7 +37,7 @@ export interface CatalogFilterBarProps {
 
   /** Текущее значение поиска (может приходить из URL). */
   searchValue: string
-  /** Вызывается с дебаунсом `searchDebounceMs`. */
+  /** Вызывается с дебаунсом `searchDebounceMs`, уже с trim. */
   onSearchChange: (value: string) => void
   searchPlaceholder: string
   /** Доступное имя поля поиска — читается скринридером и используется в тестах. */
@@ -44,6 +51,7 @@ export interface CatalogFilterBarProps {
   /** Контролы расширенных фильтров: `CatalogFilterField`, Select, TextInput, Checkbox. */
   advanced?: ReactNode
   advancedTitle?: string
+  /** По умолчанию открыто на desktop, свёрнуто на mobile (HOCFRONT-20). */
   advancedDefaultOpen?: boolean
 
   /** Вкладки/переключатели вида над поиском. */
@@ -104,7 +112,7 @@ export function CatalogFilterBar({
   chipsLabel = 'Быстрый фильтр',
   advanced,
   advancedTitle = 'Фильтры',
-  advancedDefaultOpen = false,
+  advancedDefaultOpen,
   toolbar,
   resultsCount,
   resultsPending = false,
@@ -114,15 +122,20 @@ export function CatalogFilterBar({
   className,
 }: CatalogFilterBarProps) {
   const advancedId = useId()
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(advancedDefaultOpen)
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(
+    () => advancedDefaultOpen ?? isDesktopViewport(),
+  )
 
   const [searchDraft, setSearchDraft] = useState(searchValue)
   const [syncedSearch, setSyncedSearch] = useState(searchValue)
 
   // Внешний сброс/восстановление из URL перебивает черновик без лишнего рендера.
+  // Значение, отличающееся только тримом, черновик не трогает — иначе пробел под курсором стирается.
   if (searchValue !== syncedSearch) {
     setSyncedSearch(searchValue)
-    setSearchDraft(searchValue)
+    if (searchDraft.trim() !== searchValue.trim()) {
+      setSearchDraft(searchValue)
+    }
   }
 
   const latest = useRef({searchValue, onSearchChange})
@@ -131,9 +144,9 @@ export function CatalogFilterBar({
   })
 
   useEffect(() => {
-    if (searchDraft === latest.current.searchValue) return
+    if (searchDraft.trim() === latest.current.searchValue.trim()) return
     const timer = window.setTimeout(() => {
-      latest.current.onSearchChange(searchDraft)
+      latest.current.onSearchChange(searchDraft.trim())
     }, searchDebounceMs)
     return () => window.clearTimeout(timer)
   }, [searchDraft, searchDebounceMs])
@@ -269,10 +282,11 @@ export function CatalogFilterBar({
         </div>
       </div>
 
-      {advanced && isAdvancedOpen ? (
+      {advanced ? (
         <div
           id={advancedId}
           className="catalog-filters__advanced"
+          hidden={!isAdvancedOpen}
           data-testid={testId(testIdPrefix, testIdSection, 'grid', 'filters')}
         >
           {advanced}

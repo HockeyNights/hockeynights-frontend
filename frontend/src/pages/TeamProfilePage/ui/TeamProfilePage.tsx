@@ -106,16 +106,6 @@ export function TeamProfilePage() {
           copy="Вернитесь к каталогу и выберите команду из списка."
           testIdPrefix="teams"
           data-testid={testId('teams', 'profile', 'card', 'not-found')}
-          action={
-            <HockeyButton
-              view="outlined"
-              size="s"
-              onClick={handleBack}
-              data-testid={testId('teams', 'profile', 'btn', 'back-missing')}
-            >
-              Вернуться
-            </HockeyButton>
-          }
         />
       </PageHub>
     )

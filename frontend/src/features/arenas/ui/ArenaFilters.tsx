@@ -77,7 +77,7 @@ export function ArenaFilters({
       testIdPrefix="arenas"
       testIdSection="filters"
       searchValue={filters.query ?? ''}
-      onSearchChange={(value) => patch({query: value.trim() ? value : undefined})}
+      onSearchChange={(value) => patch({query: value || undefined})}
       searchPlaceholder="Название, метро, район, город…"
       searchLabel="Поиск ледовых арен"
       chips={chips}

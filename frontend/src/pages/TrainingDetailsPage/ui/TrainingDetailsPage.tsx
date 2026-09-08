@@ -112,7 +112,7 @@ export function TrainingDetailsPage() {
     })
   ) {
     return (
-      <PageHub data-testid={testId('events', 'training-page', 'page', event.id)}>
+      <PageHub data-testid={testId('events', 'training-page', 'error', 'access-denied')}>
         <PageBackLink
           to={routes.events}
           label="К списку тренировок"
@@ -123,21 +123,6 @@ export function TrainingDetailsPage() {
           title="Нет доступа к тренировке"
           copy="Эта тренировка доступна только участникам клуба или приглашённым игрокам."
           testIdPrefix="events"
-          data-testid={testId('events', 'training-page', 'error', 'access-denied')}
-          action={
-            <Link
-              to={routes.events}
-              data-testid={testId('events', 'training-page', 'link', 'back-denied', event.id)}
-            >
-              <HockeyButton
-                view="outlined"
-                size="s"
-                data-testid={testId('events', 'training-page', 'btn', 'back-denied', event.id)}
-              >
-                К списку тренировок
-              </HockeyButton>
-            </Link>
-          }
         />
       </PageHub>
     )
@@ -175,18 +160,15 @@ export function TrainingDetailsPage() {
         testIdSection="training-page"
         actions={
           canEdit ? (
-            <Link
+            <HockeyButton
+              view="outlined"
+              size="m"
+              component={Link}
               to={`/events/trainings/${event.id}/edit`}
-              data-testid={testId('events', 'training-page', 'link', 'edit', event.id)}
+              data-testid={testId('events', 'training-page', 'btn', 'edit', event.id)}
             >
-              <HockeyButton
-                view="outlined"
-                size="m"
-                data-testid={testId('events', 'training-page', 'btn', 'edit', event.id)}
-              >
-                Редактировать
-              </HockeyButton>
-            </Link>
+              Редактировать
+            </HockeyButton>
           ) : undefined
         }
       />
@@ -312,31 +294,24 @@ export function TrainingDetailsPage() {
               {organizerName}
             </Text>
             <div className="page-hub__actions">
-              <Link
+              <HockeyButton
+                view="outlined"
+                size="m"
+                component={Link}
                 to={`/messenger?userId=${event.organizerUserId}`}
-                data-testid={testId('events', 'training-page', 'link', 'messenger', event.id)}
+                data-testid={testId('events', 'training-page', 'btn', 'messenger', event.id)}
               >
+                Связаться в мессенджере
+              </HockeyButton>
+              {contactPhone ? (
                 <HockeyButton
                   view="outlined"
                   size="m"
-                  data-testid={testId('events', 'training-page', 'btn', 'messenger', event.id)}
-                >
-                  Связаться в мессенджере
-                </HockeyButton>
-              </Link>
-              {contactPhone ? (
-                <a
                   href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`}
-                  data-testid={testId('events', 'training-page', 'link', 'phone', event.id)}
+                  data-testid={testId('events', 'training-page', 'btn', 'phone', event.id)}
                 >
-                  <HockeyButton
-                    view="outlined"
-                    size="m"
-                    data-testid={testId('events', 'training-page', 'btn', 'phone', event.id)}
-                  >
-                    {contactPhone}
-                  </HockeyButton>
-                </a>
+                  {contactPhone}
+                </HockeyButton>
               ) : null}
               <HockeyButton
                 view="action"

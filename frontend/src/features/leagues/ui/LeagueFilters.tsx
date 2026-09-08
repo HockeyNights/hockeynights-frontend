@@ -71,7 +71,7 @@ export function LeagueFilters({
       testIdPrefix="leagues"
       testIdSection="filters"
       searchValue={filters.query ?? ''}
-      onSearchChange={(value) => patch({query: value.trim() ? value : undefined})}
+      onSearchChange={(value) => patch({query: value || undefined})}
       searchPlaceholder="Название лиги…"
       searchLabel="Поиск лиг"
       chips={chips}

@@ -13,7 +13,7 @@ import {clearTestStorage} from '@/test/clearTestStorage'
 import {server} from '@/test/msw-server'
 import {renderWithProviders} from '@/test/render'
 
-/** Расширенные фильтры в CatalogFilterBar по умолчанию свёрнуты. */
+/** Расширенные фильтры в CatalogFilterBar на mobile (jsdom matchMedia) свёрнуты. */
 async function openAdvancedFilters() {
   const user = userEvent.setup()
   const toggle = await screen.findByTestId('players-player-filters-btn-filters-toggle')
@@ -55,7 +55,7 @@ describe('PlayersPage filters', () => {
     expect(within(form).getByText('Только вратари')).toBeInTheDocument()
   })
 
-  it('фильтрует по имени и отображает кнопку сброса', async () => {
+  it('фильтрует по имени; поиск не считает фильтром', async () => {
     const user = userEvent.setup()
     renderWithProviders(<PlayersPage />)
 
@@ -73,8 +73,9 @@ describe('PlayersPage filters', () => {
       {timeout: 3000},
     )
 
-    const resetButton = await screen.findByTestId('players-player-filters-btn-reset-filters')
-    await user.click(resetButton)
+    expect(screen.queryByTestId('players-player-filters-btn-reset-filters')).not.toBeInTheDocument()
+
+    await user.clear(screen.getByLabelText('Поиск игроков'))
 
     await waitFor(() => {
       expect(screen.getByText('Смирнов Алексей Дмитриевич')).toBeInTheDocument()
@@ -204,17 +205,18 @@ describe('PlayersPage filters', () => {
     const toggle = await screen.findByTestId('players-player-filters-btn-filters-toggle')
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(toggle).toHaveAttribute('aria-controls')
-    expect(screen.queryByTestId('players-player-filters-grid-filters')).not.toBeInTheDocument()
+    const panel = screen.getByTestId('players-player-filters-grid-filters')
+    expect(panel).not.toBeVisible()
 
     await user.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByTestId('players-player-filters-grid-filters')).toBeInTheDocument()
+    expect(panel).toBeVisible()
 
     await user.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByTestId('players-player-filters-grid-filters')).not.toBeInTheDocument()
+    expect(panel).not.toBeVisible()
   })
 
   it('показывает индикатор загрузки при refetch со stale-данными', async () => {

@@ -4,8 +4,7 @@
  * `testId(...)` в исходниках фронтенда.
  *
  * Вводная часть документа (формат имени, типы элементов, соглашения) правится
- * руками — скрипт перезаписывает только раздел «Реестр паттернов по доменам»
- * и строку с датой генерации.
+ * руками — скрипт перезаписывает только раздел «Реестр паттернов по доменам».
  *
  * Запуск: node scripts/generate-testid-reference.mjs
  */
@@ -61,7 +60,7 @@ function findCallEnd(source, openIndex) {
     if (char === "'" || char === '"' || char === '`') {
       index += 1
       while (index < source.length && source[index] !== char) {
-        index += char === '\\' ? 2 : source[index] === '\\' ? 2 : 1
+        index += source[index] === '\\' ? 2 : 1
       }
       index += 1
       continue
@@ -262,7 +261,6 @@ async function main() {
     throw new Error(`В ${DOC_PATH} не найден заголовок «${REGISTRY_HEADING}»`)
   }
 
-  const generatedOn = new Date().toISOString().slice(0, 10)
   const registrySection = [
     REGISTRY_HEADING,
     '',
@@ -272,7 +270,7 @@ async function main() {
     '',
     '---',
     '',
-    `*Сгенерировано: ${generatedOn} · ${uniquePatterns} уникальных паттернов · ${touchedFiles.size} файлов*`,
+    `*Сгенерировано · ${uniquePatterns} уникальных паттернов · ${touchedFiles.size} файлов*`,
     '',
   ].join('\n')
 

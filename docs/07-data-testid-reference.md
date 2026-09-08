@@ -96,7 +96,7 @@ Shared-компоненты принимают `data-testid` или `testIdPrefi
 | `KarmaScore`             | `testIdPrefix`                  | `{prefix}-karma-score-badge`, `{prefix}-karma-score-text-value`                                          |
 | `MockExternalFlowDialog` | `testIdPrefix`                  | `{prefix}-mock-external-flow-dialog-modal`, `…-text-partner-name`, `…-btn-close`                         |
 | `PageHeader`             | `testIdPrefix` + `testIdSection`| `{prefix}-{section}-header`, `{prefix}-{section}-text-title`, `{prefix}-{section}-text-subtitle`          |
-| `PageBackLink`           | `testIdPrefix` + `testIdSection`| `{prefix}-{section}-nav-back`, `{prefix}-{section}-link-back`, `{prefix}-{section}-btn-back`              |
+| `PageBackLink`           | `testIdPrefix` + `testIdSection`| `{prefix}-{section}-nav-back`, `{prefix}-{section}-btn-back`                                              |
 | `CatalogFilterBar`       | `testIdPrefix` + `testIdSection`| см. «Панель поиска и фильтров каталогов» ниже                                                            |
 
 ## Панель поиска и фильтров каталогов
@@ -295,10 +295,8 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `arenas-detail-text-name-{arena-id}`                      | `src/features/arenas/ui/ArenaDetailPanel.tsx`                  |
 | `arenas-detail-text-phone-{arena-id}`                     | `src/features/arenas/ui/ArenaDetailPanel.tsx`                  |
 | `arenas-detail-text-price-{arena-id}`                     | `src/features/arenas/ui/ArenaDetailPanel.tsx`                  |
-| `arenas-details-btn-back-empty`                           | `src/pages/ArenaDetailsPage/ui/ArenaDetailsPage.tsx`           |
 | `arenas-details-empty`                                    | `src/pages/ArenaDetailsPage/ui/ArenaDetailsPage.tsx`           |
 | `arenas-details-error`                                    | `src/pages/ArenaDetailsPage/ui/ArenaDetailsPage.tsx`           |
-| `arenas-details-link-back-empty`                          | `src/pages/ArenaDetailsPage/ui/ArenaDetailsPage.tsx`           |
 | `arenas-details-loader`                                   | `src/pages/ArenaDetailsPage/ui/ArenaDetailsPage.tsx`           |
 | `arenas-details-page-{arena-id}`                          | `src/pages/ArenaDetailsPage/ui/ArenaDetailsPage.tsx`           |
 | `arenas-filters-btn-view-{tab-id}`                        | `src/features/arenas/ui/ArenaFilters.tsx`                      |
@@ -897,11 +895,9 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `events-create-form-text-starts-at-label`                      | `src/features/events/ui/EventCreateForm.tsx`               |
 | `events-create-form-text-success`                              | `src/features/events/ui/EventCreateForm.tsx`               |
 | `events-create-form-text-title`                                | `src/features/events/ui/EventCreateForm.tsx`               |
-| `events-create-page-btn-back-denied`                           | `src/pages/CreateEventPage/ui/CreateEventPage.tsx`         |
 | `events-create-page-btn-cabinet`                               | `src/pages/CreateEventPage/ui/CreateEventPage.tsx`         |
 | `events-create-page-card-denied`                               | `src/pages/CreateEventPage/ui/CreateEventPage.tsx`         |
 | `events-create-page-card-form`                                 | `src/pages/CreateEventPage/ui/CreateEventPage.tsx`         |
-| `events-create-page-link-back-denied`                          | `src/pages/CreateEventPage/ui/CreateEventPage.tsx`         |
 | `events-create-page-link-cabinet`                              | `src/pages/CreateEventPage/ui/CreateEventPage.tsx`         |
 | `events-create-page-loader-session`                            | `src/pages/CreateEventPage/ui/CreateEventPage.tsx`         |
 | `events-create-page-page`                                      | `src/pages/CreateEventPage/ui/CreateEventPage.tsx`         |
@@ -913,19 +909,14 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `events-edit-page-error`                                       | `src/pages/EditTrainingPage/ui/EditTrainingPage.tsx`       |
 | `events-edit-page-error-access-denied`                         | `src/pages/EditTrainingPage/ui/EditTrainingPage.tsx`       |
 | `events-edit-page-link-back`                                   | `src/pages/EditTrainingPage/ui/EditTrainingPage.tsx`       |
-| `events-edit-page-link-cabinet-empty`                          | `src/pages/EditTrainingPage/ui/EditTrainingPage.tsx`       |
 | `events-edit-page-loader`                                      | `src/pages/EditTrainingPage/ui/EditTrainingPage.tsx`       |
 | `events-edit-page-loader-session`                              | `src/pages/EditTrainingPage/ui/EditTrainingPage.tsx`       |
 | `events-edit-page-page-{event-id}`                             | `src/pages/EditTrainingPage/ui/EditTrainingPage.tsx`       |
-| `events-game-page-btn-back-empty`                              | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
 | `events-game-page-btn-messenger-{event-id}`                    | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
 | `events-game-page-btn-phone-{event-id}`                        | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
 | `events-game-page-empty`                                       | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
 | `events-game-page-error`                                       | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
 | `events-game-page-link-arena-{event-id}`                       | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
-| `events-game-page-link-back-empty`                             | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
-| `events-game-page-link-messenger-{event-id}`                   | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
-| `events-game-page-link-phone-{event-id}`                       | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
 | `events-game-page-link-team-{event-id}`                        | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
 | `events-game-page-loader`                                      | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
 | `events-game-page-page-{event-id}`                             | `src/pages/GameDetailsPage/ui/GameDetailsPage.tsx`         |
@@ -1057,7 +1048,6 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `events-rsvp-text-name-{user-id}`                              | `src/features/events/ui/EventRsvpBoard.tsx`                |
 | `events-rsvp-text-status-{user-id}`                            | `src/features/events/ui/EventRsvpBoard.tsx`                |
 | `events-rsvp-text-title-{event-id}`                            | `src/features/events/ui/EventRsvpBoard.tsx`                |
-| `events-training-page-btn-back-denied-{event-id}`              | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
 | `events-training-page-btn-edit-{event-id}`                     | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
 | `events-training-page-btn-messenger-{event-id}`                | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
 | `events-training-page-btn-phone-{event-id}`                    | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
@@ -1066,10 +1056,6 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `events-training-page-error`                                   | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
 | `events-training-page-error-access-denied`                     | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
 | `events-training-page-link-arena-{event-id}`                   | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
-| `events-training-page-link-back-denied-{event-id}`             | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
-| `events-training-page-link-edit-{event-id}`                    | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
-| `events-training-page-link-messenger-{event-id}`               | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
-| `events-training-page-link-phone-{event-id}`                   | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
 | `events-training-page-loader`                                  | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
 | `events-training-page-page-{event-id}`                         | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
 | `events-training-page-panel-contacts-{event-id}`               | `src/pages/TrainingDetailsPage/ui/TrainingDetailsPage.tsx` |
@@ -1363,11 +1349,9 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `leagues-card-text-name-{league-id}`                            | `src/features/leagues/ui/LeagueCard.tsx`                         |
 | `leagues-card-text-region-{league-id}`                          | `src/features/leagues/ui/LeagueCard.tsx`                         |
 | `leagues-details-badge-source-{league-id}`                      | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
-| `leagues-details-btn-back-empty`                                | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
 | `leagues-details-card-stats-{league-id}`                        | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
 | `leagues-details-empty`                                         | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
 | `leagues-details-error`                                         | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
-| `leagues-details-link-back-empty`                               | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
 | `leagues-details-loader`                                        | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
 | `leagues-details-loader-schedule-{league-id}`                   | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
 | `leagues-details-loader-standings-{league-id}`                  | `src/pages/LeagueDetailsPage/ui/LeagueDetailsPage.tsx`           |
@@ -1773,24 +1757,17 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `players-public-info-text-teams-empty-{user-id}`       | `src/features/players/ui/PlayerPublicInfoSection.tsx`              |
 | `players-public-info-text-teams-loading-{user-id}`     | `src/features/players/ui/PlayerPublicInfoSection.tsx`              |
 | `players-public-info-text-title-{user-id}`             | `src/features/players/ui/PlayerPublicInfoSection.tsx`              |
-| `players-public-player-profile-btn-back`               | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
-| `players-public-player-profile-btn-back-hidden`        | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-card-calendar`          | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-card-hidden`            | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-card-history`           | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-card-not-found`         | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-empty-calendar`         | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-error`                  | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
-| `players-public-player-profile-link-back`              | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
-| `players-public-player-profile-link-back-hidden`       | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-loader`                 | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-page-{user-id}`         | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-panel-grid`             | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-section-calendar`       | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
-| `players-public-player-profile-text-hidden-copy`       | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
-| `players-public-player-profile-text-hidden-title`      | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 | `players-public-player-profile-text-history-title`     | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
-| `players-public-player-profile-text-not-found`         | `src/pages/PublicPlayerProfilePage/ui/PublicPlayerProfilePage.tsx` |
 
 ### profile
 
@@ -2206,7 +2183,6 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `shops-shop-card-text-categories-{shop-id}`                     | `src/features/shops/ui/ShopCard.tsx`                         |
 | `shops-shop-card-text-city-{shop-id}`                           | `src/features/shops/ui/ShopCard.tsx`                         |
 | `shops-shop-card-text-name-{shop-id}`                           | `src/features/shops/ui/ShopCard.tsx`                         |
-| `shops-shops-page`                                              | `src/pages/ShopsPage/ui/ShopsPage.tsx`                       |
 
 ### sos
 
@@ -2351,10 +2327,8 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `teams-contact-staff-text-message-label`                            | `src/features/teams/ui/ContactStaffModal.tsx`      |
 | `teams-contact-staff-text-success`                                  | `src/features/teams/ui/ContactStaffModal.tsx`      |
 | `teams-contact-staff-text-target`                                   | `src/features/teams/ui/ContactStaffModal.tsx`      |
-| `teams-create-page-btn-back-denied`                                 | `src/pages/CreateTeamPage/ui/CreateTeamPage.tsx`   |
 | `teams-create-page-card-denied`                                     | `src/pages/CreateTeamPage/ui/CreateTeamPage.tsx`   |
 | `teams-create-page-card-wizard`                                     | `src/pages/CreateTeamPage/ui/CreateTeamPage.tsx`   |
-| `teams-create-page-link-back-denied`                                | `src/pages/CreateTeamPage/ui/CreateTeamPage.tsx`   |
 | `teams-create-page-page`                                            | `src/pages/CreateTeamPage/ui/CreateTeamPage.tsx`   |
 | `teams-create-page-page-denied`                                     | `src/pages/CreateTeamPage/ui/CreateTeamPage.tsx`   |
 | `teams-create-wizard-badge-step-{item-id}`                          | `src/features/teams/ui/TeamCreateWizard.tsx`       |
@@ -2447,7 +2421,6 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `teams-profile-badge-league-{team-id}`                              | `src/pages/TeamProfilePage/ui/TeamProfilePage.tsx` |
 | `teams-profile-badge-roster-{team-id}`                              | `src/pages/TeamProfilePage/ui/TeamProfilePage.tsx` |
 | `teams-profile-badge-skill-{team-id}`                               | `src/pages/TeamProfilePage/ui/TeamProfilePage.tsx` |
-| `teams-profile-btn-back-missing`                                    | `src/pages/TeamProfilePage/ui/TeamProfilePage.tsx` |
 | `teams-profile-btn-club-cabinet-{team-id}`                          | `src/pages/TeamProfilePage/ui/TeamProfilePage.tsx` |
 | `teams-profile-btn-contact-staff-{team-id}`                         | `src/pages/TeamProfilePage/ui/TeamProfilePage.tsx` |
 | `teams-profile-card-not-found`                                      | `src/pages/TeamProfilePage/ui/TeamProfilePage.tsx` |
@@ -2637,7 +2610,6 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 | `{test-id-prefix}-{test-id-section}-field-search`              | `src/shared/ui/CatalogFilterBar.tsx`                        |
 | `{test-id-prefix}-{test-id-section}-grid-filters`              | `src/shared/ui/CatalogFilterBar.tsx`                        |
 | `{test-id-prefix}-{test-id-section}-header`                    | `src/shared/ui/PageHeader.tsx`                              |
-| `{test-id-prefix}-{test-id-section}-link-back`                 | `src/shared/ui/PageBackLink.tsx`                            |
 | `{test-id-prefix}-{test-id-section}-nav-back`                  | `src/shared/ui/PageBackLink.tsx`                            |
 | `{test-id-prefix}-{test-id-section}-panel-chips`               | `src/shared/ui/CatalogFilterBar.tsx`                        |
 | `{test-id-prefix}-{test-id-section}-panel-filters`             | `src/shared/ui/CatalogFilterBar.tsx`                        |
@@ -2719,4 +2691,4 @@ Unit-тесты по-прежнему предпочитают `getByRole` / `ge
 
 ---
 
-*Сгенерировано: 2026-08-30 · 2443 уникальных паттернов · 198 файлов*
+*Сгенерировано · 2415 уникальных паттернов · 197 файлов*

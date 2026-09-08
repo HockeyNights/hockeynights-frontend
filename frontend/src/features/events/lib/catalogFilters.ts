@@ -205,7 +205,6 @@ export function toggleCatalogChip(
 
 export function countActiveCatalogFilters(state: CatalogFiltersState): number {
   let count = 0
-  if (state.q.trim()) count += 1
   if (state.date) count += 1
   if (state.dayPreset) count += 1
   if (state.format !== 'all') count += 1

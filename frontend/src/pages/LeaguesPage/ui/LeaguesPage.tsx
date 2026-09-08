@@ -76,7 +76,7 @@ export function LeaguesPage() {
 
   const openLeague = (id: string) => navigate(leagueDetailsPath(id))
 
-  const isFiltered = countActiveLeagueFilters(filters) > 0
+  const isFiltered = countActiveLeagueFilters(filters) > 0 || Boolean(filters.query?.trim())
   const showLayout = !isPending && !isError && !legacyLeagueId
   const showEmpty = showLayout && leagues.length === 0
 

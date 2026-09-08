@@ -100,9 +100,7 @@ describe('HOCFRONT-22 страница игрока', () => {
     await waitFor(() => {
       expect(screen.getByTestId('players-public-player-profile-card-hidden')).toBeInTheDocument()
     })
-    expect(screen.getByTestId('players-public-player-profile-text-hidden-title')).toHaveTextContent(
-      'Профиль скрыт',
-    )
+    expect(screen.getByText('Профиль скрыт')).toBeInTheDocument()
     expect(screen.queryByTestId('players-player-card-card-user-008')).not.toBeInTheDocument()
   })
 })

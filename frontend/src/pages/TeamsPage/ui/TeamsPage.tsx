@@ -55,7 +55,8 @@ export function TeamsPage() {
     [filters, searchQuery],
   )
 
-  const activeCount = countActiveFilters(queryFilters)
+  const activeCount = countActiveFilters(filters)
+  const hasSearch = Boolean(searchQuery.trim())
 
   const {
     data: teams = [],
@@ -153,7 +154,7 @@ export function TeamsPage() {
           testIdPrefix="teams"
           data-testid={testId('teams', 'teams-page', 'empty')}
           action={
-            activeCount > 0 ? (
+            activeCount > 0 || hasSearch ? (
               <HockeyButton
                 view="outlined"
                 size="s"

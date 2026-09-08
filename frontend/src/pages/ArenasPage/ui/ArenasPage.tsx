@@ -210,7 +210,7 @@ export function ArenasPage() {
         view={view}
         onViewChange={handleViewChange}
         resultsCount={arenas.length}
-        resultsPending={showProgress}
+        resultsPending={isFetching}
       />
 
       {isPending && (

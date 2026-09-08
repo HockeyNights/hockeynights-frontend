@@ -4,7 +4,7 @@
  */
 
 import {useQuery} from '@tanstack/react-query'
-import {Link, useParams} from 'react-router'
+import {useParams} from 'react-router'
 
 import {arenaHasFreeSlots, fetchArena, fetchArenaSlots} from '@/entities/arena'
 import {ArenaDetailPanel} from '@/features/arenas'
@@ -13,7 +13,6 @@ import {ARENAS_LABEL} from '@/shared/config/navigationLabels'
 import {routes} from '@/shared/const/appRoutes'
 import {useDocumentTitle} from '@/shared/hooks/useDocumentTitle'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {PageBackLink} from '@/shared/ui/PageBackLink'
 import {PageHeader} from '@/shared/ui/PageHeader'
 import {PageHub} from '@/shared/ui/PageHub'
@@ -76,20 +75,6 @@ export function ArenaDetailsPage() {
           copy="Вернитесь к каталогу и выберите площадку из списка или с карты."
           testIdPrefix="arenas"
           data-testid={testId('arenas', 'details', 'empty')}
-          action={
-            <Link
-              to={routes.arenas}
-              data-testid={testId('arenas', 'details', 'link', 'back-empty')}
-            >
-              <HockeyButton
-                view="outlined"
-                size="s"
-                data-testid={testId('arenas', 'details', 'btn', 'back-empty')}
-              >
-                К ледовым аренам
-              </HockeyButton>
-            </Link>
-          }
         />
       </PageHub>
     )

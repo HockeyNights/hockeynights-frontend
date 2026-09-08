@@ -220,6 +220,11 @@
   border-top: 1px solid color-mix(in srgb, var(--hockey-card-border) 70%, transparent);
   animation: catalog-filters-reveal var(--hockey-motion-fast) var(--hockey-motion-ease);
 
+  &[hidden] {
+    display: none;
+    animation: none;
+  }
+
   @include reduced-motion {
     animation: none;
   }

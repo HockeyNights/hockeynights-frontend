@@ -90,16 +90,6 @@ export function EditTrainingPage() {
           copy="Вернитесь к списку «Мои тренировки»."
           testIdPrefix="events"
           data-testid={testId('events', 'edit-page', 'empty')}
-          action={
-            <Link
-              to={routes.eventsOrganizer}
-              data-testid={testId('events', 'edit-page', 'link', 'cabinet-empty')}
-            >
-              <HockeyButton view="outlined" size="s">
-                В кабинет
-              </HockeyButton>
-            </Link>
-          }
         />
       </PageHub>
     )
@@ -110,7 +100,7 @@ export function EditTrainingPage() {
 
   if (!canEdit) {
     return (
-      <PageHub data-testid={testId('events', 'edit-page', 'page', event.id)}>
+      <PageHub data-testid={testId('events', 'edit-page', 'error', 'access-denied')}>
         <PageBackLink
           to={eventDetailsPath(event)}
           label="К карточке"
@@ -121,7 +111,6 @@ export function EditTrainingPage() {
           title="Нет прав на редактирование"
           copy="Редактировать может только организатор этой тренировки."
           testIdPrefix="events"
-          data-testid={testId('events', 'edit-page', 'error', 'access-denied')}
         />
       </PageHub>
     )

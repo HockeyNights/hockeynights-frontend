@@ -11,28 +11,8 @@
   display: grid;
   gap: 16px;
 
-  .ice-card,
-  .g-text-input__content,
-  .g-text-input__control,
-  .g-text-area__content,
-  .g-text-area__control,
-  .g-select-control,
-  .g-select-control__button {
-    border-radius: var(--profile-radius);
-  }
-
-  .hockey-button,
-  a.hockey-button {
-    --g-button-border-radius: var(--profile-radius);
-    border-radius: var(--profile-radius) !important;
-    box-sizing: border-box;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    height: var(--g-button-height, 36px) !important;
-    min-height: var(--g-button-height, 36px);
-    vertical-align: middle;
-  }
+  @include hub-surface-radius(var(--profile-radius));
+  @include hub-hockey-button(var(--profile-radius));
 
   .favorites-profile-group__row {
     border-radius: var(--profile-radius);

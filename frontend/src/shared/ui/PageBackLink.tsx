@@ -18,6 +18,7 @@ export interface PageBackLinkProps {
 
 /**
  * Кнопка «назад» в toolbar hub-страницы — как на публичном профиле игрока.
+ * Один фокусируемый элемент: `HockeyButton` рендерится как `Link`, а не внутри него.
  */
 export function PageBackLink({
   label,
@@ -26,28 +27,31 @@ export function PageBackLink({
   testIdPrefix,
   testIdSection = 'page',
 }: PageBackLinkProps) {
-  const button = (
-    <HockeyButton
-      view="outlined"
-      size="s"
-      onClick={to ? undefined : onClick}
-      data-testid={testId(testIdPrefix, testIdSection, 'btn', 'back')}
-    >
-      {label}
-    </HockeyButton>
-  )
-
   return (
     <div
       className="page-hub__toolbar"
       data-testid={testId(testIdPrefix, testIdSection, 'nav', 'back')}
     >
       {to ? (
-        <Link to={to} data-testid={testId(testIdPrefix, testIdSection, 'link', 'back')}>
-          {button}
-        </Link>
+        <HockeyButton
+          view="outlined"
+          size="s"
+          component={Link}
+          to={to}
+          onClick={onClick}
+          data-testid={testId(testIdPrefix, testIdSection, 'btn', 'back')}
+        >
+          {label}
+        </HockeyButton>
       ) : (
-        button
+        <HockeyButton
+          view="outlined"
+          size="s"
+          onClick={onClick}
+          data-testid={testId(testIdPrefix, testIdSection, 'btn', 'back')}
+        >
+          {label}
+        </HockeyButton>
       )}
     </div>
   )

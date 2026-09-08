@@ -47,13 +47,15 @@ export function PlayersPage() {
 
   const isFiltered = hasActiveFilters(filters)
   const showProgress = isFetching && !isPending
-
   const handleResetFilters = () => {
     setFilters(EMPTY_FILTERS)
   }
 
   const activeCount = useMemo(
-    () => Object.values(filters).filter((v) => v !== undefined && v !== '' && v !== false).length,
+    () =>
+      Object.entries(filters).filter(
+        ([key, value]) => key !== 'q' && value !== undefined && value !== '' && value !== false,
+      ).length,
     [filters],
   )
 
@@ -71,7 +73,7 @@ export function PlayersPage() {
         onReset={handleResetFilters}
         activeCount={activeCount}
         resultsCount={players.length}
-        resultsPending={showProgress}
+        resultsPending={isFetching}
       />
 
       {isPending && (

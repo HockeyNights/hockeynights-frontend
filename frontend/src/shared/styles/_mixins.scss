@@ -64,3 +64,33 @@
     }
   }
 }
+
+/** Радиусы карточек и полей внутри hub — без переопределения шкалы Gravity. */
+@mixin hub-surface-radius($radius) {
+  .ice-card,
+  .g-text-input__content,
+  .g-text-input__control,
+  .g-text-area__content,
+  .g-text-area__control,
+  .g-select-control,
+  .g-select-control__button {
+    border-radius: $radius;
+  }
+}
+
+/**
+ * Кнопки hub наследуют `size` Gravity (`--g-button-height` на самом контроле).
+ * Высоту не форсируем: иначе `s` и `xl` схлопываются в один фолбэк.
+ */
+@mixin hub-hockey-button($radius) {
+  .hockey-button,
+  a.hockey-button {
+    --g-button-border-radius: #{$radius};
+    border-radius: $radius !important;
+    box-sizing: border-box;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: middle;
+  }
+}

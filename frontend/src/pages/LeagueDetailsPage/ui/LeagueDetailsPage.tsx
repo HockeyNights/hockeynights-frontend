@@ -6,7 +6,7 @@
 
 import {Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {Link, useParams} from 'react-router'
+import {useParams} from 'react-router'
 
 import {fetchLeague, fetchLeagueSchedule, fetchLeagueStandings} from '@/entities/league'
 import {LeagueProfilePanel, LeagueSchedule, LeagueStandings} from '@/features/leagues'
@@ -15,7 +15,6 @@ import {LEAGUES_LABEL} from '@/shared/config/navigationLabels'
 import {routes} from '@/shared/const/appRoutes'
 import {useDocumentTitle} from '@/shared/hooks/useDocumentTitle'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
 import {PageBackLink} from '@/shared/ui/PageBackLink'
 import {PageHeader} from '@/shared/ui/PageHeader'
@@ -92,20 +91,6 @@ export function LeagueDetailsPage() {
           copy="Вернитесь к каталогу и выберите лигу из списка."
           testIdPrefix="leagues"
           data-testid={testId('leagues', 'details', 'empty')}
-          action={
-            <Link
-              to={routes.leagues}
-              data-testid={testId('leagues', 'details', 'link', 'back-empty')}
-            >
-              <HockeyButton
-                view="outlined"
-                size="s"
-                data-testid={testId('leagues', 'details', 'btn', 'back-empty')}
-              >
-                К лигам
-              </HockeyButton>
-            </Link>
-          }
         />
       </PageHub>
     )
