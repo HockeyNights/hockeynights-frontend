@@ -6,7 +6,7 @@
 
 import {Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {Link, useParams} from 'react-router'
+import {useParams} from 'react-router'
 
 import {fetchLeague, fetchLeagueSchedule, fetchLeagueStandings} from '@/entities/league'
 import {LeagueProfilePanel, LeagueSchedule, LeagueStandings} from '@/features/leagues'
@@ -15,9 +15,11 @@ import {LEAGUES_LABEL} from '@/shared/config/navigationLabels'
 import {routes} from '@/shared/const/appRoutes'
 import {useDocumentTitle} from '@/shared/hooks/useDocumentTitle'
 import {testId} from '@/shared/testing/testId'
-import {EmptyNetState} from '@/shared/ui/EmptyNetState'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
+import {PageBackLink} from '@/shared/ui/PageBackLink'
+import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
+import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 import {SourceMetaBadge} from '@/shared/ui/SourceMetaBadge'
@@ -56,66 +58,66 @@ export function LeagueDetailsPage() {
 
   if (isLoading) {
     return (
-      <div data-testid={testId('leagues', 'details', 'loader')}>
+      <PageHub data-testid={testId('leagues', 'details', 'loader')}>
         <ScoreboardLoader label="Загрузка лиги..." />
-      </div>
+      </PageHub>
     )
   }
 
   if (error && !isNotFoundError(error)) {
     return (
-      <QueryErrorState
-        title="Не удалось загрузить лигу"
-        onRetry={() => void refetch()}
-        testIdPrefix="leagues"
-        data-testid={testId('leagues', 'details', 'error')}
-      />
+      <PageHub>
+        <QueryErrorState
+          title="Не удалось загрузить лигу"
+          onRetry={() => void refetch()}
+          testIdPrefix="leagues"
+          data-testid={testId('leagues', 'details', 'error')}
+        />
+      </PageHub>
     )
   }
 
   if (!league) {
     return (
-      <div
-        className="hockey-stack hockey-stack--gap-12"
-        data-testid={testId('leagues', 'details', 'empty')}
-      >
-        <EmptyNetState
+      <PageHub>
+        <PageBackLink
+          to={routes.leagues}
+          label="К каталогу лиг"
+          testIdPrefix="leagues"
+          testIdSection="details"
+        />
+        <PageStatePanel
           title="Лига не найдена"
           copy="Вернитесь к каталогу и выберите лигу из списка."
+          testIdPrefix="leagues"
+          data-testid={testId('leagues', 'details', 'empty')}
         />
-        <Link to={routes.leagues} data-testid={testId('leagues', 'details', 'link', 'back-empty')}>
-          <HockeyButton
-            view="flat"
-            size="m"
-            data-testid={testId('leagues', 'details', 'btn', 'back-empty')}
-          >
-            К лигам
-          </HockeyButton>
-        </Link>
-      </div>
+      </PageHub>
     )
   }
 
   return (
-    <div
-      className="league-details-page hockey-stack hockey-stack--gap-16"
-      data-testid={testId('leagues', 'details', 'page', league.id)}
-    >
-      <div className="league-details-page__toolbar">
-        <Link to={routes.leagues} data-testid={testId('leagues', 'details', 'link', 'back')}>
-          <HockeyButton
-            view="flat"
-            size="s"
-            data-testid={testId('leagues', 'details', 'btn', 'back')}
-          >
-            ← К каталогу лиг
-          </HockeyButton>
-        </Link>
-      </div>
+    <PageHub data-testid={testId('leagues', 'details', 'page', league.id)}>
+      <PageBackLink
+        to={routes.leagues}
+        label="К каталогу лиг"
+        testIdPrefix="leagues"
+        testIdSection="details"
+      />
+
+      <PageHeader
+        title={league.name}
+        subtitle={league.region}
+        testIdPrefix="leagues"
+        testIdSection="details"
+      />
 
       <LeagueProfilePanel league={league} />
 
-      <div data-testid={testId('leagues', 'details', 'card', 'stats', league.id)}>
+      <div
+        className="page-hub__panel"
+        data-testid={testId('leagues', 'details', 'card', 'stats', league.id)}
+      >
         <IceCard padding="m">
           <div className="hockey-row hockey-row--gap-12 hockey-row--between hockey-mb-16">
             <div>
@@ -156,6 +158,6 @@ export function LeagueDetailsPage() {
           </div>
         </IceCard>
       </div>
-    </div>
+    </PageHub>
   )
 }

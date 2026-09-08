@@ -6,31 +6,26 @@
 import {screen, waitFor, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {delay, http, HttpResponse} from 'msw'
-import {beforeEach, describe, expect, it, vi} from 'vitest'
+import {beforeEach, describe, expect, it} from 'vitest'
 
 import {PlayersPage} from '@/pages/PlayersPage'
 import {clearTestStorage} from '@/test/clearTestStorage'
 import {server} from '@/test/msw-server'
 import {renderWithProviders} from '@/test/render'
 
-function mockMatchMedia(matchesMobile: boolean) {
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: vi.fn().mockImplementation((query: string) => ({
-      matches: matchesMobile && query === '(max-width: 768px)',
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  })
+/** Расширенные фильтры в CatalogFilterBar на mobile (jsdom matchMedia) свёрнуты. */
+async function openAdvancedFilters() {
+  const user = userEvent.setup()
+  const toggle = await screen.findByTestId('players-player-filters-btn-filters-toggle')
+  if (toggle.getAttribute('aria-expanded') === 'false') {
+    await user.click(toggle)
+  }
+  return screen.getByTestId('players-player-filters-grid-filters')
 }
 
 async function selectOption(testIdValue: string, optionLabel: string) {
   const user = userEvent.setup()
+  await openAdvancedFilters()
   await user.click(screen.getByTestId(testIdValue))
   const option = await screen.findByRole('option', {name: optionLabel})
   await user.click(option)
@@ -39,18 +34,18 @@ async function selectOption(testIdValue: string, optionLabel: string) {
 describe('PlayersPage filters', () => {
   beforeEach(() => {
     clearTestStorage()
-    mockMatchMedia(false)
   })
 
   it('отображает панель фильтров со всеми полями HOCFRONT-20', async () => {
     renderWithProviders(<PlayersPage />)
 
     await waitFor(() => {
-      expect(screen.getByTestId('players-player-filters-panel')).toBeInTheDocument()
+      expect(screen.getByTestId('players-player-filters-panel-filters')).toBeInTheDocument()
     })
 
-    const form = screen.getByTestId('players-player-filters-form')
-    expect(within(form).getByLabelText('Имя')).toBeInTheDocument()
+    expect(screen.getByLabelText('Поиск игроков')).toBeInTheDocument()
+
+    const form = await openAdvancedFilters()
     expect(within(form).getByText('Амплуа')).toBeInTheDocument()
     expect(within(form).getByText('Уровень')).toBeInTheDocument()
     expect(within(form).getByLabelText('Район')).toBeInTheDocument()
@@ -60,7 +55,7 @@ describe('PlayersPage filters', () => {
     expect(within(form).getByText('Только вратари')).toBeInTheDocument()
   })
 
-  it('фильтрует по имени и отображает кнопку сброса', async () => {
+  it('фильтрует по имени; поиск не считает фильтром', async () => {
     const user = userEvent.setup()
     renderWithProviders(<PlayersPage />)
 
@@ -68,8 +63,7 @@ describe('PlayersPage filters', () => {
       expect(screen.getByText('Лебедев Артур Олегович')).toBeInTheDocument()
     })
 
-    const nameField = screen.getByLabelText('Имя')
-    await user.type(nameField, 'Артур')
+    await user.type(screen.getByLabelText('Поиск игроков'), 'Артур')
 
     await waitFor(
       () => {
@@ -79,10 +73,9 @@ describe('PlayersPage filters', () => {
       {timeout: 3000},
     )
 
-    const resetButton = await screen.findByTestId('players-player-filters-btn-reset')
-    expect(resetButton).toBeInTheDocument()
+    expect(screen.queryByTestId('players-player-filters-btn-reset-filters')).not.toBeInTheDocument()
 
-    await user.click(resetButton)
+    await user.clear(screen.getByLabelText('Поиск игроков'))
 
     await waitFor(() => {
       expect(screen.getByText('Смирнов Алексей Дмитриевич')).toBeInTheDocument()
@@ -98,13 +91,29 @@ describe('PlayersPage filters', () => {
       expect(screen.getByText('Волков Сергей Николаевич')).toBeInTheDocument()
     })
 
-    const verifiedCheckbox = screen.getByLabelText('Только подтверждённые')
-    await user.click(verifiedCheckbox)
+    await openAdvancedFilters()
+    await user.click(screen.getByLabelText('Только подтверждённые'))
 
     await waitFor(() => {
       expect(screen.queryByText('Волков Сергей Николаевич')).not.toBeInTheDocument()
       expect(screen.getByText('Смирнов Алексей Дмитриевич')).toBeInTheDocument()
       expect(screen.getByText('Лебедев Артур Олегович')).toBeInTheDocument()
+    })
+  })
+
+  it('фильтрует по амплуа быстрым chip', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<PlayersPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Смирнов Алексей Дмитриевич')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByTestId('players-player-filters-btn-chip-goalie'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('players-player-filters-btn-chip-goalie')).toHaveClass('is-active')
+      expect(screen.queryByText('Козлов Дмитрий Александрович')).not.toBeInTheDocument()
     })
   })
 
@@ -116,21 +125,26 @@ describe('PlayersPage filters', () => {
       expect(screen.getByText('Смирнов Алексей Дмитриевич')).toBeInTheDocument()
     })
 
+    await openAdvancedFilters()
     const verifiedCheckbox = screen.getByLabelText('Только подтверждённые')
     await user.click(verifiedCheckbox)
 
     await waitFor(() => {
-      expect(screen.getByTestId('players-players-page-text-active-count')).toHaveTextContent(
-        'Активных фильтров: 1',
+      expect(screen.getByTestId('players-player-filters-text-active-filters')).toHaveTextContent(
+        'Фильтров: 1',
       )
-      expect(screen.getByTestId('players-player-filters-btn-reset')).toBeInTheDocument()
+      expect(screen.getByTestId('players-player-filters-btn-reset-filters')).toBeInTheDocument()
     })
 
     await user.click(verifiedCheckbox)
 
     await waitFor(() => {
-      expect(screen.queryByTestId('players-players-page-text-active-count')).not.toBeInTheDocument()
-      expect(screen.queryByTestId('players-player-filters-btn-reset')).not.toBeInTheDocument()
+      expect(
+        screen.queryByTestId('players-player-filters-text-active-filters'),
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByTestId('players-player-filters-btn-reset-filters'),
+      ).not.toBeInTheDocument()
     })
   })
 
@@ -184,20 +198,25 @@ describe('PlayersPage filters', () => {
     })
   })
 
-  it('на mobile сворачивает фильтры и поддерживает aria-expanded', async () => {
-    mockMatchMedia(true)
+  it('сворачивает расширенные фильтры и поддерживает aria-expanded', async () => {
     const user = userEvent.setup()
     renderWithProviders(<PlayersPage />)
 
-    const toggle = await screen.findByTestId('players-player-filters-btn-toggle')
+    const toggle = await screen.findByTestId('players-player-filters-btn-filters-toggle')
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(toggle).toHaveAttribute('aria-controls')
-    expect(screen.queryByTestId('players-player-filters-form')).not.toBeInTheDocument()
+    const panel = screen.getByTestId('players-player-filters-grid-filters')
+    expect(panel).not.toBeVisible()
 
     await user.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByTestId('players-player-filters-form')).toBeInTheDocument()
+    expect(panel).toBeVisible()
+
+    await user.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(panel).not.toBeVisible()
   })
 
   it('показывает индикатор загрузки при refetch со stale-данными', async () => {
@@ -229,8 +248,7 @@ describe('PlayersPage filters', () => {
       }),
     )
 
-    const nameField = screen.getByLabelText('Имя')
-    await user.type(nameField, 'Артур')
+    await user.type(screen.getByLabelText('Поиск игроков'), 'Артур')
 
     await waitFor(
       () => {
@@ -259,8 +277,7 @@ describe('PlayersPage filters', () => {
       expect(screen.getByText('Игроки')).toBeInTheDocument()
     })
 
-    const nameField = screen.getByLabelText('Имя')
-    await user.type(nameField, 'НесуществующийИгрок')
+    await user.type(screen.getByLabelText('Поиск игроков'), 'НесуществующийИгрок')
 
     const emptyState = await screen.findByTestId('players-players-page-empty', {}, {timeout: 3000})
     expect(within(emptyState).getByText('Пустая сетка')).toBeInTheDocument()

@@ -10,6 +10,7 @@ import {AdminEntityForm, PartnerModerationPanel, SourceStatusTable} from '@/feat
 import {testId} from '@/shared/testing/testId'
 import {IceCard} from '@/shared/ui/IceCard'
 import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
 import {QueryState} from '@/shared/ui/QueryState'
 
 /**
@@ -28,10 +29,7 @@ export function AdminDashboard() {
   })
 
   return (
-    <div
-      className="hockey-stack hockey-stack--gap-20"
-      data-testid={testId('admin', 'dashboard', 'page')}
-    >
+    <PageHub data-testid={testId('admin', 'dashboard', 'page')}>
       <PageHeader
         title="Админка справочников"
         subtitle="Prototype для ручного управления аренами, лигами и магазинами."
@@ -77,6 +75,6 @@ export function AdminDashboard() {
       >
         <SourceStatusTable items={sources} />
       </QueryState>
-    </div>
+    </PageHub>
   )
 }

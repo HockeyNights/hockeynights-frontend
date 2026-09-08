@@ -24,9 +24,12 @@ import {isNotFoundError} from '@/shared/api/client'
 import {LAUNCH_REGION} from '@/shared/config/geo'
 import {routes} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
-import {EmptyNetState} from '@/shared/ui/EmptyNetState'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
+import {PageBackLink} from '@/shared/ui/PageBackLink'
+import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
+import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 
@@ -58,31 +61,41 @@ export function TrainingDetailsPage() {
 
   if (isLoading) {
     return (
-      <div data-testid={testId('events', 'training-page', 'loader')}>
+      <PageHub data-testid={testId('events', 'training-page', 'loader')}>
         <ScoreboardLoader label="Загрузка тренировки..." />
-      </div>
+      </PageHub>
     )
   }
 
   if (error && !isNotFoundError(error)) {
     return (
-      <QueryErrorState
-        title="Не удалось загрузить тренировку"
-        onRetry={() => void refetch()}
-        testIdPrefix="events"
-        data-testid={testId('events', 'training-page', 'error')}
-      />
+      <PageHub>
+        <QueryErrorState
+          title="Не удалось загрузить тренировку"
+          onRetry={() => void refetch()}
+          testIdPrefix="events"
+          data-testid={testId('events', 'training-page', 'error')}
+        />
+      </PageHub>
     )
   }
 
   if (!event || event.type !== 'training') {
     return (
-      <div data-testid={testId('events', 'training-page', 'empty')}>
-        <EmptyNetState
+      <PageHub>
+        <PageBackLink
+          to={routes.events}
+          label="К списку тренировок"
+          testIdPrefix="events"
+          testIdSection="training-page"
+        />
+        <PageStatePanel
           title="Тренировка не найдена"
           copy="Вернитесь к списку и выберите актуальную тренировку."
+          testIdPrefix="events"
+          data-testid={testId('events', 'training-page', 'empty')}
         />
-      </div>
+      </PageHub>
     )
   }
 
@@ -99,24 +112,19 @@ export function TrainingDetailsPage() {
     })
   ) {
     return (
-      <div data-testid={testId('events', 'training-page', 'error', 'access-denied')}>
-        <EmptyNetState
+      <PageHub data-testid={testId('events', 'training-page', 'error', 'access-denied')}>
+        <PageBackLink
+          to={routes.events}
+          label="К списку тренировок"
+          testIdPrefix="events"
+          testIdSection="training-page"
+        />
+        <PageStatePanel
           title="Нет доступа к тренировке"
           copy="Эта тренировка доступна только участникам клуба или приглашённым игрокам."
+          testIdPrefix="events"
         />
-        <Link
-          to="/events"
-          data-testid={testId('events', 'training-page', 'link', 'back-denied', event.id)}
-        >
-          <HockeyButton
-            view="flat"
-            size="m"
-            data-testid={testId('events', 'training-page', 'btn', 'back-denied', event.id)}
-          >
-            К списку тренировок
-          </HockeyButton>
-        </Link>
-      </div>
+      </PageHub>
     )
   }
 
@@ -134,227 +142,215 @@ export function TrainingDetailsPage() {
     canOrganizeEvents &&
     (event.organizerUserId === userId || roles.includes('admin') || roles.includes('club_admin'))
 
+  const scheduleSubtitle = `${start.toLocaleDateString('ru-RU')} · ${start.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})} – ${end.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})}`
+
   return (
-    <div
-      className="hockey-stack hockey-stack--gap-16"
-      data-testid={testId('events', 'training-page', 'page', event.id)}
-    >
-      <div className="hockey-row hockey-row--between hockey-row--align-center hockey-row--wrap">
-        <Text
-          variant="header-1"
-          data-testid={testId('events', 'training-page', 'text', 'title', event.id)}
-        >
-          {event.title}
-        </Text>
-        <div className="hockey-row hockey-row--gap-8 hockey-row--wrap">
-          {canEdit && (
-            <Link
-              to={`/events/trainings/${event.id}/edit`}
-              data-testid={testId('events', 'training-page', 'link', 'edit', event.id)}
-            >
-              <HockeyButton
-                view="outlined"
-                size="m"
-                data-testid={testId('events', 'training-page', 'btn', 'edit', event.id)}
-              >
-                Редактировать
-              </HockeyButton>
-            </Link>
-          )}
-          <Link
-            to={routes.events}
-            data-testid={testId('events', 'training-page', 'link', 'back', event.id)}
-          >
+    <PageHub data-testid={testId('events', 'training-page', 'page', event.id)}>
+      <PageBackLink
+        to={routes.events}
+        label="К списку тренировок"
+        testIdPrefix="events"
+        testIdSection="training-page"
+      />
+
+      <PageHeader
+        title={event.title}
+        subtitle={`${accessLabel} · ${scheduleSubtitle}`}
+        testIdPrefix="events"
+        testIdSection="training-page"
+        actions={
+          canEdit ? (
             <HockeyButton
-              view="flat"
+              view="outlined"
               size="m"
-              data-testid={testId('events', 'training-page', 'btn', 'back', event.id)}
+              component={Link}
+              to={`/events/trainings/${event.id}/edit`}
+              data-testid={testId('events', 'training-page', 'btn', 'edit', event.id)}
             >
-              К списку тренировок
+              Редактировать
             </HockeyButton>
-          </Link>
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
-      <IceCard padding="m">
-        <div
-          className="hockey-stack hockey-stack--gap-10"
-          data-testid={testId('events', 'training-page', 'panel', 'meta', event.id)}
-        >
-          <Text
-            variant="subheader-2"
-            data-testid={testId('events', 'training-page', 'text', 'access', event.id)}
+      <div className="page-hub__panel">
+        <IceCard padding="m">
+          <div
+            className="hockey-stack hockey-stack--gap-10"
+            data-testid={testId('events', 'training-page', 'panel', 'meta', event.id)}
           >
-            {accessLabel}
-          </Text>
-          <Text data-testid={testId('events', 'training-page', 'text', 'schedule', event.id)}>
-            {start.toLocaleDateString('ru-RU')} ·{' '}
-            {start.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})}
-            {' - '}
-            {end.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})}
-          </Text>
-          <Text data-testid={testId('events', 'training-page', 'text', 'arena', event.id)}>
-            Арена:{' '}
-            <Link
-              to={`/arenas/${event.arenaId}`}
-              data-testid={testId('events', 'training-page', 'link', 'arena', event.id)}
-            >
-              {event.arenaName ?? event.arenaId}
-            </Link>
-          </Text>
-          <Text data-testid={testId('events', 'training-page', 'text', 'price', event.id)}>
-            Стоимость: {formatEventPriceRub(event.pricePerPlayer)}
-          </Text>
-          <Text data-testid={testId('events', 'training-page', 'text', 'seats', event.id)}>
-            Свободные места: {seats.open} из {seats.total}
-          </Text>
-          <Text
-            data-testid={testId('events', 'training-page', 'text', 'registration-status', event.id)}
-          >
-            Статус набора:{' '}
-            {event.registrationStatus === 'full' ? 'Состав укомплектован' : 'Открыт для записи'}
-          </Text>
-          <Text
-            color="secondary"
-            data-testid={testId('events', 'training-page', 'text', 'region', event.id)}
-          >
-            Регион: {LAUNCH_REGION}
-            {event.district ? ` · ${event.district}` : ''}
-          </Text>
-          {event.trainingFormat && (
             <Text
-              color="secondary"
-              data-testid={testId('events', 'training-page', 'text', 'format', event.id)}
+              variant="subheader-2"
+              data-testid={testId('events', 'training-page', 'text', 'meta-title', event.id)}
             >
-              Формат: {TRAINING_FORMAT_LABELS[event.trainingFormat]}
+              Детали тренировки
             </Text>
-          )}
-          <Text
-            color="secondary"
-            data-testid={testId('events', 'training-page', 'text', 'level', event.id)}
-          >
-            Рекомендованный уровень: {SKILL_LEVEL_LABELS[event.requiredSkillLevel]}
-          </Text>
-          <Text
-            color="secondary"
-            data-testid={testId('events', 'training-page', 'text', 'organizer', event.id)}
-          >
-            Организатор: {organizerName}
-          </Text>
-          {allowedUsers?.length ? (
-            <Text
-              color="secondary"
-              data-testid={testId('events', 'training-page', 'text', 'allowed-users', event.id)}
-            >
-              Доступ ограничен списком: {allowedUsers.join(', ')}
+            <Text data-testid={testId('events', 'training-page', 'text', 'arena', event.id)}>
+              Арена:{' '}
+              <Link
+                to={`/arenas/${event.arenaId}`}
+                data-testid={testId('events', 'training-page', 'link', 'arena', event.id)}
+              >
+                {event.arenaName ?? event.arenaId}
+              </Link>
             </Text>
-          ) : null}
-        </div>
-      </IceCard>
-
-      <IceCard padding="m">
-        <div
-          className="hockey-stack hockey-stack--gap-8"
-          data-testid={testId('events', 'training-page', 'panel', 'slots', event.id)}
-        >
-          <Text
-            variant="subheader-2"
-            data-testid={testId('events', 'training-page', 'text', 'slots-title', event.id)}
-          >
-            Слоты и укомплектованность
-          </Text>
-          {event.requiredSlots.map((slot) => (
+            <Text data-testid={testId('events', 'training-page', 'text', 'price', event.id)}>
+              Стоимость: {formatEventPriceRub(event.pricePerPlayer)}
+            </Text>
+            <Text data-testid={testId('events', 'training-page', 'text', 'seats', event.id)}>
+              Свободные места: {seats.open} из {seats.total}
+            </Text>
             <Text
-              key={slot.position}
               data-testid={testId(
                 'events',
                 'training-page',
                 'text',
-                'slot',
+                'registration-status',
                 event.id,
-                slot.position,
               )}
             >
-              {POSITION_LABELS[slot.position]}: {slot.filledCount}/{slot.count}
+              Статус набора:{' '}
+              {event.registrationStatus === 'full' ? 'Состав укомплектован' : 'Открыт для записи'}
             </Text>
-          ))}
-        </div>
-      </IceCard>
-
-      <IceCard padding="m">
-        <div
-          className="hockey-stack hockey-stack--gap-10"
-          data-testid={testId('events', 'training-page', 'panel', 'contacts', event.id)}
-        >
-          <Text
-            variant="subheader-2"
-            data-testid={testId('events', 'training-page', 'text', 'contacts-title', event.id)}
-          >
-            Контакты организатора
-          </Text>
-          <Text data-testid={testId('events', 'training-page', 'text', 'owner', event.id)}>
-            {organizerName}
-          </Text>
-          <div className="training-details__contacts-actions">
-            <Link
-              to={`/messenger?userId=${event.organizerUserId}`}
-              className="training-details__contact-action"
-              data-testid={testId('events', 'training-page', 'link', 'messenger', event.id)}
+            <Text
+              color="secondary"
+              data-testid={testId('events', 'training-page', 'text', 'region', event.id)}
             >
+              Регион: {LAUNCH_REGION}
+              {event.district ? ` · ${event.district}` : ''}
+            </Text>
+            {event.trainingFormat && (
+              <Text
+                color="secondary"
+                data-testid={testId('events', 'training-page', 'text', 'format', event.id)}
+              >
+                Формат: {TRAINING_FORMAT_LABELS[event.trainingFormat]}
+              </Text>
+            )}
+            <Text
+              color="secondary"
+              data-testid={testId('events', 'training-page', 'text', 'level', event.id)}
+            >
+              Рекомендованный уровень: {SKILL_LEVEL_LABELS[event.requiredSkillLevel]}
+            </Text>
+            <Text
+              color="secondary"
+              data-testid={testId('events', 'training-page', 'text', 'organizer', event.id)}
+            >
+              Организатор: {organizerName}
+            </Text>
+            {allowedUsers?.length ? (
+              <Text
+                color="secondary"
+                data-testid={testId('events', 'training-page', 'text', 'allowed-users', event.id)}
+              >
+                Доступ ограничен списком: {allowedUsers.join(', ')}
+              </Text>
+            ) : null}
+          </div>
+        </IceCard>
+
+        <IceCard padding="m">
+          <div
+            className="hockey-stack hockey-stack--gap-8"
+            data-testid={testId('events', 'training-page', 'panel', 'slots', event.id)}
+          >
+            <Text
+              variant="subheader-2"
+              data-testid={testId('events', 'training-page', 'text', 'slots-title', event.id)}
+            >
+              Слоты и укомплектованность
+            </Text>
+            {event.requiredSlots.map((slot) => (
+              <Text
+                key={slot.position}
+                data-testid={testId(
+                  'events',
+                  'training-page',
+                  'text',
+                  'slot',
+                  event.id,
+                  slot.position,
+                )}
+              >
+                {POSITION_LABELS[slot.position]}: {slot.filledCount}/{slot.count}
+              </Text>
+            ))}
+          </div>
+        </IceCard>
+
+        <IceCard padding="m">
+          <div
+            className="hockey-stack hockey-stack--gap-10"
+            data-testid={testId('events', 'training-page', 'panel', 'contacts', event.id)}
+          >
+            <Text
+              variant="subheader-2"
+              data-testid={testId('events', 'training-page', 'text', 'contacts-title', event.id)}
+            >
+              Контакты организатора
+            </Text>
+            <Text data-testid={testId('events', 'training-page', 'text', 'owner', event.id)}>
+              {organizerName}
+            </Text>
+            <div className="page-hub__actions">
               <HockeyButton
                 view="outlined"
                 size="m"
+                component={Link}
+                to={`/messenger?userId=${event.organizerUserId}`}
                 data-testid={testId('events', 'training-page', 'btn', 'messenger', event.id)}
               >
                 Связаться в мессенджере
               </HockeyButton>
-            </Link>
-            {contactPhone ? (
-              <a
-                href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`}
-                className="training-details__contact-action"
-                data-testid={testId('events', 'training-page', 'link', 'phone', event.id)}
-              >
+              {contactPhone ? (
                 <HockeyButton
                   view="outlined"
                   size="m"
+                  href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`}
                   data-testid={testId('events', 'training-page', 'btn', 'phone', event.id)}
                 >
                   {contactPhone}
                 </HockeyButton>
-              </a>
-            ) : null}
-            <HockeyButton
-              view="action"
-              size="m"
-              disabled
-              data-testid={testId('events', 'training-page', 'btn', 'prepay', event.id)}
-            >
-              Внести предоплату (скоро)
-            </HockeyButton>
+              ) : null}
+              <HockeyButton
+                view="action"
+                size="m"
+                disabled
+                data-testid={testId('events', 'training-page', 'btn', 'prepay', event.id)}
+              >
+                Внести предоплату (скоро)
+              </HockeyButton>
+            </div>
           </div>
-        </div>
-      </IceCard>
+        </IceCard>
 
-      <IceCard padding="m">
-        <div
-          className="hockey-stack hockey-stack--gap-8"
-          data-testid={testId('events', 'training-page', 'panel', 'registration', event.id)}
-        >
-          <Text
-            variant="subheader-2"
-            data-testid={testId('events', 'training-page', 'text', 'registration-title', event.id)}
+        <IceCard padding="m">
+          <div
+            className="hockey-stack hockey-stack--gap-8"
+            data-testid={testId('events', 'training-page', 'panel', 'registration', event.id)}
           >
-            Запись на тренировку
-          </Text>
-          <TrainingRegistrationControl
-            eventId={event.id}
-            currentStatus={currentStatus}
-            registrationStatus={event.registrationStatus}
-            currentUserId={userId}
-          />
-        </div>
-      </IceCard>
-    </div>
+            <Text
+              variant="subheader-2"
+              data-testid={testId(
+                'events',
+                'training-page',
+                'text',
+                'registration-title',
+                event.id,
+              )}
+            >
+              Запись на тренировку
+            </Text>
+            <TrainingRegistrationControl
+              eventId={event.id}
+              currentStatus={currentStatus}
+              registrationStatus={event.registrationStatus}
+              currentUserId={userId}
+            />
+          </div>
+        </IceCard>
+      </div>
+    </PageHub>
   )
 }

@@ -30,6 +30,7 @@ import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
 import {IceSkeleton} from '@/shared/ui/IceSkeleton'
 import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 import {ScrollReveal} from '@/shared/ui/ScrollStory'
@@ -186,7 +187,7 @@ export function ArenasPage() {
   const showProgress = isFetching && !isPending
 
   return (
-    <div className="arenas-page" data-testid={testId('arenas', 'page')}>
+    <PageHub className="arenas-page" data-testid={testId('arenas', 'page')}>
       <div
         className={`arenas-page__progress${showProgress ? ' arenas-page__progress--active' : ''}`}
         aria-hidden
@@ -208,6 +209,8 @@ export function ArenasPage() {
         onReset={handleResetFilters}
         view={view}
         onViewChange={handleViewChange}
+        resultsCount={arenas.length}
+        resultsPending={isFetching}
       />
 
       {isPending && (
@@ -328,6 +331,6 @@ export function ArenasPage() {
           )}
         </div>
       )}
-    </div>
+    </PageHub>
   )
 }

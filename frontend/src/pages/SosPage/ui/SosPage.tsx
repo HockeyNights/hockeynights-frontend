@@ -9,13 +9,14 @@ import {SosFeed, SosRequestForm} from '@/features/sos'
 import {testId} from '@/shared/testing/testId'
 import {IceCard} from '@/shared/ui/IceCard'
 import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
 
 /**
  * @spec SPEC-FR-5.1.1 - Страница Goalkeeper SOS
  */
 export function SosPage() {
   return (
-    <div className="hockey-stack hockey-stack--gap-20" data-testid={testId('sos', 'page', 'page')}>
+    <PageHub data-testid={testId('sos', 'page', 'page')}>
       <PageHeader
         title="Goalkeeper SOS"
         subtitle="Срочный поиск вратаря на игру или тренировку — запрос уходит в ленту и уведомления."
@@ -42,6 +43,6 @@ export function SosPage() {
           </IceCard>
         </div>
       </div>
-    </div>
+    </PageHub>
   )
 }

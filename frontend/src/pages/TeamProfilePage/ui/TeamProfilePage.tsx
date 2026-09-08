@@ -22,6 +22,9 @@ import {routes} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
+import {PageBackLink} from '@/shared/ui/PageBackLink'
+import {PageHub} from '@/shared/ui/PageHub'
+import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 
@@ -69,40 +72,42 @@ export function TeamProfilePage() {
 
   if (teamLoading) {
     return (
-      <div data-testid={testId('teams', 'profile', 'loader')}>
+      <PageHub data-testid={testId('teams', 'profile', 'loader')}>
         <ScoreboardLoader label="Загрузка профиля команды" />
-      </div>
+      </PageHub>
     )
   }
 
   // Сбой загрузки ≠ «команда не найдена»: предлагаем повторить
   if (teamError && !isNotFoundError(teamError)) {
     return (
-      <QueryErrorState
-        title="Не удалось загрузить профиль команды"
-        onRetry={() => void refetchTeam()}
-        testIdPrefix="teams"
-        data-testid={testId('teams', 'profile', 'error')}
-      />
+      <PageHub>
+        <QueryErrorState
+          title="Не удалось загрузить профиль команды"
+          onRetry={() => void refetchTeam()}
+          testIdPrefix="teams"
+          data-testid={testId('teams', 'profile', 'error')}
+        />
+      </PageHub>
     )
   }
 
   if (!team) {
     return (
-      <IceCard padding="m" data-testid={testId('teams', 'profile', 'card', 'not-found')}>
-        <Text data-testid={testId('teams', 'profile', 'text', 'not-found')}>
-          Команда не найдена
-        </Text>
-        <HockeyButton
-          view="outlined"
-          size="s"
-          className="hockey-mt-12"
+      <PageHub data-testid={testId('teams', 'profile', 'page', 'not-found')}>
+        <PageBackLink
+          label="Вернуться"
           onClick={handleBack}
-          data-testid={testId('teams', 'profile', 'btn', 'back-missing')}
-        >
-          Вернуться
-        </HockeyButton>
-      </IceCard>
+          testIdPrefix="teams"
+          testIdSection="profile"
+        />
+        <PageStatePanel
+          title="Команда не найдена"
+          copy="Вернитесь к каталогу и выберите команду из списка."
+          testIdPrefix="teams"
+          data-testid={testId('teams', 'profile', 'card', 'not-found')}
+        />
+      </PageHub>
     )
   }
 
@@ -114,20 +119,13 @@ export function TeamProfilePage() {
   const description = team.description || team.shortDescription
 
   return (
-    <div
-      className="team-profile hockey-stack hockey-stack--gap-20"
-      data-testid={testId('teams', 'profile', 'page', team.id)}
-    >
-      <div className="team-profile__toolbar">
-        <HockeyButton
-          view="outlined"
-          size="s"
-          onClick={handleBack}
-          data-testid={testId('teams', 'profile', 'btn', 'back', team.id)}
-        >
-          Вернуться
-        </HockeyButton>
-      </div>
+    <PageHub className="team-profile" data-testid={testId('teams', 'profile', 'page', team.id)}>
+      <PageBackLink
+        label="Вернуться"
+        onClick={handleBack}
+        testIdPrefix="teams"
+        testIdSection="profile"
+      />
 
       <section
         className="team-profile__hero"
@@ -432,6 +430,6 @@ export function TeamProfilePage() {
           </Accordion>
         </IceCard>
       </div>
-    </div>
+    </PageHub>
   )
 }

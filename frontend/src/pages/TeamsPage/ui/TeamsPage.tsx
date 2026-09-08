@@ -5,30 +5,36 @@
  * HOCFRONT-19 — FavoriteButton на TeamCard; deep-link /teams/:teamId
  */
 
-import {Text, TextInput} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 import {useMemo, useState} from 'react'
 import {Link} from 'react-router'
 
+import type {SkillLevel} from '@/entities/common'
 import {fetchTeams, type TeamsFilterParams} from '@/entities/team'
 import {useSessionAccess} from '@/features/access'
 import {TeamCard, TeamFilters} from '@/features/teams'
 import {routes} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
+import {CatalogFilterBar} from '@/shared/ui/CatalogFilterBar'
 import {EmptyNetState} from '@/shared/ui/EmptyNetState'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
-import {IceCard} from '@/shared/ui/IceCard'
 import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 import {ScrollReveal} from '@/shared/ui/ScrollStory'
 
 const EMPTY_FILTERS: TeamsFilterParams = {}
 
-function hasActiveFilters(filters: TeamsFilterParams): boolean {
-  return Object.entries(filters).some(
-    ([key, value]) => key !== 'q' && value !== undefined && value !== '',
-  )
+const SKILL_CHIPS: Array<{id: SkillLevel; label: string}> = [
+  {id: 'beginner', label: 'Дебютант'},
+  {id: 'amateur', label: 'Любитель'},
+  {id: 'advanced', label: 'Продвинутый'},
+  {id: 'league', label: 'Лига'},
+]
+
+function countActiveFilters(filters: TeamsFilterParams): number {
+  return Object.values(filters).filter((value) => value !== undefined && value !== '').length
 }
 
 /**
@@ -38,7 +44,6 @@ function hasActiveFilters(filters: TeamsFilterParams): boolean {
 export function TeamsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<TeamsFilterParams>(EMPTY_FILTERS)
-  const [isFiltersVisible, setIsFiltersVisible] = useState(true)
   const {teamPermissions} = useSessionAccess()
   const {canCreateTeam} = teamPermissions('player')
 
@@ -50,12 +55,13 @@ export function TeamsPage() {
     [filters, searchQuery],
   )
 
-  const filtersActive = useMemo(() => hasActiveFilters(filters), [filters])
-  const isFiltered = filtersActive || Boolean(searchQuery.trim())
+  const activeCount = countActiveFilters(filters)
+  const hasSearch = Boolean(searchQuery.trim())
 
   const {
     data: teams = [],
     isLoading,
+    isFetching,
     isError,
     refetch,
   } = useQuery({
@@ -64,7 +70,15 @@ export function TeamsPage() {
     placeholderData: (previous) => previous,
   })
 
-  const handleResetFilters = () => setFilters(EMPTY_FILTERS)
+  const skillChips = useMemo(
+    () =>
+      SKILL_CHIPS.map((chip) => ({
+        id: chip.id,
+        label: chip.label,
+        active: filters.skillLevel === chip.id,
+      })),
+    [filters.skillLevel],
+  )
 
   const handleResetAll = () => {
     setSearchQuery('')
@@ -72,10 +86,7 @@ export function TeamsPage() {
   }
 
   return (
-    <div
-      className="hockey-stack hockey-stack--gap-20"
-      data-testid={testId('teams', 'teams-page', 'page')}
-    >
+    <PageHub data-testid={testId('teams', 'teams-page', 'page')}>
       <PageHeader
         title="Команды"
         subtitle="Лента публичных команд: поиск, фильтры, профиль и чат в мессенджере."
@@ -99,56 +110,26 @@ export function TeamsPage() {
         }
       />
 
-      <IceCard padding="m" data-testid={testId('teams', 'teams-page', 'card', 'search')}>
-        <TextInput
-          size="xl"
-          placeholder="Поиск по названию или описанию команды"
-          value={searchQuery}
-          onUpdate={setSearchQuery}
-          data-testid={testId('teams', 'teams-page', 'field', 'search')}
-        />
-      </IceCard>
-
-      <div
-        className="hockey-stack hockey-stack--gap-10"
-        data-testid={testId('teams', 'teams-page', 'panel', 'filters')}
-      >
-        <div className="hockey-row hockey-row--between hockey-row--align-center">
-          <Text
-            variant="subheader-2"
-            data-testid={testId('teams', 'teams-page', 'text', 'filters-title')}
-          >
-            Фильтры
-          </Text>
-          <HockeyButton
-            view="outlined"
-            size="s"
-            onClick={() => setIsFiltersVisible((prev) => !prev)}
-            data-testid={testId('teams', 'teams-page', 'btn', 'filters-toggle')}
-          >
-            {isFiltersVisible ? 'Скрыть фильтры' : 'Показать фильтры'}
-          </HockeyButton>
-        </div>
-        {isFiltersVisible && (
-          <IceCard padding="m" data-testid={testId('teams', 'teams-page', 'card', 'filters')}>
-            <TeamFilters
-              filters={filters}
-              onChange={setFilters}
-              onReset={handleResetFilters}
-              isFiltered={filtersActive}
-            />
-          </IceCard>
-        )}
-      </div>
-
-      <div className="hockey-row hockey-row--between hockey-row--align-center">
-        <Text
-          color="secondary"
-          data-testid={testId('teams', 'teams-page', 'text', 'results-count')}
-        >
-          {isLoading ? 'Загрузка…' : isError ? 'Ошибка загрузки' : `Найдено: ${teams.length}`}
-        </Text>
-      </div>
+      <CatalogFilterBar
+        testIdPrefix="teams"
+        testIdSection="teams-page"
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Название или описание команды…"
+        searchLabel="Поиск команд"
+        chips={skillChips}
+        onChipToggle={(chipId) =>
+          setFilters((prev) => ({
+            ...prev,
+            skillLevel: prev.skillLevel === chipId ? undefined : (chipId as SkillLevel),
+          }))
+        }
+        activeCount={activeCount}
+        onReset={handleResetAll}
+        resultsCount={teams.length}
+        resultsPending={isFetching}
+        advanced={<TeamFilters filters={filters} onChange={setFilters} />}
+      />
 
       {isLoading && (
         <ScoreboardLoader
@@ -173,7 +154,7 @@ export function TeamsPage() {
           testIdPrefix="teams"
           data-testid={testId('teams', 'teams-page', 'empty')}
           action={
-            isFiltered ? (
+            activeCount > 0 || hasSearch ? (
               <HockeyButton
                 view="outlined"
                 size="s"
@@ -203,6 +184,6 @@ export function TeamsPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageHub>
   )
 }

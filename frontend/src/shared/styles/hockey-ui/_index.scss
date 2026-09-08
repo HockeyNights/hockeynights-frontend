@@ -1,7 +1,7 @@
+@forward 'page-hub';
 @forward 'components';
 @forward 'teams';
 @forward 'match-center';
-@forward 'events-catalog';
 @forward 'calendar';
 @forward 'standings';
 @forward 'loaders';
@@ -14,3 +14,5 @@
 @forward 'auth';
 @forward 'marketplace';
 @forward 'players';
+// Последним: высоты и радиусы контролов панели фильтров перекрывают локальные стили каталогов.
+@forward 'catalog-filters';

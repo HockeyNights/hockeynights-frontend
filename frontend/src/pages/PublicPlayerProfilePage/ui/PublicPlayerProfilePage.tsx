@@ -9,7 +9,7 @@
 
 import {Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {Link, useLocation, useNavigate, useParams} from 'react-router'
+import {useLocation, useNavigate, useParams} from 'react-router'
 
 import {fetchPublicPlayer} from '@/entities/profile'
 import {CalendarShell} from '@/features/calendar'
@@ -19,8 +19,10 @@ import {isNotFoundError} from '@/shared/api/client'
 import {routes} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
 import {EmptyNetState} from '@/shared/ui/EmptyNetState'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
+import {PageBackLink} from '@/shared/ui/PageBackLink'
+import {PageHub} from '@/shared/ui/PageHub'
+import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 import {PlayerCard} from '@/widgets/PlayerCard'
@@ -71,80 +73,53 @@ export function PublicPlayerProfilePage() {
 
   if (error || !data) {
     return (
-      <IceCard
-        padding="m"
-        data-testid={testId('players', 'public-player-profile', 'card', 'not-found')}
-      >
-        <Text data-testid={testId('players', 'public-player-profile', 'text', 'not-found')}>
-          Игрок не найден или профиль скрыт.
-        </Text>
-        <Link
+      <PageHub data-testid={testId('players', 'public-player-profile', 'card', 'not-found')}>
+        <PageBackLink
           to={routes.players}
-          data-testid={testId('players', 'public-player-profile', 'link', 'back')}
-        >
-          <HockeyButton
-            view="outlined"
-            className="hockey-mt-12"
-            data-testid={testId('players', 'public-player-profile', 'btn', 'back')}
-          >
-            К каталогу
-          </HockeyButton>
-        </Link>
-      </IceCard>
+          label="К каталогу"
+          testIdPrefix="players"
+          testIdSection="public-player-profile"
+        />
+        <PageStatePanel
+          title="Игрок не найден"
+          copy="Игрок не найден или профиль скрыт."
+          testIdPrefix="players"
+        />
+      </PageHub>
     )
   }
 
   if (data.visibility === 'hidden') {
     return (
-      <IceCard
-        padding="m"
-        data-testid={testId('players', 'public-player-profile', 'card', 'hidden')}
-      >
-        <Text
-          variant="header-1"
-          data-testid={testId('players', 'public-player-profile', 'text', 'hidden-title')}
-        >
-          Профиль скрыт
-        </Text>
-        <Text
-          color="secondary"
-          data-testid={testId('players', 'public-player-profile', 'text', 'hidden-copy')}
-        >
-          Игрок ограничил видимость Hockey ID.
-        </Text>
-        <Link
+      <PageHub data-testid={testId('players', 'public-player-profile', 'card', 'hidden')}>
+        <PageBackLink
           to={routes.players}
-          data-testid={testId('players', 'public-player-profile', 'link', 'back-hidden')}
-        >
-          <HockeyButton
-            view="outlined"
-            className="hockey-mt-12"
-            data-testid={testId('players', 'public-player-profile', 'btn', 'back-hidden')}
-          >
-            К каталогу
-          </HockeyButton>
-        </Link>
-      </IceCard>
+          label="К каталогу"
+          testIdPrefix="players"
+          testIdSection="public-player-profile"
+        />
+        <PageStatePanel
+          title="Профиль скрыт"
+          copy="Игрок ограничил видимость Hockey ID."
+          testIdPrefix="players"
+        />
+      </PageHub>
     )
   }
 
   const {player} = data
 
   return (
-    <div
-      className="hockey-stack hockey-stack--gap-16 player-profile-layout public-player-profile"
+    <PageHub
+      className="player-profile-layout public-player-profile"
       data-testid={testId('players', 'public-player-profile', 'page', player.userId)}
     >
-      <div className="public-player-profile__header">
-        <HockeyButton
-          view="outlined"
-          size="s"
-          onClick={handleBack}
-          data-testid={testId('players', 'public-player-profile', 'btn', 'back')}
-        >
-          Вернуться
-        </HockeyButton>
-      </div>
+      <PageBackLink
+        label="Вернуться"
+        onClick={handleBack}
+        testIdPrefix="players"
+        testIdSection="public-player-profile"
+      />
 
       <div
         className="player-profile-layout__grid"
@@ -211,6 +186,6 @@ export function PublicPlayerProfilePage() {
           />
         </div>
       </IceCard>
-    </div>
+    </PageHub>
   )
 }

@@ -3,23 +3,15 @@
  * HOCFRONT-20, HOCFRONT-23
  */
 
-import {ChevronDown, ChevronUp} from '@gravity-ui/icons'
-import {Button, Checkbox, Icon, Select, TextInput} from '@gravity-ui/uikit'
+import {Checkbox, Select, TextInput} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {useEffect, useId, useMemo, useState} from 'react'
+import {useMemo} from 'react'
 
 import type {PlayerPosition, SkillLevel} from '@/entities/common'
 import type {PlayersFilterParams} from '@/entities/profile'
 import {fetchTeams} from '@/entities/team'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
-
-const MOBILE_BREAKPOINT = '(max-width: 768px)'
-const NAME_SEARCH_DEBOUNCE_MS = 300
-
-function isMobileViewport(): boolean {
-  return typeof window !== 'undefined' && window.matchMedia(MOBILE_BREAKPOINT).matches
-}
+import {CatalogFilterBar} from '@/shared/ui/CatalogFilterBar'
 
 const POSITION_OPTIONS = [
   {value: '', content: 'Все амплуа'},
@@ -39,6 +31,15 @@ const SKILL_OPTIONS = [
   {value: 'master', content: 'Мастер'},
 ]
 
+type PlayerChipId = 'forward' | 'defense' | 'goalie' | 'verified'
+
+const PLAYER_CHIPS: Array<{id: PlayerChipId; label: string}> = [
+  {id: 'forward', label: 'Нападающие'},
+  {id: 'defense', label: 'Защитники'},
+  {id: 'goalie', label: 'Вратари'},
+  {id: 'verified', label: 'Подтверждённые'},
+]
+
 /** @spec HOCFRONT-20 - Props фильтров игроков */
 export interface PlayerFiltersProps {
   /** @spec HOCFRONT-20 */
@@ -47,51 +48,40 @@ export interface PlayerFiltersProps {
   onChange: (filters: PlayersFilterParams) => void
   /** @spec HOCFRONT-20 - Сбросить фильтры */
   onReset?: () => void
-  /** @spec HOCFRONT-20 - Есть ли активные значения */
-  isFiltered?: boolean
+  /** @spec HOCFRONT-20 - Количество активных значений */
+  activeCount?: number
+  resultsCount?: number
+  resultsPending?: boolean
+}
+
+function isChipActive(chipId: PlayerChipId, filters: PlayersFilterParams): boolean {
+  if (chipId === 'verified') return Boolean(filters.verified)
+  return filters.position === chipId
+}
+
+function toggleChip(chipId: PlayerChipId, filters: PlayersFilterParams): PlayersFilterParams {
+  if (chipId === 'verified') {
+    return {...filters, verified: filters.verified ? undefined : true}
+  }
+  return {
+    ...filters,
+    position: filters.position === chipId ? undefined : (chipId as PlayerPosition),
+  }
 }
 
 /**
  * @spec SPEC-FR-2.3.2 - Фильтры по амплуа, уровню, району и роли вратаря
  * @spec HOCFRONT-20 - Панель фильтров списка игроков: имя, амплуа, уровень, верификация, команда, город
  * @spec HOCFRONT-23 - Фильтр «только подтверждённые» (verified-only)
- * @spec HOCFRONT-20 - На mobile: сворачиваемые фильтры
  */
-export function PlayerFilters({filters, onChange, onReset, isFiltered}: PlayerFiltersProps) {
-  const filtersBodyId = useId()
-  const [isMobile, setIsMobile] = useState(isMobileViewport)
-  const [isExpanded, setIsExpanded] = useState(() => !isMobileViewport())
-  const [nameDraft, setNameDraft] = useState(filters.q ?? '')
-  const [syncedQuery, setSyncedQuery] = useState(filters.q)
-
-  if (filters.q !== syncedQuery) {
-    setSyncedQuery(filters.q)
-    setNameDraft(filters.q ?? '')
-  }
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mq = window.matchMedia(MOBILE_BREAKPOINT)
-    const update = () => {
-      const mobile = mq.matches
-      setIsMobile(mobile)
-      setIsExpanded(!mobile)
-    }
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
-
-  useEffect(() => {
-    const normalized = nameDraft.trim() || undefined
-    if (normalized === filters.q) return
-
-    const timer = window.setTimeout(() => {
-      onChange({...filters, q: normalized})
-    }, NAME_SEARCH_DEBOUNCE_MS)
-
-    return () => window.clearTimeout(timer)
-  }, [nameDraft, filters, onChange])
-
+export function PlayerFilters({
+  filters,
+  onChange,
+  onReset,
+  activeCount = 0,
+  resultsCount,
+  resultsPending,
+}: PlayerFiltersProps) {
   const {data: teams = []} = useQuery({queryKey: ['teams'], queryFn: () => fetchTeams()})
 
   const teamOptions = useMemo(
@@ -112,51 +102,32 @@ export function PlayerFilters({filters, onChange, onReset, isFiltered}: PlayerFi
     ]
   }, [teams])
 
-  const showCollapsibleBody = !isMobile || isExpanded
+  const chips = useMemo(
+    () =>
+      PLAYER_CHIPS.map((chip) => ({
+        id: chip.id,
+        label: chip.label,
+        active: isChipActive(chip.id, filters),
+      })),
+    [filters],
+  )
 
   return (
-    <div
-      className={`player-filters${isFiltered ? ' player-filters--active' : ''}`}
-      data-testid={testId('players', 'player-filters', 'panel')}
-    >
-      {isMobile && (
-        <div
-          className="player-filters__head"
-          data-testid={testId('players', 'player-filters', 'head')}
-        >
-          <span
-            className="player-filters__title"
-            data-testid={testId('players', 'player-filters', 'text', 'title')}
-          >
-            Фильтры
-          </span>
-          <Button
-            size="s"
-            view="outlined"
-            onClick={() => setIsExpanded((prev) => !prev)}
-            aria-expanded={isExpanded}
-            aria-controls={filtersBodyId}
-            data-testid={testId('players', 'player-filters', 'btn', 'toggle')}
-          >
-            <Icon data={isExpanded ? ChevronUp : ChevronDown} />
-            {isExpanded ? 'Скрыть' : 'Показать'}
-          </Button>
-        </div>
-      )}
-
-      {showCollapsibleBody && (
-        <div
-          id={filtersBodyId}
-          className="player-filters__body"
-          data-testid={testId('players', 'player-filters', 'form')}
-        >
-          <TextInput
-            label="Имя"
-            placeholder="Поиск по имени"
-            value={nameDraft}
-            onUpdate={setNameDraft}
-            data-testid={testId('players', 'player-filters', 'field', 'name')}
-          />
+    <CatalogFilterBar
+      testIdPrefix="players"
+      testIdSection="player-filters"
+      searchValue={filters.q ?? ''}
+      onSearchChange={(value) => onChange({...filters, q: value || undefined})}
+      searchPlaceholder="Имя или фамилия игрока…"
+      searchLabel="Поиск игроков"
+      chips={chips}
+      onChipToggle={(chipId) => onChange(toggleChip(chipId as PlayerChipId, filters))}
+      activeCount={activeCount}
+      onReset={onReset}
+      resultsCount={resultsCount}
+      resultsPending={resultsPending}
+      advanced={
+        <>
           <Select
             label="Амплуа"
             value={[filters.position ?? '']}
@@ -195,37 +166,28 @@ export function PlayerFilters({filters, onChange, onReset, isFiltered}: PlayerFi
             options={cityOptions}
             data-testid={testId('players', 'player-filters', 'select', 'city')}
           />
-          <span data-testid={testId('players', 'player-filters', 'checkbox', 'verified')}>
+          <div
+            className="catalog-filters__check"
+            data-testid={testId('players', 'player-filters', 'checkbox', 'verified')}
+          >
             <Checkbox
               checked={Boolean(filters.verified)}
               onUpdate={(checked) => onChange({...filters, verified: checked || undefined})}
               content="Только подтверждённые"
             />
-          </span>
-          <Checkbox
-            checked={Boolean(filters.goalieOnly)}
-            onUpdate={(checked) => onChange({...filters, goalieOnly: checked || undefined})}
-            content="Только вратари"
+          </div>
+          <div
+            className="catalog-filters__check"
             data-testid={testId('players', 'player-filters', 'checkbox', 'goalie-only')}
-          />
-        </div>
-      )}
-
-      {isFiltered && onReset && (
-        <div
-          className="player-filters__actions"
-          data-testid={testId('players', 'player-filters', 'actions')}
-        >
-          <HockeyButton
-            view="outlined"
-            size="s"
-            onClick={onReset}
-            data-testid={testId('players', 'player-filters', 'btn', 'reset')}
           >
-            Сбросить фильтры
-          </HockeyButton>
-        </div>
-      )}
-    </div>
+            <Checkbox
+              checked={Boolean(filters.goalieOnly)}
+              onUpdate={(checked) => onChange({...filters, goalieOnly: checked || undefined})}
+              content="Только вратари"
+            />
+          </div>
+        </>
+      }
+    />
   )
 }

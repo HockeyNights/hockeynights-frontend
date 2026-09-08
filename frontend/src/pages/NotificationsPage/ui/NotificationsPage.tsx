@@ -2,12 +2,12 @@
  * SPEC-FR-10.1.1, SPEC-FR-10.1.2
  */
 
-import {Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 
 import {fetchNotifications} from '@/entities/notification'
 import {testId} from '@/shared/testing/testId'
 import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
 import {QueryState} from '@/shared/ui/QueryState'
 import {NotificationCenter} from '@/widgets/NotificationCenter'
 
@@ -28,34 +28,29 @@ export function NotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.readAt).length
 
   return (
-    <div
-      className="hockey-stack hockey-stack--gap-20"
-      data-testid={testId('notifications', 'page', 'page')}
-    >
+    <PageHub data-testid={testId('notifications', 'page', 'page')}>
       <PageHeader
         title="Уведомления"
         testIdPrefix="notifications"
-        subtitle="Важные сигналы по SOS, составу и событиям"
+        subtitle={
+          unreadCount > 0
+            ? `Важные сигналы по SOS, составу и событиям · ${unreadCount} непрочитанных`
+            : 'Важные сигналы по SOS, составу и событиям'
+        }
       />
-      {!isLoading && !isError && unreadCount > 0 && (
-        <Text
-          color="secondary"
-          data-testid={testId('notifications', 'page', 'text', 'unread-count')}
-        >
-          Непрочитанных: {unreadCount}
-        </Text>
-      )}
 
-      <QueryState
-        isLoading={isLoading}
-        isError={isError}
-        loadingLabel="Загрузка уведомлений"
-        errorTitle="Не удалось загрузить уведомления"
-        onRetry={() => void refetch()}
-        testIdPrefix="notifications"
-      >
-        <NotificationCenter notifications={notifications} />
-      </QueryState>
-    </div>
+      <div className="page-hub__panel">
+        <QueryState
+          isLoading={isLoading}
+          isError={isError}
+          loadingLabel="Загрузка уведомлений"
+          errorTitle="Не удалось загрузить уведомления"
+          onRetry={() => void refetch()}
+          testIdPrefix="notifications"
+        >
+          <NotificationCenter notifications={notifications} />
+        </QueryState>
+      </div>
+    </PageHub>
   )
 }

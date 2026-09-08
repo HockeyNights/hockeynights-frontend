@@ -2,9 +2,9 @@
  * SPEC-FR-9.3.1
  */
 
-import {Button, Select, Switch, Text, TextInput} from '@gravity-ui/uikit'
+import {Select, Switch, Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {useEffect, useRef, useState} from 'react'
+import {type ReactNode, useEffect, useMemo, useRef, useState} from 'react'
 import {useSearchParams} from 'react-router'
 
 import type {PlayerPosition} from '@/entities/common'
@@ -12,10 +12,14 @@ import type {MarketplaceFilters, MarketplaceSort} from '@/entities/shop'
 import {fetchMarketplaceFeed} from '@/entities/shop'
 import {MarketplaceProductCard, MarketplaceShopStrip} from '@/features/shops'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
+import {CatalogFilterBar} from '@/shared/ui/CatalogFilterBar'
 import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+
+const DEFAULT_FILTERS: MarketplaceFilters = {sort: 'recommended', inStockOnly: false}
+const SHOP_CHIP_ID = 'shop-filter'
 
 const SORT_OPTIONS = [
   {value: 'recommended', content: 'Рекомендуемые'},
@@ -30,26 +34,23 @@ const POSITION_OPTIONS = [
   {value: 'goalie', content: 'Вратарь'},
 ]
 
+/** Поиск не считается фильтром: его сбрасывает само поле. Сортировка ленту не сужает. */
+function countActiveFilters(filters: MarketplaceFilters): number {
+  return (
+    [filters.category, filters.position, filters.shopId].filter(Boolean).length +
+    (filters.inStockOnly ? 1 : 0)
+  )
+}
+
 /**
  * @spec SPEC-FR-9.3.1 - Маркетплейс экипировки (лента товаров)
  */
-export function MarketplacePage() {
+export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
   const [searchParams] = useSearchParams()
   const productIdFromUrl = searchParams.get('productId')
-  const [searchInput, setSearchInput] = useState('')
-  const [filters, setFilters] = useState<MarketplaceFilters>({
-    sort: 'recommended',
-    inStockOnly: false,
-  })
+  const [filters, setFilters] = useState<MarketplaceFilters>(DEFAULT_FILTERS)
   const productCardRefs = useRef<Map<string, HTMLElement | null>>(new Map())
   const scrollOnNextProductRef = useRef(false)
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setFilters((prev) => ({...prev, q: searchInput.trim() || undefined}))
-    }, 300)
-    return () => window.clearTimeout(timer)
-  }, [searchInput])
 
   useEffect(() => {
     if (!productIdFromUrl) return
@@ -62,7 +63,6 @@ export function MarketplacePage() {
   })
 
   const listings = data?.listings ?? []
-  const categories = data?.categories ?? []
   const spotlightShops = data?.spotlightShops ?? []
   const listingIdsKey = listings.map((listing) => listing.offer.id).join(',')
 
@@ -81,19 +81,34 @@ export function MarketplacePage() {
     setFilters((prev) => ({...prev, ...patch}))
   }
 
+  const categoryChips = useMemo(
+    () =>
+      (data?.categories ?? []).map((category) => ({
+        id: category,
+        label: category,
+        active: filters.category === category,
+      })),
+    [data?.categories, filters.category],
+  )
+
+  const chips = useMemo(() => {
+    if (!filters.shopId) return categoryChips
+    const shopName =
+      data?.spotlightShops.find((item) => item.shop.id === filters.shopId)?.shop.name ??
+      data?.listings.find((listing) => listing.shopId === filters.shopId)?.shopName ??
+      'Магазин'
+    return [{id: SHOP_CHIP_ID, label: shopName, active: true}, ...categoryChips]
+  }, [categoryChips, data?.listings, data?.spotlightShops, filters.shopId])
+
   return (
-    <div
-      className="marketplace hockey-stack hockey-stack--gap-20"
-      data-testid={testId('shops', 'marketplace', 'page')}
-    >
-      <div className="marketplace__hero">
-        <PageHeader
-          title="Маркет экипировки"
-          subtitle="Лента товаров от партнёрских магазинов — как маркетплейс, с приоритетом для продвигаемых продавцов."
-          testIdPrefix="shops"
-          testIdSection="marketplace"
-        />
-      </div>
+    <PageHub className="marketplace" data-testid={testId('shops', 'marketplace', 'page')}>
+      {banner}
+      <PageHeader
+        title="Маркет экипировки"
+        subtitle="Лента товаров от партнёрских магазинов — как маркетплейс, с приоритетом для продвигаемых продавцов."
+        testIdPrefix="shops"
+        testIdSection="marketplace"
+      />
 
       <MarketplaceShopStrip
         shops={spotlightShops}
@@ -101,49 +116,36 @@ export function MarketplacePage() {
         onSelectShop={(shopId) => patchFilters({shopId})}
       />
 
-      <div className="marketplace__toolbar hockey-stack hockey-stack--gap-12">
-        <TextInput
-          placeholder="Поиск: коньки, клюшка, Bauer…"
-          value={searchInput}
-          onUpdate={setSearchInput}
-          size="xl"
-          hasClear
-          data-testid={testId('shops', 'marketplace', 'field', 'search')}
-        />
-
-        <div
-          className="marketplace__filters"
-          data-testid={testId('shops', 'marketplace', 'filter')}
-        >
-          <div className="marketplace__chips">
-            <Button
-              view={!filters.category ? 'action' : 'outlined'}
-              size="s"
-              data-testid={testId('shops', 'marketplace', 'btn', 'category-all')}
-              onClick={() => patchFilters({category: undefined})}
-            >
-              Все категории
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category}
-                view={filters.category === category ? 'action' : 'outlined'}
-                size="s"
-                data-testid={testId('shops', 'marketplace', 'btn', 'category', category)}
-                onClick={() => patchFilters({category})}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-
-          <div className="marketplace__controls hockey-grid hockey-grid--cards-280">
+      <CatalogFilterBar
+        testIdPrefix="shops"
+        testIdSection="marketplace"
+        sticky
+        searchValue={filters.q ?? ''}
+        onSearchChange={(value) => patchFilters({q: value || undefined})}
+        searchPlaceholder="Коньки, клюшка, Bauer…"
+        searchLabel="Поиск по маркету"
+        chips={chips}
+        onChipToggle={(chipId) => {
+          if (chipId === SHOP_CHIP_ID) {
+            patchFilters({shopId: undefined})
+            return
+          }
+          patchFilters({category: filters.category === chipId ? undefined : chipId})
+        }}
+        chipsLabel="Категория"
+        activeCount={countActiveFilters(filters)}
+        onReset={() =>
+          setFilters((prev) => ({...DEFAULT_FILTERS, sort: prev.sort ?? 'recommended'}))
+        }
+        resultsCount={listings.length}
+        resultsPending={isFetching}
+        advanced={
+          <>
             <Select
               label="Сортировка"
               value={[filters.sort ?? 'recommended']}
               onUpdate={(value) => patchFilters({sort: value[0] as MarketplaceSort})}
               options={SORT_OPTIONS}
-              width="max"
               data-testid={testId('shops', 'marketplace', 'select', 'sort')}
             />
             <Select
@@ -154,41 +156,21 @@ export function MarketplacePage() {
                 patchFilters({position: next === 'any' ? undefined : next})
               }}
               options={POSITION_OPTIONS}
-              width="max"
               data-testid={testId('shops', 'marketplace', 'select', 'position')}
             />
-            <div className="marketplace__switch">
+            <div
+              className="catalog-filters__check"
+              data-testid={testId('shops', 'marketplace', 'toggle', 'in-stock')}
+            >
               <Switch
                 checked={Boolean(filters.inStockOnly)}
                 onUpdate={(checked) => patchFilters({inStockOnly: checked})}
-                data-testid={testId('shops', 'marketplace', 'toggle', 'in-stock')}
+                content="Только в наличии"
               />
-              <Text data-testid={testId('shops', 'marketplace', 'text', 'in-stock-label')}>
-                Только в наличии
-              </Text>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="marketplace__feed-header hockey-row hockey-row--between">
-        <Text
-          variant="subheader-2"
-          data-testid={testId('shops', 'marketplace', 'text', 'feed-count')}
-        >
-          {isFetching ? 'Обновляем ленту…' : `${listings.length} товаров`}
-        </Text>
-        {filters.shopId && (
-          <HockeyButton
-            view="outlined"
-            size="s"
-            data-testid={testId('shops', 'marketplace', 'btn', 'clear-shop-filter')}
-            onClick={() => patchFilters({shopId: undefined})}
-          >
-            Сбросить фильтр магазина
-          </HockeyButton>
-        )}
-      </div>
+          </>
+        }
+      />
 
       {isLoading ? (
         <div data-testid={testId('shops', 'marketplace', 'loader')}>
@@ -231,6 +213,6 @@ export function MarketplacePage() {
           ))}
         </div>
       )}
-    </div>
+    </PageHub>
   )
 }

@@ -1,0 +1,324 @@
+@use '../mixins' as *;
+
+/**
+ * SPEC-UI-2 — единая панель поиска и фильтров каталогов.
+ *
+ * Один набор токенов на /events, /teams, /leagues, /arenas, /marketplace, /players:
+ * высота контролов, радиусы и вертикальные отступы фиксированы, поэтому
+ * при переходе между разделами и при открытии фильтров вёрстка не «пляшет».
+ */
+.catalog-filters {
+  --catalog-filters-radius: var(--page-hub-radius, 14px);
+  --catalog-filters-search-height: 44px;
+  --catalog-filters-control-height: 40px;
+  --catalog-filters-border: color-mix(in srgb, var(--hockey-card-border) 92%, transparent);
+  --catalog-filters-focus: color-mix(
+    in srgb,
+    var(--hockey-line-blue) 50%,
+    var(--hockey-card-border)
+  );
+
+  position: relative;
+  display: grid;
+  gap: 12px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--catalog-filters-border);
+  border-radius: 16px;
+  background: var(--hockey-card-bg);
+  box-shadow: var(--hockey-card-shadow);
+  transition: border-color var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+  &--active {
+    border-color: color-mix(in srgb, var(--hockey-line-blue) 42%, var(--hockey-card-border));
+  }
+
+  &--sticky {
+    position: sticky;
+    top: 8px;
+    z-index: 3;
+    background: color-mix(in srgb, var(--hockey-card-bg) 90%, transparent);
+    @include glass-panel(10px);
+  }
+}
+
+/** Вкладки каталога / переключатель списка и карты — всегда первая строка. */
+.catalog-filters__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.catalog-filters__search {
+  min-width: 0;
+
+  .g-text-input {
+    width: 100%;
+  }
+
+  .g-text-input__content {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: var(--catalog-filters-search-height);
+    min-height: var(--catalog-filters-search-height);
+    padding-block: 0;
+    padding-inline: 12px;
+    border-radius: var(--catalog-filters-radius);
+    border-color: var(--catalog-filters-border);
+    background: color-mix(in srgb, var(--hockey-card-bg) 88%, transparent);
+    box-shadow: none;
+    transition:
+      border-color var(--hockey-motion-fast) var(--hockey-motion-ease),
+      box-shadow var(--hockey-motion-fast) var(--hockey-motion-ease);
+  }
+
+  .g-text-input__control {
+    height: 100%;
+    padding-block: 0;
+    font-size: 15px;
+    line-height: 1.25;
+  }
+
+  .g-text-input__additional-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    align-self: center;
+  }
+
+  .g-text-input_focused .g-text-input__content,
+  .g-text-input__content:focus-within {
+    border-color: var(--catalog-filters-focus);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--hockey-line-blue) 18%, transparent);
+  }
+}
+
+.catalog-filters__search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: color-mix(in srgb, var(--hockey-line-blue) 65%, var(--g-color-text-secondary));
+}
+
+.catalog-filters__chips {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.catalog-filters__chips-label {
+  @include scoreboard-caps(11px, 0.1em);
+  color: var(--hockey-text-muted);
+}
+
+.catalog-filters__chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.catalog-filters__chip {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid var(--catalog-filters-border);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color var(--hockey-motion-fast) var(--hockey-motion-ease),
+    background var(--hockey-motion-fast) var(--hockey-motion-ease),
+    color var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--hockey-ice-glow) 45%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--catalog-filters-focus);
+    outline-offset: 2px;
+  }
+
+  &.is-active {
+    border-color: color-mix(in srgb, var(--hockey-accent, var(--hockey-line-red)) 55%, transparent);
+    background: color-mix(in srgb, var(--hockey-accent, var(--hockey-line-red)) 16%, transparent);
+  }
+}
+
+/**
+ * Строка состояния рендерится всегда: счётчики появляются и исчезают
+ * внутри зарезервированной высоты, список ниже не прыгает.
+ */
+.catalog-filters__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+  min-width: 0;
+}
+
+.catalog-filters__meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.catalog-filters__meta-text {
+  @include scoreboard-caps(11px, 0.08em);
+}
+
+.catalog-filters__meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+/** Подпись кнопки не меняется — вместо этого поворачивается шеврон. */
+.catalog-filters__toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 6px;
+  transition: transform var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+  &.is-open {
+    transform: rotate(180deg);
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
+}
+
+.catalog-filters__advanced {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  align-items: end;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--hockey-card-border) 70%, transparent);
+  animation: catalog-filters-reveal var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+  &[hidden] {
+    display: none;
+    animation: none;
+  }
+
+  @include reduced-motion {
+    animation: none;
+  }
+
+  /** Все контролы одной высоты — сетка фильтров выравнивается по базовой линии. */
+  .g-select,
+  .g-select-control,
+  .g-select-control__button,
+  .g-text-input {
+    width: 100%;
+  }
+
+  .g-text-input__content,
+  .g-select-control__button {
+    box-sizing: border-box;
+    height: var(--catalog-filters-control-height);
+    min-height: var(--catalog-filters-control-height);
+    border-radius: var(--catalog-filters-radius);
+  }
+}
+
+.catalog-filters__field {
+  display: grid;
+  align-content: end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.catalog-filters__field-label {
+  @include scoreboard-caps(10px, 0.1em);
+  color: var(--hockey-text-muted);
+}
+
+/** Нативный контрол (input[type=date]) под стиль Gravity-поля. */
+.catalog-filters__native-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--catalog-filters-control-height);
+  padding: 0 12px;
+  border: 1px solid var(--catalog-filters-border);
+  border-radius: var(--catalog-filters-radius);
+  background: var(--g-color-base-simple-hover-solid, transparent);
+  color: var(--g-color-text-primary);
+  font: inherit;
+  font-size: 14px;
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--catalog-filters-focus);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--hockey-line-blue) 18%, transparent);
+  }
+}
+
+/** Чекбокс/свитч занимает ту же высоту, что и соседний Select. */
+.catalog-filters__check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--catalog-filters-control-height);
+  min-width: 0;
+}
+
+@keyframes catalog-filters-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@include breakpoint($max: 560px) {
+  .catalog-filters {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .catalog-filters__advanced {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-filters__chip {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .catalog-filters__meta-actions {
+    width: 100%;
+    margin-inline-start: 0;
+
+    .hockey-button {
+      flex: 1 1 auto;
+    }
+  }
+}

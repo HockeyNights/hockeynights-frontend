@@ -239,17 +239,6 @@
   }
 }
 
-.team-filters {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  &__actions {
-    display: flex;
-    justify-content: flex-end;
-  }
-}
-
 .team-create-wizard {
   &__steps {
     display: flex;

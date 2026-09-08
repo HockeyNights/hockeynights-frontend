@@ -6,7 +6,7 @@
 
 import {Select, Text, TextInput} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {useEffect, useMemo, useRef, useState} from 'react'
+import {useEffect, useId, useMemo, useRef, useState} from 'react'
 import {Link, useSearchParams} from 'react-router'
 
 import {LEAGUE_SATURDAY_EVENT_ID} from '@/entities/event'
@@ -18,6 +18,7 @@ import {
   canViewTraining,
   CATALOG_CHIPS,
   CATALOG_TABS,
+  type CatalogChipId,
   type CatalogFiltersState,
   type CatalogTab,
   countActiveCatalogFilters,
@@ -43,10 +44,12 @@ import {LAUNCH_REGION} from '@/shared/config/geo'
 import {EVENTS_LABEL} from '@/shared/config/navigationLabels'
 import {routes} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
+import {CatalogFilterBar, CatalogFilterField} from '@/shared/ui/CatalogFilterBar'
 import {EmptyNetState} from '@/shared/ui/EmptyNetState'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {HockeyRinkLoader} from '@/shared/ui/HockeyRinkLoader'
 import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScrollReveal} from '@/shared/ui/ScrollStory'
 
@@ -104,8 +107,8 @@ export function EventsPage() {
     [events],
   )
 
+  const dateFieldId = useId()
   const [isNearestGameVisible, setIsNearestGameVisible] = useState(false)
-  const [isFiltersVisible, setIsFiltersVisible] = useState(false)
   const [isResultsLoading, setIsResultsLoading] = useState(false)
   const [isDemoLoaderVisible, setIsDemoLoaderVisible] = useState(SHOW_MOCK_DEMO_LOADER)
   const didMountRef = useRef(false)
@@ -173,6 +176,15 @@ export function EventsPage() {
   ]
 
   const activeFilterCount = countActiveCatalogFilters(filters)
+  const catalogChips = useMemo(
+    () =>
+      CATALOG_CHIPS.map((chip) => ({
+        id: chip.id,
+        label: chip.label,
+        active: isCatalogChipActive(chip.id, filters),
+      })),
+    [filters],
+  )
 
   function patchFilters(patch: Partial<CatalogFiltersState>) {
     const next = {...filters, ...patch}
@@ -280,10 +292,10 @@ export function EventsPage() {
       setIsResultsLoading(false)
     }, RESULTS_LOADER_MS)
     return () => window.clearTimeout(timer)
-  }, [filters, isFiltersVisible])
+  }, [filters])
 
   return (
-    <div className="hockey-stack hockey-stack--gap-20" data-testid={testId('events', 'page')}>
+    <PageHub data-testid={testId('events', 'page')}>
       <ScrollReveal direction="down">
         <div className="hockey-stack hockey-stack--gap-8">
           <PageHeader
@@ -330,269 +342,121 @@ export function EventsPage() {
         </div>
       </ScrollReveal>
 
-      <div
-        className="hockey-row hockey-row--gap-8 hockey-row--wrap"
-        data-testid={testId('events', 'page', 'panel', 'type-tabs')}
-      >
-        {CATALOG_TABS.map((tab) => (
-          <HockeyButton
-            key={tab.id}
-            view={filters.tab === tab.id ? 'action' : 'outlined'}
-            size="s"
-            onClick={() => patchFilters({tab: tab.id})}
-            data-testid={testId('events', 'page', 'btn', 'type', tab.id)}
-          >
-            {tab.label}
-          </HockeyButton>
-        ))}
-      </div>
-
-      <div
-        className="events-catalog__search"
-        data-testid={testId('events', 'page', 'card', 'search')}
-      >
-        <TextInput
-          size="l"
-          placeholder="Название, арена, округ, организатор…"
-          value={filters.q}
-          onUpdate={(value) => patchFilters({q: value})}
-          data-testid={testId('events', 'page', 'field', 'search')}
-        />
-      </div>
-
-      <div
-        className="events-catalog__chips"
-        data-testid={testId('events', 'page', 'panel', 'chips')}
-      >
-        <div className="events-catalog__chips-head">
-          <Text
-            color="secondary"
-            className="events-catalog__chips-label"
-            data-testid={testId('events', 'page', 'text', 'chips-title')}
-          >
-            Быстрый фильтр
-          </Text>
-          {activeFilterCount > 0 && (
-            <div className="hockey-row hockey-row--gap-8 hockey-row--align-center">
-              <Text
-                color="secondary"
-                data-testid={testId('events', 'page', 'text', 'active-filters')}
-              >
-                Фильтров: {activeFilterCount}
-              </Text>
-              <HockeyButton
-                view="flat"
-                size="s"
-                onClick={resetFilters}
-                data-testid={testId('events', 'page', 'btn', 'reset-filters')}
-              >
-                Сбросить
-              </HockeyButton>
-            </div>
-          )}
-        </div>
-        <div
-          className="events-catalog__chips-row"
-          data-testid={testId('events', 'page', 'row', 'chips')}
-        >
-          {CATALOG_CHIPS.map((chip) => {
-            const active = isCatalogChipActive(chip.id, filters)
-            return (
-              <button
-                key={chip.id}
-                type="button"
-                className={`events-catalog__chip${active ? ' is-active' : ''}`}
-                onClick={() => patchFilters(toggleCatalogChip(chip.id, filters))}
-                data-testid={testId('events', 'page', 'btn', 'chip', chip.id)}
-              >
-                {chip.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div
-        className="hockey-stack hockey-stack--gap-10"
-        data-testid={testId('events', 'page', 'panel', 'filters')}
-      >
-        <div className="hockey-row hockey-row--between hockey-row--align-center">
-          <Text
-            variant="subheader-2"
-            data-testid={testId('events', 'page', 'text', 'filters-title')}
-          >
-            Фильтры
-          </Text>
-          <HockeyButton
-            view="outlined"
-            size="s"
-            onClick={() => setIsFiltersVisible((prev) => !prev)}
-            data-testid={testId('events', 'page', 'btn', 'filters-toggle')}
-          >
-            {isFiltersVisible ? 'Скрыть фильтры' : 'Показать фильтры'}
-          </HockeyButton>
-        </div>
-        {isFiltersVisible && (
+      <CatalogFilterBar
+        testIdPrefix="events"
+        searchValue={filters.q}
+        onSearchChange={(value) => patchFilters({q: value})}
+        searchPlaceholder="Название, арена, округ, организатор…"
+        searchLabel="Поиск игр и тренировок"
+        chips={catalogChips}
+        onChipToggle={(chipId) => patchFilters(toggleCatalogChip(chipId as CatalogChipId, filters))}
+        activeCount={activeFilterCount}
+        onReset={resetFilters}
+        resultsCount={filteredCatalog.length}
+        resultsPending={isLoading || isResultsLoading || isDemoLoaderVisible}
+        toolbar={
           <div
-            className="hockey-grid hockey-grid--cards-280"
-            data-testid={testId('events', 'page', 'grid', 'filters')}
+            className="page-hub__tabs"
+            data-testid={testId('events', 'page', 'panel', 'type-tabs')}
           >
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'date')}
+            {CATALOG_TABS.map((tab) => (
+              <HockeyButton
+                key={tab.id}
+                view={filters.tab === tab.id ? 'action' : 'outlined'}
+                size="s"
+                onClick={() => patchFilters({tab: tab.id})}
+                data-testid={testId('events', 'page', 'btn', 'type', tab.id)}
               >
-                Дата
-              </Text>
+                {tab.label}
+              </HockeyButton>
+            ))}
+          </div>
+        }
+        advanced={
+          <>
+            <CatalogFilterField label="Дата" htmlFor={dateFieldId}>
               <input
+                id={dateFieldId}
                 type="date"
-                className="g-text-input__control"
+                className="catalog-filters__native-input"
                 value={filters.date}
                 onChange={(event) => patchFilters({date: event.target.value, dayPreset: null})}
                 data-testid={testId('events', 'page', 'field', 'date')}
               />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'format')}
-              >
-                Формат
-              </Text>
-              <Select
-                value={[filters.format]}
-                onUpdate={(value) => patchFilters({format: value[0] ?? 'all'})}
-                options={formatOptions}
-                data-testid={testId('events', 'page', 'select', 'format')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'time')}
-              >
-                Время
-              </Text>
-              <Select
-                value={[filters.time]}
-                onUpdate={(value) => patchFilters({time: value[0] ?? 'all'})}
-                options={timeOptions}
-                data-testid={testId('events', 'page', 'select', 'time')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'level')}
-              >
-                Уровень игрока
-              </Text>
-              <Select
-                value={[filters.level]}
-                onUpdate={(value) => patchFilters({level: value[0] ?? 'all'})}
-                options={levelOptions}
-                data-testid={testId('events', 'page', 'select', 'level')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'arena')}
-              >
-                Арена
-              </Text>
-              <Select
-                value={[filters.arena]}
-                onUpdate={(value) => patchFilters({arena: value[0] ?? 'all'})}
-                options={arenaOptions}
-                data-testid={testId('events', 'page', 'select', 'arena')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'status')}
-              >
-                Статус
-              </Text>
-              <Select
-                value={[filters.status]}
-                onUpdate={(value) => patchFilters({status: value[0] ?? 'all'})}
-                options={statusOptions}
-                data-testid={testId('events', 'page', 'select', 'status')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'district')}
-              >
-                Округ
-              </Text>
-              <Select
-                value={[filters.district]}
-                onUpdate={(value) => patchFilters({district: value[0] ?? 'all'})}
-                options={districtOptions}
-                data-testid={testId('events', 'page', 'select', 'district')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'access')}
-              >
-                Доступ
-              </Text>
-              <Select
-                value={[filters.access]}
-                onUpdate={(value) => patchFilters({access: value[0] ?? 'all'})}
-                options={accessOptions}
-                data-testid={testId('events', 'page', 'select', 'access')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'fill-state')}
-              >
-                Заполненность
-              </Text>
-              <Select
-                value={[filters.fill]}
-                onUpdate={(value) => patchFilters({fill: value[0] ?? 'all'})}
-                options={fillStateOptions}
-                data-testid={testId('events', 'page', 'select', 'fill-state')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'price-min')}
-              >
-                Цена от
-              </Text>
-              <TextInput
-                value={filters.minPrice}
-                onUpdate={(value) => patchFilters({minPrice: value})}
-                data-testid={testId('events', 'page', 'field', 'price-min')}
-              />
-            </div>
-            <div className="hockey-stack hockey-stack--gap-4">
-              <Text
-                variant="body-2"
-                data-testid={testId('events', 'page', 'text', 'filter-label', 'price-max')}
-              >
-                Цена до
-              </Text>
-              <TextInput
-                value={filters.maxPrice}
-                onUpdate={(value) => patchFilters({maxPrice: value})}
-                data-testid={testId('events', 'page', 'field', 'price-max')}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+            </CatalogFilterField>
+            <Select
+              label="Формат"
+              value={[filters.format]}
+              onUpdate={(value) => patchFilters({format: value[0] ?? 'all'})}
+              options={formatOptions}
+              data-testid={testId('events', 'page', 'select', 'format')}
+            />
+            <Select
+              label="Время"
+              value={[filters.time]}
+              onUpdate={(value) => patchFilters({time: value[0] ?? 'all'})}
+              options={timeOptions}
+              data-testid={testId('events', 'page', 'select', 'time')}
+            />
+            <Select
+              label="Уровень"
+              value={[filters.level]}
+              onUpdate={(value) => patchFilters({level: value[0] ?? 'all'})}
+              options={levelOptions}
+              data-testid={testId('events', 'page', 'select', 'level')}
+            />
+            <Select
+              label="Арена"
+              value={[filters.arena]}
+              onUpdate={(value) => patchFilters({arena: value[0] ?? 'all'})}
+              options={arenaOptions}
+              data-testid={testId('events', 'page', 'select', 'arena')}
+            />
+            <Select
+              label="Статус"
+              value={[filters.status]}
+              onUpdate={(value) => patchFilters({status: value[0] ?? 'all'})}
+              options={statusOptions}
+              data-testid={testId('events', 'page', 'select', 'status')}
+            />
+            <Select
+              label="Округ"
+              value={[filters.district]}
+              onUpdate={(value) => patchFilters({district: value[0] ?? 'all'})}
+              options={districtOptions}
+              data-testid={testId('events', 'page', 'select', 'district')}
+            />
+            <Select
+              label="Доступ"
+              value={[filters.access]}
+              onUpdate={(value) => patchFilters({access: value[0] ?? 'all'})}
+              options={accessOptions}
+              data-testid={testId('events', 'page', 'select', 'access')}
+            />
+            <Select
+              label="Заполненность"
+              value={[filters.fill]}
+              onUpdate={(value) => patchFilters({fill: value[0] ?? 'all'})}
+              options={fillStateOptions}
+              data-testid={testId('events', 'page', 'select', 'fill-state')}
+            />
+            <TextInput
+              label="Цена от"
+              controlProps={{inputMode: 'numeric'}}
+              value={filters.minPrice}
+              onUpdate={(value) => patchFilters({minPrice: value})}
+              data-testid={testId('events', 'page', 'field', 'price-min')}
+            />
+            <TextInput
+              label="Цена до"
+              controlProps={{inputMode: 'numeric'}}
+              value={filters.maxPrice}
+              onUpdate={(value) => patchFilters({maxPrice: value})}
+              data-testid={testId('events', 'page', 'field', 'price-max')}
+            />
+          </>
+        }
+      />
 
       {(isLoading || isResultsLoading || isDemoLoaderVisible) && (
         <div data-testid={testId('events', 'page', 'loader')}>
@@ -705,6 +569,6 @@ export function EventsPage() {
           </div>
         )}
       </div>
-    </div>
+    </PageHub>
   )
 }

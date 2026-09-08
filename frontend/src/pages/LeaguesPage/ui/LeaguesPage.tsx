@@ -28,6 +28,7 @@ import {EmptyNetState} from '@/shared/ui/EmptyNetState'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceSkeleton} from '@/shared/ui/IceSkeleton'
 import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 
@@ -57,6 +58,7 @@ export function LeaguesPage() {
   const {
     data: leagues = [],
     isPending,
+    isFetching,
     isError,
     refetch,
   } = useQuery({
@@ -74,12 +76,12 @@ export function LeaguesPage() {
 
   const openLeague = (id: string) => navigate(leagueDetailsPath(id))
 
-  const isFiltered = countActiveLeagueFilters(filters) > 0
+  const isFiltered = countActiveLeagueFilters(filters) > 0 || Boolean(filters.query?.trim())
   const showLayout = !isPending && !isError && !legacyLeagueId
   const showEmpty = showLayout && leagues.length === 0
 
   return (
-    <div className="hockey-stack hockey-stack--gap-20" data-testid={testId('leagues', 'page')}>
+    <PageHub data-testid={testId('leagues', 'page')}>
       <PageHeader
         title={LEAGUES_PAGE_TITLE}
         subtitle="Лиги Москвы и России. Данные могут быть mock, manual, imported или external — смотрите бейдж источника."
@@ -96,7 +98,13 @@ export function LeaguesPage() {
 
       <MyLeagueWidget />
 
-      <LeagueFilters filters={filters} onChange={applyFilters} onReset={handleResetFilters} />
+      <LeagueFilters
+        filters={filters}
+        onChange={applyFilters}
+        onReset={handleResetFilters}
+        resultsCount={leagues.length}
+        resultsPending={isFetching}
+      />
 
       {isPending && (
         <div data-testid={testId('leagues', 'page', 'loader')}>
@@ -147,6 +155,6 @@ export function LeaguesPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageHub>
   )
 }

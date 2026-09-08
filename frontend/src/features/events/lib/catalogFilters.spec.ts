@@ -52,6 +52,7 @@ describe('catalogFilters', () => {
       needsGoalie: true,
     }
     expect(countActiveCatalogFilters(state)).toBe(3)
+    expect(countActiveCatalogFilters({...state, q: 'вечерняя'})).toBe(3)
     expect(matchesDayPreset('2026-08-15T16:00:00+03:00', 'weekend')).toBe(true)
     expect(matchesDayPreset('2026-08-20T20:00:00+03:00', 'weekend')).toBe(false)
   })

@@ -1,0 +1,52 @@
+@use '../mixins' as *;
+
+/**
+ * SPEC-UI-2 — единая оболочка страниц.
+ * HOCFRONT-42: те же токены радиуса и кнопок, что profile-hub / messenger-hub.
+ */
+.page-hub {
+  --page-hub-radius: 16px;
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  width: 100%;
+
+  @include hub-surface-radius(var(--page-hub-radius));
+  @include hub-hockey-button(var(--page-hub-radius));
+}
+
+.page-hub__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.page-hub__tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+
+  > * {
+    flex: 0 0 auto;
+  }
+}
+
+.page-hub__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-hub__panel {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}

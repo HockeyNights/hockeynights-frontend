@@ -1,7 +1,7 @@
 @use '../mixins' as *;
 
 /**
- * HOCFRONT-20 - Стили панели фильтров списка игроков
+ * HOCFRONT-20 - Стили страницы списка игроков (фильтры — в `_catalog-filters.scss`)
  */
 
 .players-page {
@@ -53,56 +53,5 @@
   }
   100% {
     transform: translateX(280%);
-  }
-}
-
-.player-filters {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px 16px;
-  border: 1px solid var(--hockey-card-border);
-  border-radius: 14px;
-  background: var(--hockey-card-bg);
-  box-shadow: var(--hockey-card-shadow);
-  transition: border-color var(--hockey-motion-fast) var(--hockey-motion-ease);
-
-  &--active {
-    border-color: var(--hockey-line-blue);
-  }
-
-  &__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  &__title {
-    font-family: var(--hockey-font-scoreboard);
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--hockey-text-muted);
-  }
-
-  &__body {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    align-items: end;
-  }
-
-  &__actions {
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  &__summary {
-    font-family: var(--hockey-font-scoreboard);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--hockey-text-muted);
   }
 }

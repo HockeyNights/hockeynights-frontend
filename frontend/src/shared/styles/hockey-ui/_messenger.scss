@@ -20,26 +20,12 @@
   /* Колонка приложения уже, чем окно: раскладку меряем по контейнеру, не по вьюпорту. */
   container: messenger / inline-size;
 
-  .ice-card,
-  .g-text-input__content,
-  .g-text-input__control,
-  .g-select-control,
-  .g-select-control__button {
-    border-radius: var(--messenger-radius);
-  }
+  @include hub-surface-radius(var(--messenger-radius));
+  @include hub-hockey-button(var(--messenger-radius));
 
   .hockey-button,
   a.hockey-button {
-    --g-button-border-radius: var(--messenger-radius);
-    border-radius: var(--messenger-radius) !important;
-    box-sizing: border-box;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
     gap: 6px;
-    height: var(--g-button-height, 36px) !important;
-    min-height: var(--g-button-height, 36px);
-    vertical-align: middle;
   }
 }
 

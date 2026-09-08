@@ -933,70 +933,6 @@
   }
 }
 
-.arenas-catalog__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.arenas-catalog__filters {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.arenas-catalog__search-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.arenas-catalog__search {
-  width: 100%;
-
-  .g-text-input {
-    width: 100%;
-  }
-
-  .g-text-input__content {
-    height: 40px;
-    min-height: 40px;
-    align-items: center;
-    padding-block: 0;
-    padding-inline: 12px;
-    border-radius: 12px;
-    border-color: color-mix(in srgb, var(--hockey-card-border) 90%, var(--hockey-line-blue) 10%);
-    background: color-mix(in srgb, var(--hockey-card-bg) 92%, transparent);
-    box-shadow: none;
-    transition: border-color var(--hockey-motion-fast) var(--hockey-motion-ease);
-  }
-
-  .g-text-input__control {
-    font-size: 14px;
-    height: 100%;
-    padding-block: 0;
-    line-height: 1.25;
-  }
-
-  .g-text-input__additional-content {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    align-self: center;
-  }
-
-  .g-text-input_focused .g-text-input__content,
-  .g-text-input__content:focus-within {
-    border-color: color-mix(in srgb, var(--hockey-line-blue) 50%, var(--hockey-card-border));
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--hockey-line-blue) 16%, transparent);
-  }
-}
-
-.arenas-catalog__search-icon,
-.league-filters__search-icon,
 .messenger-hub__search-icon {
   display: inline-flex;
   align-items: center;
@@ -1181,17 +1117,6 @@
 
 .arena-map__hint {
   font-size: 12px;
-}
-
-.team-filters {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  &__actions {
-    display: flex;
-    justify-content: flex-end;
-  }
 }
 
 .rink-card {

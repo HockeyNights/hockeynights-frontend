@@ -121,8 +121,8 @@ describe('HOCFRONT-23 verified player', () => {
       expect(screen.getByText('Волков Сергей Николаевич')).toBeInTheDocument()
     })
 
-    const verifiedFilter = screen.getByTestId('players-player-filters-checkbox-verified')
-    expect(verifiedFilter).toBeInTheDocument()
+    await user.click(screen.getByTestId('players-player-filters-btn-filters-toggle'))
+    expect(screen.getByTestId('players-player-filters-checkbox-verified')).toBeInTheDocument()
     await user.click(screen.getByLabelText('Только подтверждённые'))
 
     await waitFor(() => {

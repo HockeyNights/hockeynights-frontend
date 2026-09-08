@@ -56,7 +56,6 @@ export function writeLeagueFiltersToSearchParams(filters: LeagueFilters): URLSea
 
 export function countActiveLeagueFilters(filters: LeagueFilters): number {
   let count = 0
-  if (filters.query?.trim()) count += 1
   if (filters.region) count += 1
   if (filters.level) count += 1
   if (filters.recruitingStatus) count += 1

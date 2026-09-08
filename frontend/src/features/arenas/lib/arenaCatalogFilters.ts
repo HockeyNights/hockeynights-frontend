@@ -18,7 +18,6 @@ export const ARENA_CATALOG_CHIPS: Array<{id: ArenaCatalogChipId; label: string}>
 
 export function countActiveArenaFilters(filters: ArenaFilters): number {
   let count = 0
-  if (filters.query?.trim()) count += 1
   if (filters.cityRegion) count += 1
   if (filters.district?.trim()) count += 1
   if (filters.metro?.trim()) count += 1

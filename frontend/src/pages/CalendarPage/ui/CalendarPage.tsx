@@ -6,6 +6,8 @@
 
 import {CalendarShell} from '@/features/calendar'
 import {testId} from '@/shared/testing/testId'
+import {IceCard} from '@/shared/ui/IceCard'
+import {PageHub} from '@/shared/ui/PageHub'
 
 /**
  * @spec SPEC-UI-2.6 - Календарь как расписание табло
@@ -14,8 +16,10 @@ import {testId} from '@/shared/testing/testId'
  */
 export function CalendarPage() {
   return (
-    <div data-testid={testId('calendar', 'page')}>
-      <CalendarShell />
-    </div>
+    <PageHub data-testid={testId('calendar', 'page')}>
+      <IceCard padding="m" data-testid={testId('calendar', 'page', 'card', 'shell')}>
+        <CalendarShell />
+      </IceCard>
+    </PageHub>
   )
 }

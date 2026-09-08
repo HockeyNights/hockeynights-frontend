@@ -2,7 +2,6 @@
  * HOCFRONT-28G / ORG-4 — редактирование тренировки
  */
 
-import {Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 import {Link, useParams} from 'react-router'
 
@@ -12,9 +11,12 @@ import {EventCreateForm, eventDetailsPath} from '@/features/events'
 import {isNotFoundError} from '@/shared/api/client'
 import {routes} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
-import {EmptyNetState} from '@/shared/ui/EmptyNetState'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
+import {PageBackLink} from '@/shared/ui/PageBackLink'
+import {PageHeader} from '@/shared/ui/PageHeader'
+import {PageHub} from '@/shared/ui/PageHub'
+import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 
@@ -34,58 +36,62 @@ export function EditTrainingPage() {
 
   if (sessionLoading) {
     return (
-      <div data-testid={testId('events', 'edit-page', 'loader', 'session')}>
+      <PageHub data-testid={testId('events', 'edit-page', 'loader', 'session')}>
         <ScoreboardLoader label="Проверка сессии…" />
-      </div>
+      </PageHub>
     )
   }
 
   if (!canOrganizeEvents) {
     return (
-      <div data-testid={testId('events', 'edit-page', 'page', 'denied')}>
-        <IceCard padding="m">
-          <Text data-testid={testId('events', 'edit-page', 'text', 'denied')}>
-            Раздел редактирования доступен организатору тренировок, админу клуба, капитану, тренеру
-            или администратору. Сохранять изменения может только организатор этой тренировки, админ
-            клуба или администратор.
-          </Text>
-        </IceCard>
-      </div>
+      <PageHub>
+        <PageStatePanel
+          title="Нет доступа"
+          copy="Раздел редактирования доступен организатору тренировок, админу клуба, капитану, тренеру или администратору."
+          testIdPrefix="events"
+          data-testid={testId('events', 'edit-page', 'card', 'denied')}
+        />
+      </PageHub>
     )
   }
 
   if (isLoading) {
     return (
-      <div data-testid={testId('events', 'edit-page', 'loader')}>
+      <PageHub data-testid={testId('events', 'edit-page', 'loader')}>
         <ScoreboardLoader label="Загрузка тренировки..." />
-      </div>
+      </PageHub>
     )
   }
 
   if (error && !isNotFoundError(error)) {
     return (
-      <QueryErrorState
-        title="Не удалось загрузить тренировку"
-        onRetry={() => void refetch()}
-        testIdPrefix="events"
-        data-testid={testId('events', 'edit-page', 'error')}
-      />
+      <PageHub>
+        <QueryErrorState
+          title="Не удалось загрузить тренировку"
+          onRetry={() => void refetch()}
+          testIdPrefix="events"
+          data-testid={testId('events', 'edit-page', 'error')}
+        />
+      </PageHub>
     )
   }
 
   if (!event || event.type !== 'training') {
     return (
-      <div data-testid={testId('events', 'edit-page', 'empty')}>
-        <EmptyNetState title="Тренировка не найдена" copy="Вернитесь к списку «Мои тренировки»." />
-        <Link
+      <PageHub>
+        <PageBackLink
           to={routes.eventsOrganizer}
-          data-testid={testId('events', 'edit-page', 'link', 'cabinet-empty')}
-        >
-          <HockeyButton view="flat" size="m">
-            В кабинет
-          </HockeyButton>
-        </Link>
-      </div>
+          label="К моим тренировкам"
+          testIdPrefix="events"
+          testIdSection="edit-page"
+        />
+        <PageStatePanel
+          title="Тренировка не найдена"
+          copy="Вернитесь к списку «Мои тренировки»."
+          testIdPrefix="events"
+          data-testid={testId('events', 'edit-page', 'empty')}
+        />
+      </PageHub>
     )
   }
 
@@ -94,54 +100,57 @@ export function EditTrainingPage() {
 
   if (!canEdit) {
     return (
-      <div data-testid={testId('events', 'edit-page', 'error', 'access-denied')}>
-        <EmptyNetState
+      <PageHub data-testid={testId('events', 'edit-page', 'error', 'access-denied')}>
+        <PageBackLink
+          to={eventDetailsPath(event)}
+          label="К карточке"
+          testIdPrefix="events"
+          testIdSection="edit-page"
+        />
+        <PageStatePanel
           title="Нет прав на редактирование"
           copy="Редактировать может только организатор этой тренировки."
+          testIdPrefix="events"
         />
-      </div>
+      </PageHub>
     )
   }
 
   return (
-    <div
-      className="hockey-stack hockey-stack--gap-16"
-      data-testid={testId('events', 'edit-page', 'page', event.id)}
-    >
-      <div className="hockey-row hockey-row--between hockey-row--align-center hockey-row--wrap">
-        <Text variant="header-1" data-testid={testId('events', 'edit-page', 'text', 'title')}>
-          Редактирование
-        </Text>
-        <div className="hockey-row hockey-row--gap-8">
-          <Link
-            to={eventDetailsPath(event)}
-            data-testid={testId('events', 'edit-page', 'link', 'details')}
-          >
-            <HockeyButton
-              view="outlined"
-              size="m"
-              data-testid={testId('events', 'edit-page', 'btn', 'details')}
-            >
-              К карточке
-            </HockeyButton>
-          </Link>
+    <PageHub data-testid={testId('events', 'edit-page', 'page', event.id)}>
+      <PageBackLink
+        to={eventDetailsPath(event)}
+        label="К карточке"
+        testIdPrefix="events"
+        testIdSection="edit-page"
+      />
+
+      <PageHeader
+        title="Редактирование"
+        subtitle={event.title}
+        testIdPrefix="events"
+        testIdSection="edit-page"
+        actions={
           <Link
             to={routes.eventsOrganizer}
             data-testid={testId('events', 'edit-page', 'link', 'back')}
           >
             <HockeyButton
-              view="flat"
+              view="outlined"
               size="m"
               data-testid={testId('events', 'edit-page', 'btn', 'back')}
             >
               К моим тренировкам
             </HockeyButton>
           </Link>
-        </div>
+        }
+      />
+
+      <div className="page-hub__panel">
+        <IceCard padding="m" data-testid={testId('events', 'edit-page', 'card', 'form')}>
+          <EventCreateForm mode="edit" initialEvent={event} />
+        </IceCard>
       </div>
-      <IceCard padding="m" data-testid={testId('events', 'edit-page', 'card', 'form')}>
-        <EventCreateForm mode="edit" initialEvent={event} />
-      </IceCard>
-    </div>
+    </PageHub>
   )
 }
