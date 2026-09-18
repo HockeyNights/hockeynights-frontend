@@ -17,6 +17,7 @@ const TRACEABLE_FILES = [
   'features/auth/lib/localAuthMemory.ts',
   'features/auth/ui/AuthShell.tsx',
   'features/auth/ui/AuthDemoCard.tsx',
+  'features/auth/ui/EmailVerificationForm.tsx',
   'features/auth/ui/TermsOfUseDocument.tsx',
   'pages/TermsOfUsePage/ui/TermsOfUsePage.tsx',
   'features/auth/ui/TermsAcceptanceField.tsx',

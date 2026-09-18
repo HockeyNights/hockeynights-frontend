@@ -4,21 +4,21 @@
  */
 
 import {useMutation, useQueryClient} from '@tanstack/react-query'
+import {Alert, Button, Typography} from 'antd'
 import {type FormEvent, useState} from 'react'
-import {Link} from 'react-router'
 
 import {authLogin, loginWithCredentials} from '@/entities/auth'
 import {DEMO_EMAIL, DEMO_PASSWORD, isDemoCredentials} from '@/features/auth/lib/demoCredentials'
 import {AuthDemoCard} from '@/features/auth/ui/AuthDemoCard'
 import {AuthField} from '@/features/auth/ui/AuthField'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 
 export interface LoginFormProps {
   onSuccess: () => void
+  onForgotPassword?: (email: string) => void
 }
 
-export function LoginForm({onSuccess}: LoginFormProps) {
+export function LoginForm({onSuccess, onForgotPassword}: LoginFormProps) {
   const queryClient = useQueryClient()
   const [email, setEmail] = useState(DEMO_EMAIL)
   const [password, setPassword] = useState(DEMO_PASSWORD)
@@ -52,6 +52,16 @@ export function LoginForm({onSuccess}: LoginFormProps) {
     setError(null)
   }
 
+  function handleForgotPassword() {
+    const trimmed = email.trim()
+    if (!trimmed) {
+      setError('Введите email для восстановления пароля')
+      return
+    }
+    setError(null)
+    onForgotPassword?.(trimmed)
+  }
+
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault()
     setError(null)
@@ -60,7 +70,7 @@ export function LoginForm({onSuccess}: LoginFormProps) {
 
   return (
     <form
-      className="auth-form"
+      className="auth-form auth-form--login"
       aria-label="Вход"
       onSubmit={handleSubmit}
       data-testid={testId('auth', 'login', 'panel', 'form')}
@@ -69,12 +79,19 @@ export function LoginForm({onSuccess}: LoginFormProps) {
         className="auth-form__header"
         data-testid={testId('auth', 'login', 'panel', 'header')}
       >
-        <h2 className="auth-form__title" data-testid={testId('auth', 'login', 'text', 'title')}>
+        <Typography.Title
+          level={3}
+          className="auth-form__title"
+          data-testid={testId('auth', 'login', 'text', 'title')}
+        >
           Вход в аккаунт
-        </h2>
-        <p className="auth-form__subtitle" data-testid={testId('auth', 'login', 'text', 'hint')}>
-          Используйте демо-доступ или локальный аккаунт, созданный при регистрации.
-        </p>
+        </Typography.Title>
+        <Typography.Paragraph
+          className="auth-form__subtitle"
+          data-testid={testId('auth', 'login', 'text', 'hint')}
+        >
+          Войдите по почте или нажмите «Быстрый доступ», чтобы открыть демо.
+        </Typography.Paragraph>
       </header>
 
       <AuthDemoCard onApply={applyDemoCredentials} />
@@ -85,6 +102,7 @@ export function LoginForm({onSuccess}: LoginFormProps) {
           fieldId="auth-login-email"
           type="email"
           autoComplete="email"
+          placeholder="ivanov@mail.ru"
           value={email}
           onUpdate={setEmail}
           testIdScope="login"
@@ -95,42 +113,44 @@ export function LoginForm({onSuccess}: LoginFormProps) {
           fieldId="auth-login-password"
           type="password"
           autoComplete="current-password"
+          placeholder="Ваш пароль"
           value={password}
           onUpdate={setPassword}
           testIdScope="login"
           testIdQualifier="password"
+          labelExtra={
+            <Button
+              type="link"
+              className="auth-form-field__forgot"
+              onClick={handleForgotPassword}
+              data-testid={testId('auth', 'login', 'btn', 'forgot')}
+            >
+              Забыли пароль?
+            </Button>
+          }
         />
       </div>
 
       {error && (
-        <div
-          className="auth-alert auth-alert--error"
+        <Alert
+          type="error"
+          showIcon
+          message={error}
           data-testid={testId('auth', 'login', 'text', 'error')}
-        >
-          {error}
-        </div>
+        />
       )}
 
-      <HockeyButton
-        view="action"
-        size="l"
-        type="submit"
+      <Button
+        type="primary"
+        htmlType="submit"
+        size="large"
+        block
         loading={loginMutation.isPending}
         disabled={loginMutation.isPending}
         data-testid={testId('auth', 'login', 'btn', 'submit')}
       >
-        Войти
-      </HockeyButton>
-
-      <p className="auth-form__footer" data-testid={testId('auth', 'login', 'panel', 'footer')}>
-        <Link
-          to="/terms"
-          className="auth-form__switch-link"
-          data-testid={testId('auth', 'login', 'link', 'terms')}
-        >
-          Условия использования
-        </Link>
-      </p>
+        Войти в систему
+      </Button>
     </form>
   )
 }

@@ -25,9 +25,12 @@ export {
   TERMS_OF_USE_TITLE,
   TERMS_OF_USE_VERSION,
 } from './lib/termsOfUseContent'
+export {AuthAntdProvider} from './ui/AuthAntdProvider'
+export {AuthBrandLogo} from './ui/AuthBrandLogo'
 export {AuthDemoCard} from './ui/AuthDemoCard'
 export {AuthField} from './ui/AuthField'
 export {AuthShell} from './ui/AuthShell'
+export {EmailVerificationForm} from './ui/EmailVerificationForm'
 export {LoginForm} from './ui/LoginForm'
 export {PersonaSelection} from './ui/PersonaSelection'
 export {RegisterForm} from './ui/RegisterForm'

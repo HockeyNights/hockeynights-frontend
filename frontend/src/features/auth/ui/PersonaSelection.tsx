@@ -3,9 +3,9 @@
  * Выбор демо-роли после входа или регистрации.
  */
 
-import {Text} from '@gravity-ui/uikit'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
-import {useMemo, useState} from 'react'
+import {Alert, Button, Typography} from 'antd'
+import {type CSSProperties, useMemo, useState} from 'react'
 import {useNavigate} from 'react-router'
 
 import type {AuthLoginResponse, AvailablePersona} from '@/entities/auth'
@@ -14,11 +14,36 @@ import type {HockeyProfile} from '@/entities/profile'
 import {getPersonaHomePath} from '@/features/access'
 import {PERSONA_PRESETS, type PersonaPreset} from '@/features/auth/lib/personaPresets'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 
 export interface PersonaSelectionProps {
   isSwitching?: boolean
   onBackToCredentials?: () => void
+}
+
+const PERSONA_ACCENT: Record<string, string> = {
+  player: '#ffc72c',
+  goalie: '#3b9eff',
+  captain: '#34d399',
+  coach: '#a78bfa',
+  organizer: '#f43f5e',
+  'club-admin': '#e879f9',
+  'league-partner': '#fb923c',
+  'shop-partner': '#22d3ee',
+  'arena-partner': '#4ade80',
+  admin: '#c084fc',
+}
+
+const PERSONA_CTA: Record<string, string> = {
+  player: 'Войти как игрок',
+  goalie: 'Войти как вратарь',
+  captain: 'Войти как капитан',
+  coach: 'Войти как тренер',
+  organizer: 'Войти как организатор',
+  'club-admin': 'Войти как админ клуба',
+  'league-partner': 'Войти как представитель лиги',
+  'shop-partner': 'Войти как представитель магазина',
+  'arena-partner': 'Войти как представитель арены',
+  admin: 'Войти как администратор',
 }
 
 function toPersonaPreset(persona: AvailablePersona): PersonaPreset | undefined {
@@ -86,17 +111,28 @@ export function PersonaSelection({
       aria-label="Выбор роли"
       data-testid={testId('auth', 'login', 'panel', 'personas')}
     >
-      <Text variant="subheader-2" data-testid={testId('auth', 'login', 'text', 'personas-title')}>
-        Выберите демо-роль
-      </Text>
-      <Text color="secondary" data-testid={testId('auth', 'login', 'text', 'personas-hint')}>
-        Каждая карточка открывает свой режим интерфейса. Выбор сохранится после обновления страницы.
-      </Text>
+      <header className="auth-personas__header">
+        <Typography.Title
+          level={2}
+          className="auth-personas__title"
+          data-testid={testId('auth', 'login', 'text', 'personas-title')}
+        >
+          Выберите демо-роль
+        </Typography.Title>
+        <Typography.Paragraph
+          className="auth-personas__hint"
+          data-testid={testId('auth', 'login', 'text', 'personas-hint')}
+        >
+          Каждая карточка открывает свой режим интерфейса. Выбор сохранится в локальном профиле.
+        </Typography.Paragraph>
+      </header>
 
       <div className="persona-card-grid" data-testid={testId('auth', 'login', 'grid', 'personas')}>
         {personas.map((persona) => {
           const isCurrent = session?.personaId === persona.id
           const isPending = pendingPersonaId === persona.id
+          const accent = PERSONA_ACCENT[persona.id] ?? '#ffc72c'
+          const cta = PERSONA_CTA[persona.id] ?? `Войти как ${persona.title.toLowerCase()}`
           return (
             <button
               key={persona.id}
@@ -108,6 +144,7 @@ export function PersonaSelection({
               ]
                 .filter(Boolean)
                 .join(' ')}
+              style={{'--persona-accent': accent} as CSSProperties}
               aria-label={`${persona.title}. ${persona.description}. ${persona.destination}`}
               aria-busy={isPending}
               disabled={personaMutation.isPending}
@@ -119,40 +156,35 @@ export function PersonaSelection({
                   className="persona-card__badge"
                   data-testid={testId('auth', 'persona', 'badge', 'current')}
                 >
-                  Текущая
+                  текущий
                 </span>
               )}
-              <span className="persona-card__icon" aria-hidden>
-                {persona.icon}
-              </span>
               <span className="persona-card__title">{persona.title}</span>
               <span className="persona-card__description">{persona.description}</span>
-              <span className="persona-card__destination">
-                {isPending ? 'Переключаем…' : `→ ${persona.destination}`}
-              </span>
+              <span className="persona-card__destination">{isPending ? 'Переключаем…' : cta}</span>
             </button>
           )
         })}
       </div>
 
       {error && (
-        <div
-          className="auth-alert auth-alert--error"
+        <Alert
+          type="error"
+          showIcon
+          message={error}
           data-testid={testId('auth', 'login', 'text', 'personas-error')}
-        >
-          {error}
-        </div>
+        />
       )}
 
-      {!isSwitching && onBackToCredentials && (
-        <HockeyButton
-          view="flat"
-          size="s"
+      {onBackToCredentials && (
+        <Button
+          size="large"
+          block
           onClick={onBackToCredentials}
           data-testid={testId('auth', 'login', 'btn', 'back-credentials')}
         >
           Назад
-        </HockeyButton>
+        </Button>
       )}
     </section>
   )
