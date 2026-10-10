@@ -103,7 +103,6 @@ export function ArenaMap({
             )
           })}
         </MapContainer>
-        <div className="arena-map__bottom-cover" aria-hidden />
       </div>
 
       <div

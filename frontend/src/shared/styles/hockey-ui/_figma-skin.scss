@@ -1,0 +1,523 @@
+@use '../mixins' as *;
+
+/**
+ * Визуальная система экранов Figma «hockey» (eTRV7SeZP6M9bJHvfupv2b).
+ *
+ * Подключается последней: перекрывает базовые карточки, заголовки, контролы
+ * Gravity/AntD и панель фильтров, чтобы все разделы получили один язык —
+ * плоские карточки r30, контролы h44 r15, кнопки r9, подписи секций капсом.
+ * Боковая навигация и шапка приложения здесь намеренно не трогаются.
+ */
+
+/* ---------- Карточки ---------- */
+
+.ice-card {
+  background: var(--hockey-ui-card);
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: var(--hockey-ui-card-radius);
+  box-shadow: var(--hockey-ui-card-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  &::before,
+  &::after {
+    content: none;
+  }
+}
+
+.ice-card--padding-s {
+  padding: 12px 14px;
+}
+
+.ice-card--padding-m {
+  padding: 15px;
+}
+
+.ice-card--padding-l {
+  padding: 20px 22px;
+}
+
+.ice-card--selected {
+  outline: none;
+  border-color: var(--hockey-ui-accent);
+  box-shadow: 0 0 0 1px var(--hockey-ui-accent);
+}
+
+/* ---------- Типографика основной колонки ---------- */
+
+.app-shell__main-col {
+  color: var(--hockey-ui-text);
+
+  .g-text_variant_header-1,
+  .page-header__title {
+    font-family: var(--hockey-font-sans);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 32px;
+    letter-spacing: -0.6px;
+    text-transform: uppercase;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--hockey-ui-text);
+    margin: 0;
+    padding: 0;
+  }
+
+  .g-text_variant_header-2 {
+    font-family: var(--hockey-font-sans);
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 24px;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    color: var(--hockey-ui-text);
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    padding: 0;
+  }
+
+  .g-text_variant_header-2.hockey-entity-title--compact {
+    font-size: 16px;
+    line-height: 20px;
+  }
+
+  .g-text_variant_subheader-3 {
+    font-family: var(--hockey-font-sans);
+    font-weight: 700;
+  }
+
+  /* Подпись секции: «БЛИЖАЙШИЕ СОБЫТИЯ», «БЫСТРЫЙ ФИЛЬТР» */
+  .g-text_variant_subheader-2,
+  .hockey-section-label {
+    font-family: var(--hockey-font-sans);
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 20px;
+    letter-spacing: 1.96px;
+    text-transform: uppercase;
+    color: var(--hockey-ui-muted);
+  }
+
+  .hockey-section-label {
+    margin: 0;
+  }
+
+  .g-text_color_secondary {
+    color: var(--hockey-ui-muted);
+  }
+
+  .variable-font-header {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--hockey-ui-text);
+  }
+}
+
+/** Строка «подпись секции + ссылка справа». */
+.hockey-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  min-height: 20px;
+}
+
+.hockey-section-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--hockey-ui-accent);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--hockey-ui-accent-hover);
+  }
+}
+
+/* ---------- Шапка страницы: карточка-hero ---------- */
+
+.app-shell__main-col .page-header {
+  box-sizing: border-box;
+  align-items: flex-start;
+  gap: 12px 24px;
+  padding: 26px 18px 22px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: var(--hockey-ui-card-radius);
+  background: var(--hockey-ui-card);
+  box-shadow: var(--hockey-ui-card-shadow);
+
+  .page-header__copy {
+    gap: 2px;
+    padding-top: 0;
+  }
+
+  .page-header__copy .g-text_color_secondary {
+    font-size: 16px;
+    line-height: 20px;
+  }
+}
+
+/** Внутри общей карточки фильтров шапка не рисует собственную рамку. */
+.app-shell__main-col .catalog-filters .page-header {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* ---------- Панель фильтров каталога ---------- */
+
+.catalog-filters {
+  --catalog-filters-radius: var(--hockey-ui-control-radius);
+  --catalog-filters-search-height: var(--hockey-ui-control-height);
+  --catalog-filters-control-height: var(--hockey-ui-control-height);
+  --catalog-filters-border: var(--hockey-ui-raised-border);
+  --catalog-filters-focus: var(--hockey-ui-accent);
+
+  gap: 14px;
+  padding: 26px 18px 22px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: var(--hockey-ui-card-radius);
+  background: var(--hockey-ui-card);
+  box-shadow: var(--hockey-ui-card-shadow);
+
+  &--active {
+    border-color: var(--hockey-ui-card-border);
+  }
+
+  &--sticky {
+    background: var(--hockey-ui-card);
+  }
+}
+
+.catalog-filters__header {
+  min-width: 0;
+}
+
+/** Desktop: шапка, вкладки и поиск слева, быстрый фильтр — справа. */
+.catalog-filters--split {
+  @include breakpoint(1200px) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+    grid-template-areas:
+      'header chips'
+      'toolbar chips'
+      'search chips'
+      'meta meta'
+      'advanced advanced';
+    column-gap: 24px;
+    align-items: end;
+
+    .catalog-filters__header {
+      grid-area: header;
+      align-self: start;
+    }
+
+    .catalog-filters__toolbar {
+      grid-area: toolbar;
+    }
+
+    .catalog-filters__search {
+      grid-area: search;
+    }
+
+    .catalog-filters__chips {
+      grid-area: chips;
+      align-self: end;
+      max-width: 640px;
+    }
+
+    .catalog-filters__meta {
+      grid-area: meta;
+    }
+
+    .catalog-filters__advanced {
+      grid-area: advanced;
+    }
+  }
+}
+
+.catalog-filters__search {
+  .g-text-input__content {
+    border-color: var(--hockey-ui-raised-border);
+    background: var(--hockey-ui-card);
+  }
+
+  .g-text-input__control {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .g-text-input_focused .g-text-input__content,
+  .g-text-input__content:focus-within {
+    border-color: var(--hockey-ui-accent);
+    box-shadow: none;
+  }
+}
+
+.catalog-filters__search-icon {
+  padding-inline: 8px 12px;
+  color: var(--hockey-ui-muted);
+}
+
+.catalog-filters__chips {
+  gap: 10px;
+}
+
+.catalog-filters__chips-label,
+.catalog-filters__field-label {
+  font-family: var(--hockey-font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 1.92px;
+  text-transform: uppercase;
+  color: var(--hockey-ui-muted);
+}
+
+.catalog-filters__field-label {
+  font-size: 12px;
+  letter-spacing: 1.2px;
+}
+
+.catalog-filters__chips-row {
+  gap: 6px;
+}
+
+.catalog-filters__chip {
+  min-height: var(--hockey-ui-control-height);
+  padding: 0 15px;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: var(--hockey-ui-control-radius);
+  background: var(--hockey-ui-raised);
+  color: var(--hockey-ui-muted);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.15px;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--hockey-ui-accent) 55%, transparent);
+    color: var(--hockey-ui-text);
+  }
+
+  &.is-active {
+    border-color: var(--hockey-ui-accent);
+    background: var(--hockey-ui-accent);
+    color: var(--hockey-ui-accent-ink);
+  }
+}
+
+.catalog-filters__meta-text {
+  font-family: var(--hockey-font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--hockey-ui-muted);
+}
+
+.catalog-filters__advanced {
+  border-top-color: var(--hockey-ui-card-border);
+}
+
+.catalog-filters__native-input {
+  background: var(--hockey-ui-raised);
+  border-color: var(--hockey-ui-raised-border);
+}
+
+/* ---------- Кнопки ---------- */
+
+.hockey-button {
+  border-radius: var(--hockey-ui-button-radius) !important;
+  letter-spacing: 0.15px !important;
+
+  &:not(:disabled):hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  &:not(:disabled):active {
+    transform: translateY(1px);
+  }
+}
+
+.page-hub {
+  --page-hub-radius: var(--hockey-ui-control-radius);
+}
+
+.app-shell__main-col .g-button {
+  --g-button-border-radius: var(--hockey-ui-button-radius);
+  font-weight: 600;
+}
+
+.app-shell__main-col .g-button_view_action {
+  --g-button-background-color: var(--hockey-ui-accent);
+  --g-button-background-color-hover: var(--hockey-ui-accent-hover);
+  --g-button-text-color: var(--hockey-ui-accent-ink);
+  --g-button-text-color-hover: var(--hockey-ui-accent-ink);
+}
+
+.app-shell__main-col .g-button_view_outlined,
+.app-shell__main-col .g-button_view_normal {
+  --g-button-background-color: var(--hockey-ui-card);
+  --g-button-background-color-hover: var(--hockey-ui-raised);
+  --g-button-text-color: var(--hockey-ui-muted);
+  --g-button-text-color-hover: var(--hockey-ui-text);
+  --g-button-border-color: var(--hockey-ui-raised-border);
+  --g-button-border-width: 1px;
+  --g-button-border-style: solid;
+}
+
+.app-shell__main-col .g-button_view_outlined-action {
+  --g-button-border-color: var(--hockey-ui-accent);
+  --g-button-text-color: var(--hockey-ui-accent);
+}
+
+.app-shell__main-col .ant-btn {
+  font-weight: 600;
+}
+
+.app-shell__main-col .ant-btn-default:not(:disabled) {
+  color: var(--hockey-ui-muted);
+}
+
+/* ---------- Поля ввода ---------- */
+
+.app-shell__main-col {
+  .g-text-input_view_normal .g-text-input__content,
+  .g-text-area_view_normal .g-text-area__content,
+  .g-select-control__button,
+  .g-select-control_view_normal .g-select-control__button {
+    border-color: var(--hockey-ui-raised-border);
+    border-radius: var(--hockey-ui-control-radius);
+    background: var(--hockey-ui-raised);
+  }
+
+  .g-text-input_size_l .g-text-input__content,
+  .g-select-control_size_l .g-select-control__button {
+    min-height: var(--hockey-ui-control-height);
+  }
+
+  .g-text-input_focused .g-text-input__content,
+  .g-text-area_focused .g-text-area__content {
+    border-color: var(--hockey-ui-accent);
+  }
+}
+
+/* ---------- Бейджи ---------- */
+
+.hockey-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 6px;
+  border-radius: var(--hockey-ui-badge-radius);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 13px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--hockey-badge-color) 20%, transparent);
+  color: var(--hockey-badge-color);
+
+  --hockey-badge-color: var(--hockey-ui-blue);
+
+  &--gold {
+    --hockey-badge-color: var(--hockey-ui-gold);
+  }
+
+  &--green {
+    --hockey-badge-color: var(--hockey-ui-green);
+  }
+
+  &--red {
+    --hockey-badge-color: var(--hockey-ui-red);
+  }
+
+  &--muted {
+    --hockey-badge-color: var(--hockey-ui-muted);
+  }
+}
+
+.app-shell__main-col .g-label {
+  --g-label-border-radius: var(--hockey-ui-badge-radius);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+/* ---------- Пустое состояние «Событий пока нет» ---------- */
+
+.hockey-empty-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: var(--hockey-ui-icon-tile);
+  color: var(--hockey-ui-green);
+}
+
+/* ---------- Строка списка (состав, участники) ---------- */
+
+.hockey-list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hockey-ui-row-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+/* ---------- Сегментный переключатель вкладок (pill) ---------- */
+
+.hockey-segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hockey-segmented__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--hockey-ui-control-height);
+  padding: 0 15px;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: var(--hockey-ui-control-radius);
+  background: var(--hockey-ui-raised);
+  color: var(--hockey-ui-muted);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.15px;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--hockey-ui-text);
+  }
+
+  &.is-active,
+  &[aria-pressed='true'],
+  &[aria-selected='true'],
+  &[aria-current='page'] {
+    border-color: var(--hockey-ui-accent);
+    background: var(--hockey-ui-accent);
+    color: var(--hockey-ui-accent-ink);
+  }
+}

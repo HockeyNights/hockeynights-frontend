@@ -4,7 +4,7 @@
  * HOCFRONT-34A — кликабельная карточка (hitbox + интерактивы поверх, без nested role=button)
  */
 
-import {Label, Text} from '@gravity-ui/uikit'
+import {Text} from '@gravity-ui/uikit'
 import {useState} from 'react'
 
 import type {League} from '@/entities/league'
@@ -63,11 +63,11 @@ export function LeagueCard({league, onOpenDetails, selected = false}: LeagueCard
             data-testid={testId('leagues', 'card', 'btn', 'open', league.id)}
           />
         )}
-        <div className="league-card__content hockey-stack hockey-stack--gap-8">
-          <div className="hockey-row hockey-row--gap-8 hockey-row--between hockey-row--align-start">
+        <div className="league-card__content">
+          <div className="league-card__head">
             <Text
               variant="header-2"
-              className="hockey-entity-title--compact"
+              className="league-card__name"
               data-testid={testId('leagues', 'card', 'text', 'name', league.id)}
             >
               {league.name}
@@ -76,37 +76,45 @@ export function LeagueCard({league, onOpenDetails, selected = false}: LeagueCard
               className="league-meta-chips"
               data-testid={testId('leagues', 'card', 'panel', 'chips', league.id)}
             >
+              <div data-testid={testId('leagues', 'card', 'badge', 'profile', league.id)}>
+                <EntityProfileBadge kind="league" className="league-meta-chip--profile" />
+              </div>
               <FavoriteButton
                 type="league"
                 entityId={league.id}
                 title={league.name}
                 className="league-meta-chip league-meta-chip--favorite"
               />
-              <div data-testid={testId('leagues', 'card', 'badge', 'profile', league.id)}>
-                <EntityProfileBadge kind="league" />
-              </div>
             </div>
           </div>
-          <Text
-            color="secondary"
-            data-testid={testId('leagues', 'card', 'text', 'region', league.id)}
-          >
-            {league.region}
-          </Text>
-          {levelLabel && (
-            <span data-testid={testId('leagues', 'card', 'badge', 'level', league.id)}>
-              <Label size="s">{levelLabel}</Label>
+          <div className="league-card__facts">
+            <Text
+              color="secondary"
+              className="league-card__region"
+              data-testid={testId('leagues', 'card', 'text', 'region', league.id)}
+            >
+              {league.region}
+            </Text>
+            {levelLabel && (
+              <span
+                className="league-card__level"
+                data-testid={testId('leagues', 'card', 'badge', 'level', league.id)}
+              >
+                {levelLabel}
+              </span>
+            )}
+            <span
+              className="league-card__integration"
+              data-testid={testId('leagues', 'card', 'badge', 'integration', league.id)}
+            >
+              Интеграция: {league.integrationStatus}
             </span>
-          )}
-          <Label
-            theme="warning"
-            size="s"
-            data-testid={testId('leagues', 'card', 'badge', 'integration', league.id)}
-          >
-            Интеграция: {league.integrationStatus}
-          </Label>
-          <div data-testid={testId('leagues', 'card', 'badge', 'source', league.id)}>
-            <SourceMetaBadge sourceMeta={league.sourceMeta} />
+            <div
+              className="league-card__source"
+              data-testid={testId('leagues', 'card', 'badge', 'source', league.id)}
+            >
+              <SourceMetaBadge sourceMeta={league.sourceMeta} />
+            </div>
           </div>
           {league.websiteUrl && (
             <button

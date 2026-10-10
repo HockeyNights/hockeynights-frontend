@@ -2,20 +2,18 @@
  * HOCFRONT-32B — публичные объявления льда на странице арены
  */
 
-import {Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 
 import {fetchArenaListings} from '@/entities/arena'
 import {testId} from '@/shared/testing/testId'
 import {IceCard} from '@/shared/ui/IceCard'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 export interface ArenaListingsPanelProps {
   arenaId: string
-  /** Без собственной IceCard — внутри родительской карточки */
-  embedded?: boolean
 }
 
-export function ArenaListingsPanel({arenaId, embedded = false}: ArenaListingsPanelProps) {
+export function ArenaListingsPanel({arenaId}: ArenaListingsPanelProps) {
   const {data: listings = []} = useQuery({
     queryKey: ['arena-listings', arenaId, 'public'],
     queryFn: () => fetchArenaListings(arenaId, {publicOnly: true}),
@@ -23,31 +21,34 @@ export function ArenaListingsPanel({arenaId, embedded = false}: ArenaListingsPan
 
   if (listings.length === 0) return null
 
-  const body = (
-    <div
-      className="hockey-stack hockey-stack--gap-8"
+  return (
+    <section
+      className="arena-detail__section arena-listings"
       data-testid={testId('arenas', 'listings', 'panel', arenaId)}
     >
-      <Text
-        variant="subheader-2"
+      <SectionHeading
+        title="Объявления льда"
+        as="h3"
         data-testid={testId('arenas', 'listings', 'text', 'title', arenaId)}
-      >
-        Объявления льда
-      </Text>
+      />
       {listings.map((listing) => {
         const start = new Date(listing.startsAt)
         const end = new Date(listing.endsAt)
         return (
-          <div
+          <IceCard
             key={listing.id}
-            className="hockey-stack hockey-stack--gap-4"
+            padding="m"
+            className="arena-listings__card"
             data-testid={testId('arenas', 'listings', 'card', listing.id)}
           >
-            <Text data-testid={testId('arenas', 'listings', 'text', 'name', listing.id)}>
+            <div
+              className="arena-listings__name"
+              data-testid={testId('arenas', 'listings', 'text', 'name', listing.id)}
+            >
               {listing.title}
-            </Text>
-            <Text
-              color="secondary"
+            </div>
+            <div
+              className="arena-listings__meta"
               data-testid={testId('arenas', 'listings', 'text', 'schedule', listing.id)}
             >
               {start.toLocaleString('ru-RU', {
@@ -59,25 +60,21 @@ export function ArenaListingsPanel({arenaId, embedded = false}: ArenaListingsPan
               {' – '}
               {end.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})}
               {listing.priceRub != null ? ` · ${listing.priceRub.toLocaleString('ru-RU')} ₽` : ''}
-            </Text>
+            </div>
             {listing.contactPhone && (
-              <Text
-                color="secondary"
+              <div
+                className="arena-listings__phone"
                 data-testid={testId('arenas', 'listings', 'text', 'phone', listing.id)}
               >
-                {listing.contactPhone}
+                <a href={`tel:${listing.contactPhone.replace(/[^\d+]/g, '')}`}>
+                  {listing.contactPhone}
+                </a>
                 {listing.contactNote ? ` · ${listing.contactNote}` : ''}
-              </Text>
+              </div>
             )}
-          </div>
+          </IceCard>
         )
       })}
-    </div>
+    </section>
   )
-
-  if (embedded) {
-    return <div className="arena-detail__listings">{body}</div>
-  }
-
-  return <IceCard padding="m">{body}</IceCard>
 }

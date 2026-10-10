@@ -2,25 +2,40 @@
  * HOCFRONT-9 — hero «Ближайшая игра» с RSVP игрока.
  */
 
-import {Text} from '@gravity-ui/uikit'
+import {Calendar, MapPin} from '@gravity-ui/icons'
+import {Icon, Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 
 import {fetchEventRsvp} from '@/entities/event'
 import {useSessionAccess} from '@/features/access'
-import {TeamRsvpResponseControl} from '@/features/radar/ui/TeamRsvpResponseControl'
+import {
+  TeamRsvpMyStatus,
+  TeamRsvpResponseControl,
+} from '@/features/radar/ui/TeamRsvpResponseControl'
 import {testId} from '@/shared/testing/testId'
 import {EmptyNetState} from '@/shared/ui/EmptyNetState'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
-import {ScoreboardText} from '@/shared/ui/ScoreboardText'
 
 export interface LeagueGameRsvpProps {
   eventId: string
   currentUserId?: string
+  /**
+   * Кнопка «Изменить» в hero. Если задана — ответ «Буду / Не смогу» рендерится
+   * отдельным блоком снаружи, а hero показывает только текущий статус.
+   */
+  onChangeAnswer?: () => void
 }
 
-export function LeagueGameRsvp({eventId, currentUserId}: LeagueGameRsvpProps) {
+function formatGameDateTime(startsAt: string): string {
+  const start = new Date(startsAt)
+  const date = start.toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})
+  const time = start.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})
+  return `${date.charAt(0).toUpperCase()}${date.slice(1)} в ${time}`
+}
+
+export function LeagueGameRsvp({eventId, currentUserId, onChangeAnswer}: LeagueGameRsvpProps) {
   const {userId: sessionUserId} = useSessionAccess()
   const resolvedUserId = currentUserId || sessionUserId
   const {
@@ -52,61 +67,76 @@ export function LeagueGameRsvp({eventId, currentUserId}: LeagueGameRsvpProps) {
     )
   }
 
-  const start = new Date(board.startsAt)
-  const dateTimeLabel = start.toLocaleString('ru-RU', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-
   return (
     <IceCard
-      padding="m"
+      padding="l"
       className="league-game-rsvp"
       data-testid={testId('radar', 'league-rsvp', 'card', eventId)}
     >
-      <div className="hockey-stack hockey-stack--gap-14">
-        <div className="league-game-rsvp__hero hockey-stack hockey-stack--gap-8">
-          <Text
-            variant="subheader-1"
+      <div className="league-game-rsvp__hero">
+        <div className="league-game-rsvp__badges">
+          <span
+            className="hockey-badge"
             data-testid={testId('radar', 'league-rsvp', 'text', 'title', eventId)}
           >
             Ближайшая игра
-          </Text>
-          <ScoreboardText
-            tone="accent"
+          </span>
+          <span
+            className="hockey-badge hockey-badge--muted"
             data-testid={testId('radar', 'league-rsvp', 'text', 'league', eventId)}
           >
             {board.leagueName}
-          </ScoreboardText>
-          <Text
-            variant="subheader-2"
-            data-testid={testId('radar', 'league-rsvp', 'text', 'matchup', eventId)}
-          >
-            {board.teamName} vs {board.opponentName}
-          </Text>
-          <div className="league-game-rsvp__meta hockey-stack hockey-stack--gap-4">
-            <Text data-testid={testId('radar', 'league-rsvp', 'text', 'datetime', eventId)}>
-              {dateTimeLabel}
-            </Text>
-            <Text
-              color="secondary"
-              data-testid={testId('radar', 'league-rsvp', 'text', 'arena', eventId)}
-            >
-              {board.arenaName}
-            </Text>
-          </div>
+          </span>
         </div>
+        <Text
+          variant="header-1"
+          as="h2"
+          className="league-game-rsvp__matchup"
+          data-testid={testId('radar', 'league-rsvp', 'text', 'matchup', eventId)}
+        >
+          {board.teamName} vs {board.opponentName}
+        </Text>
+        <div className="league-game-rsvp__meta">
+          <span
+            className="league-game-rsvp__line"
+            data-testid={testId('radar', 'league-rsvp', 'text', 'arena', eventId)}
+          >
+            <Icon data={MapPin} size={16} />
+            {board.arenaName}
+          </span>
+          <span
+            className="league-game-rsvp__line"
+            data-testid={testId('radar', 'league-rsvp', 'text', 'datetime', eventId)}
+          >
+            <Icon data={Calendar} size={16} />
+            {formatGameDateTime(board.startsAt)}
+          </span>
+        </div>
+      </div>
 
+      {onChangeAnswer ? (
+        <div
+          className="league-game-rsvp__answer"
+          data-testid={testId('radar', 'league-rsvp', 'panel', 'cta', eventId)}
+        >
+          <TeamRsvpMyStatus eventId={eventId} currentUserId={resolvedUserId} />
+          <HockeyButton
+            view="outlined"
+            size="l"
+            onClick={onChangeAnswer}
+            data-testid={testId('radar', 'league-rsvp', 'btn', 'change', eventId)}
+          >
+            Изменить
+          </HockeyButton>
+        </div>
+      ) : (
         <div
           className="league-game-rsvp__actions"
           data-testid={testId('radar', 'league-rsvp', 'panel', 'cta', eventId)}
         >
           <TeamRsvpResponseControl eventId={eventId} currentUserId={resolvedUserId} />
         </div>
-      </div>
+      )}
     </IceCard>
   )
 }

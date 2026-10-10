@@ -20,6 +20,14 @@ export function eventDateKey(startsAt: string): string {
   return localDateKey(new Date(startsAt))
 }
 
+export function formatEventTime(startsAt: string): {time: string; date: string} {
+  const start = new Date(startsAt)
+  return {
+    time: start.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}),
+    date: start.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'}),
+  }
+}
+
 export function groupEventsByDay(events: GameEvent[]): Map<string, GameEvent[]> {
   const map = new Map<string, GameEvent[]>()
   for (const event of events) {

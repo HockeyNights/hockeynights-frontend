@@ -9,7 +9,12 @@ import {useQuery} from '@tanstack/react-query'
 import {useParams} from 'react-router'
 
 import {fetchLeague, fetchLeagueSchedule, fetchLeagueStandings} from '@/entities/league'
-import {LeagueProfilePanel, LeagueSchedule, LeagueStandings} from '@/features/leagues'
+import {
+  LeagueApplicationPanel,
+  LeagueProfilePanel,
+  LeagueSchedule,
+  LeagueStandings,
+} from '@/features/leagues'
 import {isNotFoundError} from '@/shared/api/client'
 import {LEAGUES_LABEL} from '@/shared/config/navigationLabels'
 import {routes} from '@/shared/const/appRoutes'
@@ -17,11 +22,11 @@ import {useDocumentTitle} from '@/shared/hooks/useDocumentTitle'
 import {testId} from '@/shared/testing/testId'
 import {IceCard} from '@/shared/ui/IceCard'
 import {PageBackLink} from '@/shared/ui/PageBackLink'
-import {PageHeader} from '@/shared/ui/PageHeader'
 import {PageHub} from '@/shared/ui/PageHub'
 import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 import {SourceMetaBadge} from '@/shared/ui/SourceMetaBadge'
 
 /**
@@ -97,7 +102,10 @@ export function LeagueDetailsPage() {
   }
 
   return (
-    <PageHub data-testid={testId('leagues', 'details', 'page', league.id)}>
+    <PageHub
+      className="league-details"
+      data-testid={testId('leagues', 'details', 'page', league.id)}
+    >
       <PageBackLink
         to={routes.leagues}
         label="К каталогу лиг"
@@ -105,49 +113,57 @@ export function LeagueDetailsPage() {
         testIdSection="details"
       />
 
-      <PageHeader
-        title={league.name}
-        subtitle={league.region}
-        testIdPrefix="leagues"
-        testIdSection="details"
-      />
-
       <LeagueProfilePanel league={league} />
 
       <div
-        className="page-hub__panel"
-        data-testid={testId('leagues', 'details', 'card', 'stats', league.id)}
+        className="league-details__grid"
+        data-testid={testId('leagues', 'details', 'grid', league.id)}
       >
-        <IceCard padding="m">
-          <div className="hockey-row hockey-row--gap-12 hockey-row--between hockey-mb-16">
-            <div>
-              <Text
-                variant="subheader-2"
-                data-testid={testId('leagues', 'details', 'text', 'stats-title', league.id)}
-              >
-                Статистика и расписание
-              </Text>
-              <Text
-                color="secondary"
-                data-testid={testId('leagues', 'details', 'text', 'stats-subtitle', league.id)}
-              >
-                {league.name} · {league.region}
-              </Text>
-            </div>
-            <div data-testid={testId('leagues', 'details', 'badge', 'source', league.id)}>
-              <SourceMetaBadge sourceMeta={league.sourceMeta} />
-            </div>
-          </div>
-
-          <div className="hockey-stack hockey-stack--gap-20">
+        <section
+          className="league-details__main"
+          data-testid={testId('leagues', 'details', 'card', 'stats', league.id)}
+        >
+          <SectionHeading
+            title="Статистика и расписание"
+            data-testid={testId('leagues', 'details', 'text', 'stats-title', league.id)}
+          />
+          <IceCard padding="m" className="league-details__stats">
+            <Text
+              variant="header-2"
+              className="league-details__stats-title"
+              data-testid={testId('leagues', 'details', 'text', 'stats-subtitle', league.id)}
+            >
+              {league.name}
+            </Text>
             {standingsLoading ? (
               <div data-testid={testId('leagues', 'details', 'loader', 'standings', league.id)}>
                 <ScoreboardLoader label="Загрузка таблицы" />
               </div>
             ) : (
-              <LeagueStandings standings={standings} leagueName={league.name} />
+              <LeagueStandings
+                standings={standings}
+                leagueName={league.name}
+                headerAside={
+                  <div data-testid={testId('leagues', 'details', 'badge', 'source', league.id)}>
+                    <SourceMetaBadge sourceMeta={league.sourceMeta} />
+                  </div>
+                }
+              />
             )}
+          </IceCard>
+        </section>
 
+        <aside className="league-details__aside">
+          <LeagueApplicationPanel league={league} />
+
+          <section
+            className="league-details__schedule"
+            data-testid={testId('leagues', 'details', 'panel', 'schedule', league.id)}
+          >
+            <SectionHeading
+              title="Расписание лиги"
+              data-testid={testId('leagues', 'details', 'text', 'schedule-title', league.id)}
+            />
             {scheduleLoading ? (
               <div data-testid={testId('leagues', 'details', 'loader', 'schedule', league.id)}>
                 <ScoreboardLoader label="Загрузка расписания" />
@@ -155,8 +171,8 @@ export function LeagueDetailsPage() {
             ) : (
               <LeagueSchedule schedule={schedule} />
             )}
-          </div>
-        </IceCard>
+          </section>
+        </aside>
       </div>
     </PageHub>
   )

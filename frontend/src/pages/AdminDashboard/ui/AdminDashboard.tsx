@@ -12,6 +12,7 @@ import {IceCard} from '@/shared/ui/IceCard'
 import {PageHeader} from '@/shared/ui/PageHeader'
 import {PageHub} from '@/shared/ui/PageHub'
 import {QueryState} from '@/shared/ui/QueryState'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 /**
  * @spec SPEC-FR-11.1.1 - Admin prototype
@@ -29,7 +30,10 @@ export function AdminDashboard() {
   })
 
   return (
-    <PageHub data-testid={testId('admin', 'dashboard', 'page')}>
+    <PageHub
+      className="partner-cabinet admin-cabinet"
+      data-testid={testId('admin', 'dashboard', 'page')}
+    >
       <PageHeader
         title="Админка справочников"
         subtitle="Prototype для ручного управления аренами, лигами и магазинами."
@@ -37,44 +41,54 @@ export function AdminDashboard() {
         testIdSection="dashboard"
       />
 
-      <AdminEntityForm />
+      <section className="partner-cabinet__block">
+        <SectionHeading
+          title="Добавить запись"
+          data-testid={testId('admin', 'entity-form', 'text', 'title')}
+        />
+        <IceCard padding="m" className="partner-cabinet__card">
+          <div className="partner-cabinet__form">
+            <AdminEntityForm />
 
-      <IceCard padding="m">
-        <div data-testid={testId('admin', 'dashboard', 'panel', 'moderation')}>
-          <Text
-            variant="subheader-2"
-            data-testid={testId('admin', 'dashboard', 'text', 'moderation-title')}
-          >
-            Модерация партнёров
-          </Text>
-          <Text
-            color="secondary"
-            className="hockey-mb-12"
-            data-testid={testId('admin', 'dashboard', 'text', 'moderation-hint')}
-          >
-            Профили лиг/магазинов и товары со статусом «на проверке». Войдите с ролью
-            «Администратор».
-          </Text>
-          <PartnerModerationPanel />
-        </div>
-      </IceCard>
+            <div
+              className="admin-cabinet__moderation"
+              data-testid={testId('admin', 'dashboard', 'panel', 'moderation')}
+            >
+              <Text
+                variant="subheader-2"
+                data-testid={testId('admin', 'dashboard', 'text', 'moderation-title')}
+              >
+                Модерация партнёров
+              </Text>
+              <Text
+                color="secondary"
+                data-testid={testId('admin', 'dashboard', 'text', 'moderation-hint')}
+              >
+                Профили лиг/магазинов и товары со статусом «на проверке». Войдите с ролью
+                «Администратор».
+              </Text>
+              <PartnerModerationPanel />
+            </div>
+          </div>
+        </IceCard>
+      </section>
 
-      <Text
-        variant="subheader-2"
-        data-testid={testId('admin', 'dashboard', 'text', 'sources-title')}
-      >
-        Статусы источников и видимость
-      </Text>
-      <QueryState
-        isLoading={isLoading}
-        isError={isError}
-        loadingLabel="Загрузка статусов источников"
-        errorTitle="Не удалось загрузить статусы"
-        onRetry={() => void refetch()}
-        testIdPrefix="admin"
-      >
-        <SourceStatusTable items={sources} />
-      </QueryState>
+      <section className="partner-cabinet__block">
+        <SectionHeading
+          title="Статусы источников и видимость"
+          data-testid={testId('admin', 'dashboard', 'text', 'sources-title')}
+        />
+        <QueryState
+          isLoading={isLoading}
+          isError={isError}
+          loadingLabel="Загрузка статусов источников"
+          errorTitle="Не удалось загрузить статусы"
+          onRetry={() => void refetch()}
+          testIdPrefix="admin"
+        >
+          <SourceStatusTable items={sources} />
+        </QueryState>
+      </section>
     </PageHub>
   )
 }

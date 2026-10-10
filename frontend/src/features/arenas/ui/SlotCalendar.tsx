@@ -3,14 +3,18 @@
  * SPEC-UI-2.2
  */
 
-import {Text} from '@gravity-ui/uikit'
+import {CircleInfo} from '@gravity-ui/icons'
+import {Icon, Text} from '@gravity-ui/uikit'
 import {useMemo, useState} from 'react'
 
 import type {Arena} from '@/entities/arena'
 import type {IceSlot} from '@/entities/arena'
 import {ExternalBookingButton} from '@/features/arenas/ui/ExternalBookingButton'
 import {testId} from '@/shared/testing/testId'
-import {ScoreboardText} from '@/shared/ui/ScoreboardText'
+import {HockeyButton} from '@/shared/ui/HockeyButton'
+
+/** Сколько слотов видно до «Все даты» — как в макете страницы площадки. */
+const COLLAPSED_SLOTS = 3
 
 /** @spec SPEC-FR-6.3.1 */
 export interface SlotCalendarProps {
@@ -44,19 +48,25 @@ function timeRange(slot: IceSlot): string {
  */
 export function SlotCalendar({slots, arena}: SlotCalendarProps) {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState(false)
+
+  const sorted = useMemo(
+    () => [...slots].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+    [slots],
+  )
+  const canCollapse = sorted.length > COLLAPSED_SLOTS
+  const visible = expanded || !canCollapse ? sorted : sorted.slice(0, COLLAPSED_SLOTS)
 
   const grouped = useMemo(() => {
     const map = new Map<string, IceSlot[]>()
-    for (const slot of slots) {
+    for (const slot of visible) {
       const key = dayKey(slot.startsAt)
       const list = map.get(key) ?? []
       list.push(slot)
       map.set(key, list)
     }
     return [...map.entries()]
-  }, [slots])
-
-  const selectedSlot = slots.find((s) => s.id === selectedSlotId) ?? null
+  }, [visible])
 
   if (slots.length === 0) {
     return (
@@ -91,67 +101,89 @@ export function SlotCalendar({slots, arena}: SlotCalendarProps) {
               const selected = slot.id === selectedSlotId
               const disabled = slot.status !== 'free'
               return (
-                <button
+                <div
                   key={slot.id}
-                  type="button"
                   className={[
-                    'slot-calendar__chip',
-                    selected ? 'slot-calendar__chip--selected' : '',
-                    disabled ? 'slot-calendar__chip--busy' : '',
+                    'slot-calendar__row',
+                    selected ? 'slot-calendar__row--selected' : '',
+                    disabled ? 'slot-calendar__row--busy' : '',
                   ]
                     .filter(Boolean)
                     .join(' ')}
-                  onClick={() => !disabled && setSelectedSlotId(slot.id)}
-                  disabled={disabled}
-                  aria-pressed={selected}
-                  data-testid={testId('arenas', 'slot-calendar', 'slot', slot.id)}
                 >
-                  <ScoreboardText
-                    data-testid={testId('arenas', 'slot-calendar', 'text', 'time', slot.id)}
+                  <button
+                    type="button"
+                    className="slot-calendar__chip"
+                    onClick={() => !disabled && setSelectedSlotId(slot.id)}
+                    disabled={disabled}
+                    aria-pressed={selected}
+                    data-testid={testId('arenas', 'slot-calendar', 'slot', slot.id)}
                   >
-                    {timeRange(slot)}
-                  </ScoreboardText>
-                  <span
-                    className="slot-calendar__chip-status"
-                    data-testid={testId('arenas', 'slot-calendar', 'text', 'status', slot.id)}
-                  >
-                    {slot.status === 'free' ? 'Свободно' : 'Занято'}
-                  </span>
-                  {slot.price && (
                     <span
-                      className="slot-calendar__chip-price"
-                      data-testid={testId('arenas', 'slot-calendar', 'text', 'price', slot.id)}
+                      className="slot-calendar__time"
+                      data-testid={testId('arenas', 'slot-calendar', 'text', 'time', slot.id)}
                     >
-                      {slot.price} ₽
+                      {timeRange(slot)}
                     </span>
+                    <span className="slot-calendar__meta">
+                      <span
+                        className="slot-calendar__status"
+                        data-testid={testId('arenas', 'slot-calendar', 'text', 'status', slot.id)}
+                      >
+                        {slot.status === 'free' ? 'Свободно' : 'Занято'}
+                      </span>
+                      {slot.price != null && (
+                        <span
+                          className="slot-calendar__price"
+                          data-testid={testId('arenas', 'slot-calendar', 'text', 'price', slot.id)}
+                        >
+                          {slot.price.toLocaleString('ru-RU')} ₽
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                  {!disabled && (
+                    <ExternalBookingButton
+                      arena={arena}
+                      slot={slot}
+                      label="Забронировать слот"
+                      view="action"
+                      size="l"
+                    />
                   )}
-                </button>
+                </div>
               )
             })}
           </div>
         </section>
       ))}
 
-      {selectedSlot && selectedSlot.status === 'free' && (
-        <div
-          className="slot-calendar__booking"
-          data-testid={testId('arenas', 'slot-calendar', 'panel', 'booking', arena.id)}
+      <div
+        className="slot-calendar__booking"
+        data-testid={testId('arenas', 'slot-calendar', 'panel', 'booking', arena.id)}
+      >
+        <span className="slot-calendar__booking-icon" aria-hidden>
+          <Icon data={CircleInfo} size={20} />
+        </span>
+        <Text
+          className="slot-calendar__booking-text"
+          data-testid={testId('arenas', 'slot-calendar', 'text', 'confirm-note', arena.id)}
         >
-          <Text
-            data-testid={testId('arenas', 'slot-calendar', 'text', 'selected', selectedSlot.id)}
+          Бронь подтверждается администратором в течение 15 минут
+        </Text>
+        {canCollapse && (
+          <HockeyButton
+            view="action"
+            size="l"
+            className="slot-calendar__all"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((prev) => !prev)}
+            data-testid={testId('arenas', 'slot-calendar', 'btn', 'all-dates', arena.id)}
           >
-            Выбрано:{' '}
-            {new Date(selectedSlot.startsAt).toLocaleString('ru-RU', {
-              day: 'numeric',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-            {selectedSlot.price ? ` · ${selectedSlot.price.toLocaleString('ru-RU')} ₽` : ''}
-          </Text>
-          <ExternalBookingButton arena={arena} slot={selectedSlot} label="Забронировать слот" />
-        </div>
-      )}
+            {expanded ? 'Свернуть' : 'Все даты'}
+          </HockeyButton>
+        )}
+      </div>
     </div>
   )
 }

@@ -21,6 +21,8 @@ interface MessengerChatListProps {
   onTogglePin: (chatId: string) => void
   /** Кнопка «Новый чат» в пустом состоянии. */
   emptyAction?: React.ReactNode
+  /** `false` — поле поиска рендерит страница (в шапке), список только показывает чаты. */
+  withSearch?: boolean
 }
 
 export function MessengerChatList({
@@ -31,27 +33,30 @@ export function MessengerChatList({
   onSelect,
   onTogglePin,
   emptyAction,
+  withSearch = true,
 }: MessengerChatListProps) {
   return (
     <IceCard
       padding="s"
-      className="messenger-hub__sidebar"
+      className={`messenger-hub__sidebar${withSearch ? '' : ' messenger-hub__sidebar--bare'}`}
       data-testid={testId('messenger', 'page', 'nav', 'sidebar')}
     >
-      <TextInput
-        size="m"
-        value={query}
-        hasClear
-        onUpdate={onQueryChange}
-        placeholder="Поиск по чатам"
-        startContent={
-          <span className="messenger-hub__search-icon" aria-hidden>
-            <Icon data={Magnifier} size={16} />
-          </span>
-        }
-        aria-label="Поиск по чатам"
-        data-testid={testId('messenger', 'page', 'field', 'chat-search')}
-      />
+      {withSearch && (
+        <TextInput
+          size="m"
+          value={query}
+          hasClear
+          onUpdate={onQueryChange}
+          placeholder="Поиск по чатам"
+          startContent={
+            <span className="messenger-hub__search-icon" aria-hidden>
+              <Icon data={Magnifier} size={16} />
+            </span>
+          }
+          aria-label="Поиск по чатам"
+          data-testid={testId('messenger', 'page', 'field', 'chat-search')}
+        />
+      )}
       <div className="chat-list" data-testid={testId('messenger', 'page', 'list', 'chats')}>
         {chats.length === 0 ? (
           <div data-testid={testId('messenger', 'page', 'empty', 'chats')}>

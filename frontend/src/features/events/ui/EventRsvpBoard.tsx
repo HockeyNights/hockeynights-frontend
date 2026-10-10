@@ -13,6 +13,8 @@ import {testId} from '@/shared/testing/testId'
 
 export interface EventRsvpBoardProps {
   eventId: string
+  /** Заголовок уже есть снаружи (подпись секции на странице игры) */
+  hideTitle?: boolean
 }
 
 const STATUS_LABELS: Record<EventRsvpStatus, string> = {
@@ -27,7 +29,7 @@ const STATUS_COLORS: Record<EventRsvpStatus, 'positive' | 'danger' | 'secondary'
   pending: 'secondary',
 }
 
-export function EventRsvpBoard({eventId}: EventRsvpBoardProps) {
+export function EventRsvpBoard({eventId, hideTitle = false}: EventRsvpBoardProps) {
   const {userId} = useSessionAccess()
   const {data: board} = useQuery({
     queryKey: ['event-rsvp', eventId],
@@ -37,26 +39,28 @@ export function EventRsvpBoard({eventId}: EventRsvpBoardProps) {
   if (!board) return null
 
   return (
-    <div
-      className="hockey-stack hockey-stack--gap-8"
-      data-testid={testId('events', 'rsvp', 'panel', eventId)}
-    >
-      <Text variant="subheader-2" data-testid={testId('events', 'rsvp', 'text', 'title', eventId)}>
-        RSVP команды · {board.teamName} vs {board.opponentName}
-      </Text>
-      <div
-        className="hockey-stack hockey-stack--gap-4"
-        data-testid={testId('events', 'rsvp', 'list', eventId)}
-      >
+    <div className="event-rsvp-board" data-testid={testId('events', 'rsvp', 'panel', eventId)}>
+      {!hideTitle && (
+        <Text
+          className="event-rsvp-board__title"
+          data-testid={testId('events', 'rsvp', 'text', 'title', eventId)}
+        >
+          RSVP команды · {board.teamName} vs {board.opponentName}
+        </Text>
+      )}
+      <div data-testid={testId('events', 'rsvp', 'list', eventId)}>
         {board.players.map((player) => {
           const isMe = player.userId === userId
           return (
             <div
               key={player.userId}
-              className="hockey-row hockey-row--between hockey-row--gap-12"
+              className="hockey-list-row event-rsvp-board__row"
               data-testid={testId('events', 'rsvp', 'item', player.userId, eventId)}
             >
-              <Text data-testid={testId('events', 'rsvp', 'text', 'name', player.userId)}>
+              <Text
+                className="event-rsvp-board__name"
+                data-testid={testId('events', 'rsvp', 'text', 'name', player.userId)}
+              >
                 {player.displayName}
                 {isMe ? ' (вы)' : ''}
               </Text>

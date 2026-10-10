@@ -32,10 +32,16 @@ export function NotificationsPage() {
       <PageHeader
         title="Уведомления"
         testIdPrefix="notifications"
-        subtitle={
-          unreadCount > 0
-            ? `Важные сигналы по SOS, составу и событиям · ${unreadCount} непрочитанных`
-            : 'Важные сигналы по SOS, составу и событиям'
+        subtitle="Важные сигналы по SOS, составу и событиям."
+        actions={
+          <span
+            className="hockey-notifications-unread"
+            data-testid={testId('notifications', 'page', 'badge', 'unread')}
+          >
+            <span className="hockey-notifications-unread__dot" aria-hidden />
+            Непрочитанных:
+            <strong>{unreadCount}</strong>
+          </span>
         }
       />
 

@@ -36,8 +36,12 @@ export function SourceStatusTable({items}: SourceStatusTableProps) {
   }
 
   return (
-    <IceCard padding="m" data-testid={testId('admin', 'source-table', 'table')}>
-      <div className="hockey-stack hockey-stack--gap-12">
+    <IceCard
+      padding="m"
+      className="partner-cabinet__card admin-cabinet__sources"
+      data-testid={testId('admin', 'source-table', 'table')}
+    >
+      <div>
         {items.map((item) => (
           <div
             key={`${item.entityType}-${item.entityId}`}

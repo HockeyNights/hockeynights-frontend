@@ -2,29 +2,23 @@
  * HOCFRONT-28CAL-B/C — agenda выбранного дня + CTA
  */
 
+import {Calendar} from '@gravity-ui/icons'
 import {Text} from '@gravity-ui/uikit'
-import {useQuery} from '@tanstack/react-query'
 import {Link} from 'react-router'
 
 import type {GameEvent} from '@/entities/event'
-import {fetchEventRsvp} from '@/entities/event'
-import {
-  EVENT_TYPE_LABELS,
-  eventDetailsPath,
-  formatEventPriceRub,
-  registrationStatusLabel,
-  teamRsvpStatusLabel,
-  TrainingRegistrationControl,
-} from '@/features/events'
+import {eventDetailsPath, TrainingRegistrationControl} from '@/features/events'
 import {TeamRsvpResponseControl} from '@/features/radar'
 import {testId} from '@/shared/testing/testId'
-import {EmptyNetState} from '@/shared/ui/EmptyNetState'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
-import {eventDateKey, groupEventsByDay} from '../lib/calendarDays'
+import {eventDateKey, formatEventTime, groupEventsByDay} from '../lib/calendarDays'
 import {parseDateKey} from '../lib/calendarState'
 import {downloadEventIcs} from '../lib/icsExport'
 import {eventFillRatio} from '../lib/loadCalendarEvents'
+import {useCalendarEventStatus} from '../lib/useCalendarEventStatus'
+import {CalendarEventBadges, CalendarEventPlace} from './CalendarEventParts'
 
 export interface CalendarAgendaProps {
   selectedDate: string
@@ -57,26 +51,35 @@ export function CalendarAgenda({
   return (
     <div className="hockey-calendar-agenda" data-testid={testId('calendar', 'agenda', 'panel')}>
       <div className="hockey-calendar-agenda__section">
-        <div className="hockey-calendar-agenda__section-head">
-          <Text
-            variant="subheader-2"
-            data-testid={testId('calendar', 'agenda', 'text', 'day-title')}
-          >
-            {dayLabel}
-          </Text>
-          <Text color="secondary" data-testid={testId('calendar', 'agenda', 'text', 'day-count')}>
-            {dayEvents.length
-              ? `${dayEvents.length} ${dayEvents.length === 1 ? 'событие' : 'события'}`
-              : 'свободно'}
-          </Text>
-        </div>
+        <SectionHeading
+          title={
+            <span data-testid={testId('calendar', 'agenda', 'text', 'day-title')}>{dayLabel}</span>
+          }
+          extra={
+            dayEvents.length > 0 ? (
+              <Text
+                color="secondary"
+                className="hockey-calendar-agenda__count"
+                data-testid={testId('calendar', 'agenda', 'text', 'day-count')}
+              >
+                {`${dayEvents.length} ${dayEvents.length === 1 ? 'событие' : 'события'}`}
+              </Text>
+            ) : undefined
+          }
+        />
 
         {dayEvents.length === 0 ? (
-          <div data-testid={testId('calendar', 'agenda', 'empty', 'day')}>
-            <EmptyNetState
-              title="День свободен"
-              copy="На эту дату записей нет. Выберите другой день в сетке."
-            />
+          <div
+            className="hockey-calendar-agenda__empty"
+            data-testid={testId('calendar', 'agenda', 'empty', 'day')}
+          >
+            <span className="hockey-empty-tile" aria-hidden>
+              <Calendar width={32} height={32} />
+            </span>
+            <span className="hockey-calendar-agenda__empty-title">Событий пока нет</span>
+            <span className="hockey-calendar-agenda__empty-copy">
+              Ближайшие игры и тренировки появятся здесь.
+            </span>
           </div>
         ) : (
           <div
@@ -101,12 +104,13 @@ export function CalendarAgenda({
           className="hockey-calendar-agenda__section"
           data-testid={testId('calendar', 'agenda', 'panel', 'upcoming')}
         >
-          <Text
-            variant="subheader-2"
-            data-testid={testId('calendar', 'agenda', 'text', 'upcoming-title')}
-          >
-            Дальше
-          </Text>
+          <SectionHeading
+            title={
+              <span data-testid={testId('calendar', 'agenda', 'text', 'upcoming-title')}>
+                Дальше
+              </span>
+            }
+          />
           <div
             className="hockey-calendar-agenda__list"
             data-testid={testId('calendar', 'agenda', 'list', 'upcoming')}
@@ -138,106 +142,65 @@ function AgendaEventCard({
   showActions: boolean
   showOrganizerMeta: boolean
 }) {
-  const start = new Date(event.startsAt)
-  const timeStr = start.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})
-  const dateShort = start.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})
-  const myAttendance = event.participation.find((entry) => entry.userId === currentUserId)?.status
-  const {data: rsvpBoard} = useQuery({
-    queryKey: ['event-rsvp', event.id],
-    queryFn: () => fetchEventRsvp(event.id),
-    enabled: Boolean(event.hasTeamRsvp),
-  })
-  const myRsvp = rsvpBoard?.players.find((player) => player.userId === currentUserId)
-  const statusLabel = event.hasTeamRsvp
-    ? rsvpBoard
-      ? teamRsvpStatusLabel(myRsvp?.status, myRsvp?.declineReason)
-      : 'Загрузка…'
-    : registrationStatusLabel(myAttendance, event.registrationStatus)
+  const {time, date} = formatEventTime(event.startsAt)
+  const {myAttendance, statusLabel, statusTone, goalieOpen} = useCalendarEventStatus(
+    event,
+    currentUserId,
+  )
   const detailsPath = eventDetailsPath(event)
   const fillPercent = Math.round(eventFillRatio(event) * 100)
-  const goalieOpen = event.requiredSlots.some(
-    (slot) => slot.position === 'goalie' && slot.filledCount < slot.count,
-  )
-  const typeLabel = EVENT_TYPE_LABELS[event.type] ?? event.type
-  const priceLabel = formatEventPriceRub(event.pricePerPlayer)
-  const statusTone = event.hasTeamRsvp
-    ? myRsvp?.status === 'confirmed'
-      ? 'going'
-      : myRsvp?.status === 'declined'
-        ? 'need'
-        : 'wait'
-    : myAttendance === 'going'
-      ? 'going'
-      : myAttendance === 'maybe'
-        ? 'wait'
-        : goalieOpen
-          ? 'need'
-          : 'open'
 
   return (
     <article
       className={`hockey-calendar-event hockey-calendar-event--${event.type}`}
       data-testid={testId('calendar', 'agenda', 'card', event.id)}
     >
-      <div
-        className="hockey-calendar-event__time"
-        data-testid={testId('calendar', 'agenda', 'text', 'time', event.id)}
-      >
-        <span className="hockey-calendar-event__clock">{timeStr}</span>
-        <span className="hockey-calendar-event__date">{dateShort}</span>
+      <div className="hockey-calendar-event__top">
+        <div
+          className="hockey-calendar-event__time"
+          data-testid={testId('calendar', 'agenda', 'text', 'time', event.id)}
+        >
+          <span className="hockey-calendar-event__clock">{time}</span>
+          <span className="hockey-calendar-event__date">{date}</span>
+        </div>
+        <CalendarEventBadges
+          event={event}
+          statusLabel={statusLabel}
+          statusTone={statusTone}
+          scope="agenda"
+        />
       </div>
 
       <div className="hockey-calendar-event__body">
-        <div className="hockey-calendar-event__top">
-          <span
-            className={`hockey-calendar-event__type hockey-calendar-event__type--${event.type}`}
-            data-testid={testId('calendar', 'agenda', 'badge', 'type', event.id)}
-          >
-            {typeLabel}
-          </span>
-          <span
-            className={`hockey-calendar-event__status hockey-calendar-event__status--${statusTone}`}
-            data-testid={testId('calendar', 'agenda', 'text', 'status', event.id)}
-          >
-            {statusLabel}
-          </span>
-        </div>
-
         <Link
           to={detailsPath}
           className="hockey-calendar-event__title-link"
           data-testid={testId('calendar', 'agenda', 'link', 'event', event.id)}
         >
-          <Text
-            variant="subheader-2"
+          <span
+            className="hockey-calendar-event__title"
             data-testid={testId('calendar', 'agenda', 'text', 'title', event.id)}
           >
             {event.title}
-          </Text>
+          </span>
         </Link>
 
-        <Text
-          color="secondary"
-          className="hockey-calendar-event__meta"
-          data-testid={testId('calendar', 'agenda', 'text', 'meta', event.id)}
-        >
-          {event.arenaName ?? event.arenaId}
-          {event.district ? ` · ${event.district}` : ''}
-          {` · ${priceLabel}`}
-        </Text>
+        <CalendarEventPlace event={event} scope="agenda" />
 
         {showOrganizerMeta && (
-          <Text
-            color="secondary"
+          <span
+            className="hockey-calendar-event__note"
             data-testid={testId('calendar', 'agenda', 'text', 'fill', event.id)}
           >
             Заполненность {fillPercent}%{goalieOpen ? ' · нужен вратарь' : ''}
-          </Text>
+          </span>
         )}
+      </div>
 
-        <div className="hockey-calendar-event__actions">
-          {showActions &&
-            (event.hasTeamRsvp ? (
+      <div className="hockey-calendar-event__actions">
+        {showActions && (
+          <div className="hockey-calendar-event__primary">
+            {event.hasTeamRsvp ? (
               <TeamRsvpResponseControl eventId={event.id} currentUserId={currentUserId} />
             ) : (
               <TrainingRegistrationControl
@@ -248,28 +211,29 @@ function AgendaEventCard({
                 currentUserId={currentUserId}
                 compact
               />
-            ))}
+            )}
+          </div>
+        )}
+        <HockeyButton
+          view="flat"
+          size="m"
+          onClick={() => downloadEventIcs(event)}
+          data-testid={testId('calendar', 'agenda', 'btn', 'ics', event.id)}
+        >
+          В календарь
+        </HockeyButton>
+        <Link
+          to={detailsPath}
+          data-testid={testId('calendar', 'agenda', 'link', 'details', event.id)}
+        >
           <HockeyButton
-            view="flat"
-            size="s"
-            onClick={() => downloadEventIcs(event)}
-            data-testid={testId('calendar', 'agenda', 'btn', 'ics', event.id)}
+            view="outlined"
+            size="m"
+            data-testid={testId('calendar', 'agenda', 'btn', 'details', event.id)}
           >
-            В календарь
+            Подробнее
           </HockeyButton>
-          <Link
-            to={detailsPath}
-            data-testid={testId('calendar', 'agenda', 'link', 'details', event.id)}
-          >
-            <HockeyButton
-              view="outlined"
-              size="s"
-              data-testid={testId('calendar', 'agenda', 'btn', 'details', event.id)}
-            >
-              Подробнее
-            </HockeyButton>
-          </Link>
-        </div>
+        </Link>
       </div>
     </article>
   )

@@ -18,29 +18,30 @@ describe('Events page RSVP block', () => {
     clearTestStorage()
   })
 
-  async function expandNearestGame(user: ReturnType<typeof userEvent.setup>) {
-    await user.click(screen.getByTestId('events-page-btn-nearest-game-toggle'))
+  async function waitForLeagueRsvp() {
     await screen.findByTestId('events-page-panel-league-rsvp')
+    await screen.findByTestId('radar-league-rsvp-card-event-league-sat')
   }
 
-  it('keeps league RSVP collapsed by default (TASK-05-02)', async () => {
+  it('shows league RSVP column by default (Figma /events)', async () => {
     renderWithProviders(<EventsPage />)
 
     await waitFor(() => {
       expect(screen.getByText(EVENTS_LABEL)).toBeInTheDocument()
       expect(screen.getByTestId('events-page-panel-nearest-game')).toBeInTheDocument()
+      expect(screen.getByTestId('events-page-panel-league-rsvp')).toBeInTheDocument()
     })
-    expect(screen.queryByTestId('events-page-panel-league-rsvp')).not.toBeInTheDocument()
+    // «Показать» слева раскрывает карточку игры в основной колонке, не сайдбар.
+    expect(screen.queryByTestId('events-page-panel-nearest-game-card')).not.toBeInTheDocument()
   })
 
-  it('shows league game hero and team RSVP list when expanded', async () => {
-    const user = userEvent.setup()
+  it('shows league game hero and team RSVP list in the aside', async () => {
     renderWithProviders(<EventsPage />)
 
     await waitFor(() => {
       expect(screen.getByText(EVENTS_LABEL)).toBeInTheDocument()
     })
-    await expandNearestGame(user)
+    await waitForLeagueRsvp()
 
     expect(screen.getByText('Ближайшая игра')).toBeInTheDocument()
     expect(
@@ -55,7 +56,7 @@ describe('Events page RSVP block', () => {
     const user = userEvent.setup()
     renderWithProviders(<EventsPage />)
 
-    await expandNearestGame(user)
+    await waitForLeagueRsvp()
     await user.click(screen.getByTestId('radar-team-rsvp-response-btn-confirm-event-league-sat'))
 
     await waitFor(() => {
@@ -69,7 +70,7 @@ describe('Events page RSVP block', () => {
     const user = userEvent.setup()
     renderWithProviders(<EventsPage />)
 
-    await expandNearestGame(user)
+    await waitForLeagueRsvp()
     await user.click(screen.getByTestId('radar-team-rsvp-response-btn-decline-event-league-sat'))
     await user.click(screen.getByTestId('radar-decline-reason-btn-work'))
     await user.click(screen.getByTestId('radar-decline-reason-btn-confirm'))
@@ -82,16 +83,17 @@ describe('Events page RSVP block', () => {
     })
   })
 
-  it('shows upcoming trainings list without expanding league RSVP', async () => {
+  it('shows upcoming trainings list alongside league RSVP', async () => {
     renderWithProviders(<EventsPage />)
 
     await waitFor(() => {
       expect(screen.getByTestId('events-page-text-details-title')).toBeInTheDocument()
       expect(screen.getAllByTestId(/events-card-card-/).length).toBeGreaterThan(0)
+      expect(screen.getByTestId('events-page-panel-league-rsvp')).toBeInTheDocument()
     })
   })
 
-  it('keeps trainings visible when nearest game block stays collapsed', async () => {
+  it('keeps trainings visible when nearest-game card stays collapsed', async () => {
     renderWithProviders(<EventsPage />)
 
     await screen.findByTestId('events-page-text-details-title')
@@ -99,7 +101,7 @@ describe('Events page RSVP block', () => {
     await waitFor(() => {
       expect(screen.getByTestId('events-page-text-details-title')).toBeInTheDocument()
       expect(screen.getAllByTestId(/events-card-card-/).length).toBeGreaterThan(0)
-      expect(screen.queryByTestId('events-page-panel-league-rsvp')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('events-page-panel-nearest-game-card')).not.toBeInTheDocument()
     })
   })
 
@@ -107,7 +109,9 @@ describe('Events page RSVP block', () => {
     const user = userEvent.setup()
     renderWithProviders(<EventsPage />)
 
-    await screen.findByTestId('events-page-text-details-title')
+    await waitFor(() => {
+      expect(screen.getAllByTestId(/events-card-card-/).length).toBeGreaterThan(0)
+    })
     const before = screen.getAllByTestId(/events-card-card-/).length
 
     await user.click(screen.getByTestId('events-page-btn-filters-toggle'))

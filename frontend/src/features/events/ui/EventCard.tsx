@@ -4,7 +4,8 @@
  * HOCFRONT-28B — карточка выбора: дата, ₽, места, один CTA
  */
 
-import {Text} from '@gravity-ui/uikit'
+import {MapPin} from '@gravity-ui/icons'
+import {Icon, Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 import {useState} from 'react'
 import {Link} from 'react-router'
@@ -34,7 +35,8 @@ import {TrainingRegistrationControl} from '@/features/events/ui/TrainingRegistra
 import {FavoriteButton} from '@/features/favorites'
 import {testId} from '@/shared/testing/testId'
 import {IceCard} from '@/shared/ui/IceCard'
-import {ScoreboardText} from '@/shared/ui/ScoreboardText'
+
+const PUBLIC_ACCESS = new Set<NonNullable<GameEvent['accessScope']>>(['public', 'public_open'])
 
 /** @spec SPEC-FR-4.1.1 - Props карточки события */
 export interface EventCardProps {
@@ -115,80 +117,104 @@ export function EventCard({event, currentUserId, compact = false}: EventCardProp
     )
   }
 
+  const isMine = event.hasTeamRsvp ? isTeamRsvpConfirmed(myRsvp?.status) : currentStatus === 'going'
+  const isRestricted = event.accessScope !== undefined && !PUBLIC_ACCESS.has(event.accessScope)
+
   const body = (
-    <div className="match-center__row match-center__row--plain event-card__header">
-      <div className="event-card__left">
-        <div
-          className="match-center__time event-card__time"
-          data-testid={testId('events', 'card', 'text', 'time', event.id)}
-        >
-          {timeStr}
-        </div>
-        <Text variant="body-2" data-testid={testId('events', 'card', 'text', 'weekday', event.id)}>
-          {weekdayDate}
-        </Text>
-        <div className="event-card__badges">
-          <div
-            className={`match-center__type match-center__type--${event.type} event-card__badge event-card__badge--type`}
-            data-testid={testId('events', 'card', 'badge', 'type', event.id)}
+    <div className="event-card__body">
+      <div className="event-card__head">
+        <div className="event-card__when">
+          <span
+            className="event-card__time"
+            data-testid={testId('events', 'card', 'text', 'time', event.id)}
           >
-            {EVENT_TYPE_LABELS[event.type] ?? event.type}
-          </div>
+            {timeStr}
+          </span>
+          <span
+            className="event-card__weekday"
+            data-testid={testId('events', 'card', 'text', 'weekday', event.id)}
+          >
+            {weekdayDate}
+          </span>
+        </div>
+        <div className="event-card__badges">
           {accessLabel && (
-            <Text
-              color="info"
-              className="event-card__badge event-card__badge--access"
+            <span
+              className={`hockey-badge ${isRestricted ? 'hockey-badge--gold' : 'hockey-badge--muted'}`}
               data-testid={testId('events', 'card', 'badge', 'access', event.id)}
             >
               {accessLabel}
-            </Text>
+            </span>
+          )}
+          <span
+            className={`hockey-badge${event.type === 'game' ? ' hockey-badge--red' : ''}`}
+            data-testid={testId('events', 'card', 'badge', 'type', event.id)}
+          >
+            {EVENT_TYPE_LABELS[event.type] ?? event.type}
+          </span>
+          {isMine && (
+            <span
+              className="hockey-badge hockey-badge--green"
+              data-testid={testId('events', 'card', 'badge', 'mine', event.id)}
+            >
+              {event.hasTeamRsvp ? 'Вы идёте' : 'Вы записаны'}
+            </span>
           )}
         </div>
       </div>
       <div className="event-card__main">
-        <div className="hockey-row hockey-row--gap-8 hockey-row--between">
-          <Text
-            variant="header-2"
-            className="event-card__title hockey-entity-title--compact"
+        <div className="event-card__title-row">
+          <span
+            className="event-card__title"
             data-testid={testId('events', 'card', 'text', 'title', event.id)}
           >
             {event.title}
-          </Text>
+          </span>
           {event.type === 'training' && (
             <FavoriteButton type="training" entityId={event.id} title={event.title} />
           )}
         </div>
-        <Text
-          color="secondary"
-          className="event-card__arena"
+        <div
+          className="event-card__place"
           data-testid={testId('events', 'card', 'text', 'arena', event.id)}
         >
-          {event.arenaName ?? event.arenaId}
-          {event.district ? ` · ${event.district}` : ''}
-        </Text>
-        <Text
-          color="secondary"
-          className="event-card__datetime"
-          data-testid={testId('events', 'card', 'text', 'datetime', event.id)}
-        >
-          {durationMinutes} мин · {SKILL_LEVEL_LABELS[event.requiredSkillLevel]}
-        </Text>
-        <ScoreboardText
-          tone="accent"
-          className="event-card__price"
-          data-testid={testId('events', 'card', 'text', 'price', event.id)}
-        >
-          {priceLabel}
-        </ScoreboardText>
-        <Text color="secondary" data-testid={testId('events', 'card', 'text', 'seats', event.id)}>
-          Мест: {seats.open} из {seats.total}
-          {positionLabel != null && positionOpen != null
-            ? ` · ${positionLabel}: ${positionOpen}`
-            : ''}
-        </Text>
-        <Text color="secondary" data-testid={testId('events', 'card', 'text', 'status', event.id)}>
-          {statusLabel}
-        </Text>
+          <Icon data={MapPin} size={16} className="event-card__place-icon" />
+          <span>
+            {event.arenaName ?? event.arenaId}
+            {event.district ? ` · ${event.district}` : ''}
+            {' · '}
+            <span data-testid={testId('events', 'card', 'text', 'price', event.id)}>
+              {priceLabel}
+            </span>
+          </span>
+        </div>
+        <div className="event-card__meta">
+          {event.registrationStatus === 'full' ? (
+            <span
+              className="event-card__meta-alert"
+              data-testid={testId('events', 'card', 'text', 'status', event.id)}
+            >
+              Мест нет
+            </span>
+          ) : (
+            <>
+              <span data-testid={testId('events', 'card', 'text', 'datetime', event.id)}>
+                {durationMinutes} мин · {SKILL_LEVEL_LABELS[event.requiredSkillLevel]}
+              </span>
+              <span data-testid={testId('events', 'card', 'text', 'seats', event.id)}>
+                Мест: {seats.open} из {seats.total}
+                {positionLabel != null && positionOpen != null
+                  ? ` · ${positionLabel}: ${positionOpen}`
+                  : ''}
+              </span>
+              {!isMine && (
+                <span data-testid={testId('events', 'card', 'text', 'status', event.id)}>
+                  {statusLabel}
+                </span>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -212,6 +238,7 @@ export function EventCard({event, currentUserId, compact = false}: EventCardProp
             currentStatus={currentStatus}
             registrationStatus={event.registrationStatus}
             currentUserId={resolvedUserId}
+            layout="block"
           />
         )}
       </div>

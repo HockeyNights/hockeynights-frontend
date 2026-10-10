@@ -11,8 +11,10 @@ import type {RosterMember, TeamRole} from '@/entities/team'
 import {fetchTeamRoster, updateRosterMemberStatus, updateTeamMemberRole} from '@/entities/team'
 import type {TeamPermissions} from '@/features/access'
 import {testId} from '@/shared/testing/testId'
-import {PositionLabel} from '@/shared/ui/PositionLabel'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+
+import {POSITION_GROUP_LABELS} from '../lib/positionGroups'
+import {TeamPositionBadge} from './TeamPositionBadge'
 
 const STATUS_OPTIONS = [
   {value: 'active', content: 'Активен'},
@@ -102,7 +104,7 @@ export function TeamRoster({teamId, userId, teamPermissions}: TeamRosterProps) {
 
   return (
     <div
-      className="hockey-stack hockey-stack--gap-16"
+      className="team-roster hockey-stack hockey-stack--gap-12"
       data-testid={testId('teams', 'team-roster', 'panel', teamId)}
     >
       <Text
@@ -121,21 +123,19 @@ export function TeamRoster({teamId, userId, teamPermissions}: TeamRosterProps) {
           key={position}
           data-testid={testId('teams', 'team-roster', 'column', position, teamId)}
         >
-          <PositionLabel
-            position={position}
-            showFull
-            testIdPrefix="teams"
+          <p
+            className="team-group-label"
             data-testid={testId('teams', 'team-roster', 'badge', 'position', position, teamId)}
-          />
-          <div className="hockey-mt-8 hockey-stack hockey-stack--gap-6">
+          >
+            {POSITION_GROUP_LABELS[position]}
+          </p>
+          <div className="team-roster__rows">
             {members.length === 0 ? (
               <div
-                className="roster-hook-slot roster-hook-slot--deficit"
+                className="hockey-list-row team-roster-row team-roster-row--empty"
                 data-testid={testId('teams', 'team-roster', 'empty', position, teamId)}
               >
-                <span className="roster-hook-slot__hook" aria-hidden>
-                  🪝
-                </span>
+                <TeamPositionBadge position={position} />
                 <Text
                   color="secondary"
                   data-testid={testId(
@@ -154,26 +154,25 @@ export function TeamRoster({teamId, userId, teamPermissions}: TeamRosterProps) {
               members.map((member) => (
                 <div
                   key={member.userId}
-                  className="roster-hook-slot"
+                  className="hockey-list-row team-roster-row"
                   data-testid={testId('teams', 'team-roster', 'row', member.userId)}
                 >
-                  <span className="roster-hook-slot__hook" aria-hidden>
-                    🪝
-                  </span>
-                  <div className="roster-hook-slot__body">
+                  <TeamPositionBadge position={member.position} />
+                  <div className="team-roster-row__body">
                     <Link
                       to={`/players/${member.userId}`}
+                      className="team-roster-row__name"
                       data-testid={testId('teams', 'team-roster', 'link', 'player', member.userId)}
                     >
-                      <Text
-                        variant="subheader-2"
+                      <span
                         data-testid={testId('teams', 'team-roster', 'text', 'name', member.userId)}
                       >
                         {member.displayName}
-                      </Text>
+                      </span>
                     </Link>
                     <Text
                       color="secondary"
+                      className="team-roster-row__meta"
                       data-testid={testId(
                         'teams',
                         'team-roster',
@@ -198,7 +197,9 @@ export function TeamRoster({teamId, userId, teamPermissions}: TeamRosterProps) {
                         })
                       }}
                       options={ROLE_OPTIONS}
+                      size="l"
                       width={170}
+                      className="team-roster-row__select"
                       disabled={
                         (!isOwner && member.teamRole === 'owner') ||
                         (isOwner &&
@@ -219,7 +220,9 @@ export function TeamRoster({teamId, userId, teamPermissions}: TeamRosterProps) {
                         })
                       }
                       options={STATUS_OPTIONS}
+                      size="l"
                       width={160}
+                      className="team-roster-row__select"
                       data-testid={testId(
                         'teams',
                         'team-roster',

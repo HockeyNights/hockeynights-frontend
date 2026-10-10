@@ -2,7 +2,7 @@
  * SPEC-FR-24.5.3
  */
 
-import {Select, Text, TextInput} from '@gravity-ui/uikit'
+import {Select, Text, TextArea, TextInput} from '@gravity-ui/uikit'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import {useState} from 'react'
 import {Link, useParams} from 'react-router'
@@ -24,6 +24,7 @@ import {IceCard} from '@/shared/ui/IceCard'
 import {PageHeader} from '@/shared/ui/PageHeader'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 const RECRUITING_OPTIONS = [
   {value: 'open', content: 'Набор открыт'},
@@ -32,6 +33,14 @@ const RECRUITING_OPTIONS = [
 ]
 
 type PartnerTab = 'profile' | 'applications' | 'schedule' | 'posts' | 'analytics'
+
+const PARTNER_TABS: {id: PartnerTab; label: string}[] = [
+  {id: 'profile', label: 'О лиге'},
+  {id: 'applications', label: 'Заявки'},
+  {id: 'schedule', label: 'Расписание'},
+  {id: 'posts', label: 'Публикации'},
+  {id: 'analytics', label: 'Аналитика'},
+]
 
 /** @spec SPEC-FR-24.5.3 - Кабинет партнёра лиги */
 export function LeaguePartnerDashboard() {
@@ -136,7 +145,7 @@ export function LeaguePartnerDashboard() {
 
   return (
     <div
-      className="partner-dashboard hockey-stack hockey-stack--gap-16"
+      className="partner-dashboard partner-cabinet partner-cabinet--league"
       data-testid={testId('leagues', 'partner', 'page', leagueId)}
     >
       <PageHeader
@@ -152,87 +161,71 @@ export function LeaguePartnerDashboard() {
       />
 
       <div
-        className="partner-dashboard__tabs"
+        className="hockey-segmented partner-cabinet__tabs"
+        role="tablist"
         data-testid={testId('leagues', 'partner', 'nav', leagueId)}
       >
-        <HockeyButton
-          view={tab === 'profile' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('profile')}
-          data-testid={testId('leagues', 'partner', 'tab', 'profile', leagueId)}
-        >
-          О лиге
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'applications' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('applications')}
-          data-testid={testId('leagues', 'partner', 'tab', 'applications', leagueId)}
-        >
-          Заявки
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'schedule' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('schedule')}
-          data-testid={testId('leagues', 'partner', 'tab', 'schedule', leagueId)}
-        >
-          Расписание
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'posts' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('posts')}
-          data-testid={testId('leagues', 'partner', 'tab', 'posts', leagueId)}
-        >
-          Публикации
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'analytics' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('analytics')}
-          data-testid={testId('leagues', 'partner', 'tab', 'analytics', leagueId)}
-        >
-          Аналитика
-        </HockeyButton>
+        {PARTNER_TABS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === item.id}
+            className={`hockey-segmented__item${tab === item.id ? ' is-active' : ''}`}
+            onClick={() => setTab(item.id)}
+            data-testid={testId('leagues', 'partner', 'tab', item.id, leagueId)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
       {tab === 'profile' && (
-        <div data-testid={testId('leagues', 'partner', 'panel', 'profile', leagueId)}>
-          <IceCard padding="m">
-            <div className="partner-dashboard__form hockey-stack hockey-stack--gap-10">
-              <Text
-                variant="subheader-2"
-                data-testid={testId('leagues', 'partner', 'text', 'profile-title', leagueId)}
-              >
-                Публичный профиль лиги
-              </Text>
-              <TextInput
-                label="Описание"
-                value={form.description ?? ''}
-                onUpdate={(value) => setDraft((prev) => ({...prev, description: value}))}
-                data-testid={testId('leagues', 'partner', 'field', 'description', leagueId)}
-              />
-              <TextInput
-                label="Email"
-                value={form.contactEmail ?? ''}
-                onUpdate={(value) => setDraft((prev) => ({...prev, contactEmail: value}))}
-                data-testid={testId('leagues', 'partner', 'field', 'email', leagueId)}
-              />
-              <TextInput
-                label="Телефон"
-                value={form.contactPhone ?? ''}
-                onUpdate={(value) => setDraft((prev) => ({...prev, contactPhone: value}))}
-                data-testid={testId('leagues', 'partner', 'field', 'phone', leagueId)}
-              />
-              <TextInput
-                label="Краткие правила"
-                value={form.rulesSummary ?? ''}
-                onUpdate={(value) => setDraft((prev) => ({...prev, rulesSummary: value}))}
-                data-testid={testId('leagues', 'partner', 'field', 'rules', leagueId)}
-              />
+        <section
+          className="partner-cabinet__block"
+          data-testid={testId('leagues', 'partner', 'panel', 'profile', leagueId)}
+        >
+          <SectionHeading
+            title="Публичный профиль"
+            data-testid={testId('leagues', 'partner', 'text', 'profile-title', leagueId)}
+          />
+          <IceCard padding="m" className="partner-cabinet__card">
+            <div className="partner-cabinet__form">
+              <div className="partner-cabinet__field">
+                <span className="partner-cabinet__label">Описание</span>
+                <TextArea
+                  rows={3}
+                  value={form.description ?? ''}
+                  onUpdate={(value) => setDraft((prev) => ({...prev, description: value}))}
+                  data-testid={testId('leagues', 'partner', 'field', 'description', leagueId)}
+                />
+              </div>
+              <div className="partner-cabinet__field">
+                <span className="partner-cabinet__label">Краткие правила</span>
+                <TextArea
+                  rows={3}
+                  value={form.rulesSummary ?? ''}
+                  onUpdate={(value) => setDraft((prev) => ({...prev, rulesSummary: value}))}
+                  data-testid={testId('leagues', 'partner', 'field', 'rules', leagueId)}
+                />
+              </div>
+              <div className="partner-cabinet__form-row">
+                <TextInput
+                  label="Email"
+                  value={form.contactEmail ?? ''}
+                  onUpdate={(value) => setDraft((prev) => ({...prev, contactEmail: value}))}
+                  data-testid={testId('leagues', 'partner', 'field', 'email', leagueId)}
+                />
+                <TextInput
+                  label="Телефон"
+                  value={form.contactPhone ?? ''}
+                  onUpdate={(value) => setDraft((prev) => ({...prev, contactPhone: value}))}
+                  data-testid={testId('leagues', 'partner', 'field', 'phone', leagueId)}
+                />
+              </div>
               <Select
                 label="Статус набора команд"
+                width="max"
                 value={[form.recruitingStatus ?? 'open']}
                 options={RECRUITING_OPTIONS}
                 onUpdate={(value) =>
@@ -244,22 +237,24 @@ export function LeaguePartnerDashboard() {
                 data-testid={testId('leagues', 'partner', 'select', 'recruiting', leagueId)}
               />
               <Text
-                color="secondary"
+                className="partner-cabinet__note"
                 data-testid={testId('leagues', 'partner', 'text', 'moderation', leagueId)}
               >
                 Статус модерации: {form.moderationStatus ?? 'draft'}
               </Text>
               <HockeyButton
                 view="action"
+                size="l"
+                width="max"
                 loading={saveMutation.isPending}
                 onClick={() => saveMutation.mutate(draft)}
                 data-testid={testId('leagues', 'partner', 'btn', 'save', leagueId)}
               >
-                Сохранить профиль
+                Сохранить изменения
               </HockeyButton>
               {statusMessage && (
                 <Text
-                  color="secondary"
+                  className="partner-cabinet__note"
                   data-testid={testId('leagues', 'partner', 'text', 'status', leagueId)}
                 >
                   {statusMessage}
@@ -267,42 +262,50 @@ export function LeaguePartnerDashboard() {
               )}
             </div>
           </IceCard>
-        </div>
+        </section>
       )}
 
       {tab === 'applications' && (
-        <div data-testid={testId('leagues', 'partner', 'panel', 'applications', leagueId)}>
-          <IceCard padding="m">
-            <LeagueApplicationsPanel leagueId={leagueId} />
-          </IceCard>
+        <div
+          className="partner-cabinet__panel partner-cabinet__panel--cards"
+          data-testid={testId('leagues', 'partner', 'panel', 'applications', leagueId)}
+        >
+          <LeagueApplicationsPanel leagueId={leagueId} />
         </div>
       )}
 
       {tab === 'schedule' && (
-        <div data-testid={testId('leagues', 'partner', 'panel', 'schedule', leagueId)}>
-          <IceCard padding="m">
-            <LeagueScheduleManager leagueId={leagueId} />
-          </IceCard>
+        <div
+          className="partner-cabinet__panel"
+          data-testid={testId('leagues', 'partner', 'panel', 'schedule', leagueId)}
+        >
+          <LeagueScheduleManager leagueId={leagueId} />
         </div>
       )}
 
       {tab === 'posts' && (
-        <div data-testid={testId('leagues', 'partner', 'panel', 'posts', leagueId)}>
-          <IceCard padding="m">
-            <LeaguePostsPanel leagueId={leagueId} />
-          </IceCard>
+        <div
+          className="partner-cabinet__panel"
+          data-testid={testId('leagues', 'partner', 'panel', 'posts', leagueId)}
+        >
+          <LeaguePostsPanel leagueId={leagueId} />
         </div>
       )}
 
       {tab === 'analytics' && (
-        <div data-testid={testId('leagues', 'partner', 'panel', 'analytics', leagueId)}>
-          <IceCard padding="m">
-            <LeagueAnalyticsPanel leagueId={leagueId} />
-          </IceCard>
+        <div
+          className="partner-cabinet__panel"
+          data-testid={testId('leagues', 'partner', 'panel', 'analytics', leagueId)}
+        >
+          <LeagueAnalyticsPanel leagueId={leagueId} />
         </div>
       )}
 
-      <Link to="/leagues" data-testid={testId('leagues', 'partner', 'link', 'back', leagueId)}>
+      <Link
+        to="/leagues"
+        className="partner-cabinet__back"
+        data-testid={testId('leagues', 'partner', 'link', 'back', leagueId)}
+      >
         <HockeyButton
           view="outlined"
           size="s"

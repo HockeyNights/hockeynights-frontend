@@ -3,7 +3,8 @@
  * SPEC-UI-2.7, SPEC-UI-1.5
  */
 
-import {useMemo} from 'react'
+import {TrophyOutlined} from '@ant-design/icons'
+import {type ReactNode, useMemo} from 'react'
 
 import type {LeagueStanding} from '@/entities/league'
 import {testId} from '@/shared/testing/testId'
@@ -24,6 +25,8 @@ export interface LeagueStandingsProps {
   leagueName?: string
   /** @spec SPEC-UI-2.7 */
   compact?: boolean
+  /** Контент справа в шапке таблицы (бейдж источника) — вместо названия лиги. */
+  headerAside?: ReactNode
 }
 
 function rowId(row: LeagueStanding & {rank: number}): string {
@@ -34,7 +37,12 @@ function rowId(row: LeagueStanding & {rank: number}): string {
  * @spec SPEC-UI-2.7 - Турнирная таблица как табло арены
  * @spec SPEC-FR-7.2.1 - Турнирная таблица лиги
  */
-export function LeagueStandings({standings, leagueName, compact = false}: LeagueStandingsProps) {
+export function LeagueStandings({
+  standings,
+  leagueName,
+  compact = false,
+  headerAside,
+}: LeagueStandingsProps) {
   const ranked = useMemo(
     () =>
       [...standings]
@@ -73,9 +81,18 @@ export function LeagueStandings({standings, leagueName, compact = false}: League
           className="standings-board__title"
           data-testid={testId('leagues', 'standings', 'text', 'title')}
         >
+          {compact ? null : <TrophyOutlined className="standings-board__title-icon" aria-hidden />}
           {compact ? 'Топ-3' : 'Турнирная таблица'}
         </div>
-        {leagueName && (
+        {headerAside ? (
+          <div
+            className="standings-board__aside"
+            data-testid={testId('leagues', 'standings', 'panel', 'aside')}
+          >
+            {headerAside}
+          </div>
+        ) : null}
+        {leagueName && !headerAside && (
           <div
             className="standings-board__league"
             data-testid={testId('leagues', 'standings', 'text', 'league')}
@@ -163,7 +180,7 @@ export function LeagueStandings({standings, leagueName, compact = false}: League
         return (
           <div
             key={id}
-            className={`standings-board__row${isLeader ? ' standings-board__row--leader' : ''}`}
+            className={`standings-board__row standings-board__row--rank-${Math.min(row.rank, 4)}${isLeader ? ' standings-board__row--leader' : ''}`}
             role="row"
             data-testid={testId('leagues', 'standings', 'row', id)}
           >
@@ -173,42 +190,45 @@ export function LeagueStandings({standings, leagueName, compact = false}: League
               aria-label={`Место ${row.rank}`}
               data-testid={testId('leagues', 'standings', 'cell', 'rank', id)}
             >
-              {RANK_MEDAL[row.rank] ?? row.rank}
+              {row.rank <= 3 ? <TrophyOutlined aria-hidden /> : row.rank}
             </div>
             <div
               className="standings-board__team"
               role="cell"
               data-testid={testId('leagues', 'standings', 'cell', 'team', id)}
             >
-              {row.teamName}
+              <span className="standings-board__avatar" aria-hidden>
+                {row.teamName.trim().charAt(0).toUpperCase()}
+              </span>
+              <span className="standings-board__team-name">{row.teamName}</span>
             </div>
             <div
               className="standings-board__stat"
               role="cell"
               data-testid={testId('leagues', 'standings', 'cell', 'games', id)}
             >
-              <ScoreboardText>{row.gamesPlayed}</ScoreboardText>
+              {row.gamesPlayed}
             </div>
             <div
-              className="standings-board__stat"
+              className="standings-board__stat standings-board__stat--wins"
               role="cell"
               data-testid={testId('leagues', 'standings', 'cell', 'wins', id)}
             >
-              <ScoreboardText>{row.wins}</ScoreboardText>
+              {row.wins}
             </div>
             <div
               className="standings-board__stat"
               role="cell"
               data-testid={testId('leagues', 'standings', 'cell', 'losses', id)}
             >
-              <ScoreboardText>{row.losses}</ScoreboardText>
+              {row.losses}
             </div>
             <div
-              className="standings-board__stat"
+              className="standings-board__stat standings-board__stat--points"
               role="cell"
               data-testid={testId('leagues', 'standings', 'cell', 'points', id)}
             >
-              <ScoreboardText tone={isLeader ? 'gold' : 'accent'}>{row.points}</ScoreboardText>
+              {row.points}
             </div>
             <div
               className="standings-board__bar-cell"

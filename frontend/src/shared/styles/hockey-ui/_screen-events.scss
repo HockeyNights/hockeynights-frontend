@@ -1,0 +1,943 @@
+@use '../mixins' as *;
+
+/* Экраны Figma: events */
+
+/* ---------- Общие примитивы раздела ---------- */
+
+.events-screen {
+  gap: 20px;
+}
+
+.events-screen__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Плашки амплуа в составах раздела: ВР — зелёная, ЗЩ — синяя, НП — красная. */
+.team-rsvp-list,
+.event-details {
+  .position-label {
+    --hockey-badge-color: var(--hockey-ui-blue);
+
+    justify-content: center;
+    min-width: 31px;
+    height: 19px;
+    padding: 0 5px;
+    border: 0;
+    border-radius: var(--hockey-ui-badge-radius);
+    background: color-mix(in srgb, var(--hockey-badge-color) 20%, transparent);
+    color: var(--hockey-badge-color);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 15px;
+    letter-spacing: 0;
+  }
+
+  .position-label--goalie {
+    --hockey-badge-color: var(--hockey-ui-green);
+  }
+
+  .position-label--defense {
+    --hockey-badge-color: var(--hockey-ui-blue);
+  }
+
+  .position-label--forward {
+    --hockey-badge-color: var(--hockey-ui-red);
+  }
+
+  .position-label--any {
+    --hockey-badge-color: var(--hockey-ui-muted);
+  }
+}
+
+/* ---------- /events: hero с фильтрами ---------- */
+
+.events-screen__filters {
+  .page-header {
+    gap: 12px 24px;
+  }
+
+  .catalog-filters__toolbar {
+    border: 0;
+    padding: 0;
+  }
+
+  .catalog-filters__advanced {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px 8px;
+  }
+
+  .catalog-filters__advanced > .catalog-filters__field:first-child {
+    grid-column: 1 / -1;
+    max-width: 510px;
+  }
+
+  .catalog-filters__native-input {
+    height: var(--hockey-ui-control-height);
+    border-radius: var(--hockey-ui-control-radius);
+  }
+}
+
+.events-screen__hero-actions {
+  flex-wrap: wrap;
+}
+
+.events-screen__price-range {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: var(--hockey-ui-control-radius);
+
+  @include breakpoint($max: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- /events: две колонки ---------- */
+
+.events-screen__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+
+  @include breakpoint(1280px) {
+    grid-template-columns: minmax(0, 669fr) minmax(320px, 468fr);
+    gap: 24px 34px;
+  }
+}
+
+.events-screen__main,
+.events-screen__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.events-screen__main {
+  gap: 12px;
+}
+
+.events-screen__aside {
+  gap: 12px;
+
+  @include breakpoint(1280px) {
+    padding-top: 10px;
+  }
+}
+
+.events-screen__footnote {
+  font-size: 12px;
+}
+
+/* ---------- Пустое состояние ---------- */
+
+.events-empty__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 14px;
+  text-align: center;
+}
+
+.events-empty__body .hockey-empty-tile {
+  margin-bottom: 10px;
+}
+
+.events-empty__title {
+  color: var(--hockey-ui-text);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 25px;
+}
+
+.events-empty__copy {
+  font-size: 16px;
+  line-height: 20px;
+}
+
+/* ---------- Карточка события в каталоге ---------- */
+
+.event-card .event-card__surface {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.event-card__when {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.event-card__time {
+  color: var(--hockey-ui-accent);
+  font-family: var(--hockey-font-sans);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+.event-card__weekday {
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.event-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.event-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.event-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.event-card__title {
+  color: var(--hockey-ui-text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.event-card__surface-link:hover .event-card__title {
+  color: var(--hockey-ui-accent);
+}
+
+.event-card__place {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--hockey-ui-muted);
+  font-size: 16px;
+  line-height: 16px;
+}
+
+.event-card__place-icon,
+.league-game-rsvp__line .g-icon {
+  flex: 0 0 auto;
+  color: var(--hockey-ui-blue);
+}
+
+.event-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.event-card__meta-alert {
+  color: var(--hockey-ui-text);
+}
+
+.event-card .event-card__attendance {
+  margin-top: 0;
+  padding-top: 4px;
+  border-top: 0;
+}
+
+.training-registration--block {
+  width: 100%;
+
+  .training-registration__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .training-registration__actions .hockey-button {
+    width: 100%;
+    min-height: 52px;
+    font-size: 16px;
+  }
+}
+
+/* ---------- Ближайшая игра (правая колонка) ---------- */
+
+.league-game-rsvp.ice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 22px 20px;
+}
+
+.league-game-rsvp__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.league-game-rsvp__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.app-shell__main-col .league-game-rsvp__matchup {
+  margin-top: 4px;
+}
+
+.league-game-rsvp__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.league-game-rsvp__line {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--hockey-ui-muted);
+  font-size: 16px;
+  line-height: 16px;
+}
+
+.league-game-rsvp__answer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .hockey-button {
+    min-width: 164px;
+  }
+}
+
+.team-rsvp-my-status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.team-rsvp-my-status__label {
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.team-rsvp-my-status__value {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+/* ---------- Кто идёт из команды ---------- */
+
+.team-rsvp-list__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-rsvp-list__group + .team-rsvp-list__group {
+  margin-top: 8px;
+}
+
+.app-shell__main-col .team-rsvp-list__group-title {
+  color: var(--hockey-ui-muted);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.team-rsvp-list .team-rsvp-list__row {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 8px 0;
+}
+
+.team-rsvp-list .team-rsvp-list__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--hockey-ui-text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.team-rsvp-list .team-rsvp-list__status {
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: right;
+}
+
+/* ---------- Твой ответ ---------- */
+
+.team-rsvp-response {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-rsvp-response__hint {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.team-rsvp-response__status {
+  font-weight: 700;
+}
+
+.team-rsvp-response__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  .hockey-button {
+    --g-button-border-radius: var(--hockey-ui-control-radius);
+
+    width: 100%;
+    font-size: 16px;
+  }
+}
+
+/* ---------- RSVP команды (карточка игры, деталка) ---------- */
+
+.event-rsvp-board {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.app-shell__main-col .event-rsvp-board__title {
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.event-rsvp-board .event-rsvp-board__row {
+  box-sizing: border-box;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.event-rsvp-board .event-rsvp-board__name {
+  color: var(--hockey-ui-text);
+  font-weight: 600;
+}
+
+/* ---------- Деталка тренировки / игры ---------- */
+
+.event-details__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.event-details__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+
+  @include breakpoint(1280px) {
+    grid-template-columns: minmax(0, 778fr) minmax(320px, 371fr);
+    gap: 24px 26px;
+  }
+}
+
+.event-details__main,
+.event-details__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.event-details__hero.ice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 26px;
+}
+
+.event-details__hero-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+}
+
+.event-details__hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  max-width: 560px;
+}
+
+.event-details__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.event-details__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-details__tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+
+  @include breakpoint($max: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.event-details__tile,
+.event-details__facts,
+.event-details__slot {
+  box-sizing: border-box;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: 16px;
+  background: var(--hockey-ui-card);
+}
+
+.event-details__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 13px;
+}
+
+.event-details__tile-label {
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.event-details__tile-value {
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.event-details__tile-hint {
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.event-details__tone--accent {
+  color: var(--hockey-ui-accent);
+}
+
+.event-details__tone--teal {
+  color: var(--hockey-ui-blue);
+}
+
+.event-details__tone--green {
+  --event-details-pill: var(--hockey-ui-green);
+
+  color: var(--hockey-ui-green);
+}
+
+.event-details__tone--red {
+  --event-details-pill: var(--hockey-ui-red);
+
+  color: var(--hockey-ui-red);
+}
+
+.event-details__tone--muted {
+  --event-details-pill: var(--hockey-ui-muted);
+
+  color: var(--hockey-ui-muted);
+}
+
+.event-details__facts {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 13px;
+}
+
+.event-details__fact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 42px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hockey-ui-row-border);
+  box-sizing: border-box;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.event-details__fact-label {
+  color: var(--hockey-ui-muted);
+  font-size: 16px;
+  line-height: 16px;
+}
+
+.event-details__fact-value {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 0;
+  text-align: right;
+}
+
+.event-details__fact-main {
+  color: var(--hockey-ui-text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18px;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--hockey-ui-accent);
+    }
+  }
+}
+
+.event-details__fact-hint {
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  line-height: 15px;
+}
+
+.event-details__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--event-details-pill, var(--hockey-ui-green)) 15%,
+    transparent
+  );
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+.event-details__slot-count .event-details__pill {
+  border-radius: 4px;
+}
+
+/* Слоты */
+
+.event-details__slots.ice-card {
+  padding: 18px 22px 22px;
+}
+
+.event-details__slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-details__slot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px;
+  background: color-mix(in srgb, var(--hockey-ui-raised) 50%, transparent);
+}
+
+.event-details__slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.event-details__slot-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--hockey-ui-text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.event-details__slot-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.event-details__progress {
+  overflow: hidden;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--hockey-ui-raised-border);
+
+  > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--hockey-ui-blue), var(--hockey-ui-accent));
+  }
+}
+
+.event-details__participants {
+  gap: 0;
+}
+
+.event-details__participants-title {
+  padding-bottom: 6px;
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.event-details__participant {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--hockey-ui-row-border);
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.event-details__participant-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--hockey-ui-muted);
+  font-weight: 500;
+}
+
+.event-details__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--hockey-ui-icon-tile);
+  color: var(--hockey-ui-text);
+  font-size: 12px;
+}
+
+/* Контакты организатора */
+
+.event-details__contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event-details__organizer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+}
+
+.event-details__organizer-avatar {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--hockey-ui-accent);
+  border-radius: 12px;
+  background: var(--hockey-ui-icon-tile);
+  color: var(--hockey-ui-text);
+}
+
+.event-details__organizer-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-shell__main-col .event-details__organizer-name {
+  color: var(--hockey-ui-text);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.event-details__organizer-role {
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.app-shell__main-col .event-details__contact-btn.g-button_view_outlined-action {
+  --g-button-background-color: color-mix(in srgb, var(--hockey-ui-accent) 30%, transparent);
+  --g-button-background-color-hover: color-mix(in srgb, var(--hockey-ui-accent) 40%, transparent);
+  --g-button-text-color-hover: var(--hockey-ui-accent);
+}
+
+/* Запись: плитка статуса и кнопки */
+
+.event-details__notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: 16px;
+  background: var(--hockey-ui-raised);
+}
+
+.event-details__notice--positive {
+  border-color: color-mix(in srgb, var(--hockey-ui-green) 30%, transparent);
+  background: color-mix(in srgb, var(--hockey-ui-green) 10%, transparent);
+}
+
+.event-details__notice-icon {
+  flex: 0 0 auto;
+  color: var(--hockey-ui-green);
+}
+
+.app-shell__main-col .event-details__notice-title {
+  color: var(--hockey-ui-text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.event-details__notice-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.event-details__notice-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.training-registration--panel {
+  gap: 10px;
+
+  .training-registration__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hockey-button {
+    width: 100%;
+    min-height: 43px;
+    font-size: 16px;
+  }
+}
+
+.app-shell__main-col
+  .training-registration--panel
+  .training-registration__cancel.g-button_view_outlined {
+  --g-button-background-color: color-mix(in srgb, var(--hockey-ui-red) 16%, transparent);
+  --g-button-background-color-hover: color-mix(in srgb, var(--hockey-ui-red) 24%, transparent);
+  --g-button-border-color: color-mix(in srgb, var(--hockey-ui-red) 35%, transparent);
+  --g-button-text-color: var(--hockey-ui-red);
+  --g-button-text-color-hover: var(--hockey-ui-red);
+}
+
+/* ---------- Создание / редактирование ---------- */
+
+.event-create {
+  gap: 20px;
+}
+
+.event-create__form.ice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.event-create-form__step-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.event-create-form__progress {
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.event-create-form__steps .event-create-form__step.g-button {
+  --g-button-border-radius: var(--hockey-ui-control-radius);
+
+  min-height: 36px;
+}

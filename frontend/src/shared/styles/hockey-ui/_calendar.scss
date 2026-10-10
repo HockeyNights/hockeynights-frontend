@@ -1,67 +1,32 @@
-/* HOCFRONT-28 — calendar shell + agenda cards */
+/* HOCFRONT-28 — calendar shell + agenda cards (макет Figma «Календарь») */
 
 .hockey-calendar-shell {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  min-width: 0;
 }
 
-.hockey-calendar-shell__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px 16px;
-}
+/* ---------- Карточка «Календарь»: линзы, быстрые фильтры, селекты ---------- */
 
-.hockey-calendar-shell__title-block {
+.hockey-calendar-shell__controls {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: min(100%, 220px);
-}
-
-.hockey-calendar-shell__title {
-  margin: 0;
-  letter-spacing: 0.02em;
-}
-
-.hockey-calendar-shell__view-toggle {
-  display: inline-flex;
-  padding: 3px;
-  border-radius: 12px;
-  border: 1px solid var(--hockey-card-border);
-  background: color-mix(in srgb, var(--hockey-card-bg) 88%, transparent);
-}
-
-.hockey-calendar-shell__view-btn {
-  min-width: 84px;
-  height: 34px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--hockey-text-muted, inherit);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.hockey-calendar-shell__view-btn.is-active {
-  background: color-mix(in srgb, var(--hockey-ice-glow) 22%, transparent);
-  color: inherit;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hockey-ice-glow) 45%, transparent);
+  gap: 14px;
 }
 
 .hockey-calendar-shell__toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+  gap: 16px 36px;
+  align-items: start;
+}
+
+.hockey-calendar-shell__toolbar-main {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid var(--hockey-card-border);
-  background: color-mix(in srgb, var(--hockey-card-bg) 92%, transparent);
+  gap: 14px;
+  min-width: 0;
 }
 
 .hockey-calendar-shell__lens-block {
@@ -71,352 +36,540 @@
 }
 
 .hockey-calendar-shell__lens-hint {
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+  color: var(--hockey-ui-subtle);
 }
 
 .hockey-calendar-shell__lenses {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
-.hockey-calendar-shell__lens {
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--hockey-card-border) 90%, transparent);
-  background: transparent;
-  color: inherit;
+.hockey-calendar-shell__lens,
+.hockey-calendar-chips__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 39px;
+  padding: 0 15px;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: var(--hockey-ui-control-radius);
+  background: var(--hockey-ui-card);
+  color: var(--hockey-ui-muted);
   font: inherit;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
+  letter-spacing: 0.15px;
+  white-space: nowrap;
   cursor: pointer;
+  transition:
+    border-color var(--hockey-motion-fast) var(--hockey-motion-ease),
+    color var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--hockey-ui-accent) 55%, transparent);
+    color: var(--hockey-ui-text);
+  }
 }
 
 .hockey-calendar-shell__lens.is-active {
-  border-color: color-mix(in srgb, var(--hockey-ice-glow) 55%, transparent);
-  background: color-mix(in srgb, var(--hockey-ice-glow) 16%, transparent);
-}
-
-.hockey-calendar-shell__toolbar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.hockey-calendar-shell__filters {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 4px;
-  border-top: 1px solid color-mix(in srgb, var(--hockey-card-border) 80%, transparent);
-}
-
-.hockey-calendar-shell__layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-@media (max-width: 960px) {
-  .hockey-calendar-shell__layout {
-    grid-template-columns: 1fr;
-  }
+  border-color: color-mix(in srgb, var(--hockey-ui-accent) 20%, transparent);
+  background: color-mix(in srgb, var(--hockey-ui-accent) 10%, transparent);
+  color: var(--hockey-ui-accent);
 }
 
 .hockey-calendar-chips__row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .hockey-calendar-chips__chip {
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--hockey-card-border) 90%, transparent);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
+  min-height: var(--hockey-ui-control-height);
 }
 
 .hockey-calendar-chips__chip.is-active {
-  border-color: color-mix(in srgb, var(--hockey-line-red) 50%, transparent);
-  background: color-mix(in srgb, var(--hockey-line-red) 14%, transparent);
+  border-color: var(--hockey-ui-accent);
+  background: var(--hockey-ui-accent);
+  color: var(--hockey-ui-accent-ink);
 }
 
 .hockey-calendar-chips__count {
-  font-size: 12px;
-  color: var(--hockey-text-muted, inherit);
+  font-size: 14px;
+  color: var(--hockey-ui-muted);
 }
+
+.hockey-calendar-shell__filters,
+.hockey-calendar-filters--stacked,
+.hockey-calendar-shell__scope {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hockey-calendar-shell__filters {
+  padding-top: 2px;
+}
+
+@media (max-width: 960px) {
+  .hockey-calendar-shell__toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Сетка: виджет календаря + agenda ---------- */
+
+.hockey-calendar-shell__layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.hockey-calendar-shell__layout--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 1100px) {
+  .hockey-calendar-shell__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.hockey-calendar-shell__widget,
+.hockey-calendar-shell--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hockey-calendar-shell__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.hockey-calendar-shell__title-block {
+  display: flex;
+  flex-direction: column;
+  min-width: min(100%, 200px);
+}
+
+.hockey-calendar-shell__title {
+  margin: 0;
+}
+
+.app-shell__main-col .hockey-calendar-shell__summary {
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--hockey-ui-subtle);
+}
+
+.hockey-calendar-shell__view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: var(--hockey-ui-control-radius);
+  background: var(--hockey-ui-card);
+}
+
+.hockey-calendar-shell__view-btn {
+  min-width: 71px;
+  height: 39px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: var(--hockey-ui-button-radius);
+  background: transparent;
+  color: var(--hockey-ui-muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--hockey-ui-text);
+  }
+
+  &.is-active {
+    background: var(--hockey-ui-accent);
+    color: var(--hockey-ui-accent-ink);
+  }
+}
+
+/* ---------- Месяц ---------- */
 
 .hockey-calendar-month {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid var(--hockey-card-border);
-  background: var(--hockey-card-bg);
-  position: sticky;
-  top: 12px;
+}
+
+.hockey-calendar-month__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.hockey-calendar-month__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: 8px;
+  background: var(--hockey-ui-card);
+  color: var(--hockey-ui-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--hockey-ui-text);
+    border-color: color-mix(in srgb, var(--hockey-ui-accent) 55%, transparent);
+  }
+}
+
+.hockey-calendar-month__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--hockey-ui-text);
+}
+
+.hockey-calendar-month__board {
+  display: flex;
+  flex-direction: column;
+  padding: 11px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: 25px;
+  background: var(--hockey-ui-card);
 }
 
 .hockey-calendar-month__weekdays,
 .hockey-calendar-month__grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.hockey-calendar-month__weekdays {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--hockey-ui-row-border);
+}
+
+.hockey-calendar-month__grid {
+  row-gap: 4px;
+  padding-top: 6px;
 }
 
 .hockey-calendar-month__weekday {
   text-align: center;
-  font-size: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 15px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--hockey-text-muted);
-  font-family: var(--hockey-font-scoreboard);
-  padding-bottom: 2px;
+  color: var(--hockey-ui-subtle);
 }
 
 .hockey-calendar-month__day {
   position: relative;
-  min-height: 44px;
-  border-radius: 10px;
+  min-height: 32px;
+  margin: 0 2px;
+  padding: 3px 1px;
   border: 1px solid transparent;
-  background: color-mix(
-    in srgb,
-    var(--hockey-card-bg-solid, var(--hockey-card-bg)) 80%,
-    transparent
-  );
-  color: inherit;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--hockey-ui-text);
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 6px 2px;
+  gap: 1px;
   transition:
     border-color var(--hockey-motion-fast) var(--hockey-motion-ease),
     background var(--hockey-motion-fast) var(--hockey-motion-ease);
-}
 
-.hockey-calendar-month__day:hover {
-  border-color: color-mix(in srgb, var(--hockey-ice-glow) 40%, transparent);
+  &:hover {
+    border-color: color-mix(in srgb, var(--hockey-ui-blue) 45%, transparent);
+  }
 }
 
 .hockey-calendar-month__day--muted {
-  opacity: 0.4;
+  color: color-mix(in srgb, var(--hockey-ui-subtle) 40%, transparent);
 }
 
 .hockey-calendar-month__day--today {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hockey-board-gold) 55%, transparent);
+  border-color: var(--hockey-ui-accent);
+  color: var(--hockey-ui-accent);
+
+  .hockey-calendar-month__day-num {
+    font-weight: 700;
+  }
 }
 
 .hockey-calendar-month__day--selected {
-  border-color: color-mix(in srgb, var(--hockey-ice-glow) 70%, transparent);
-  background: color-mix(in srgb, var(--hockey-ice-glow) 18%, transparent);
+  border: 2px solid var(--hockey-ui-blue);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--hockey-ui-blue) 20%, transparent);
+  color: var(--hockey-ui-blue);
+
+  .hockey-calendar-month__day-num {
+    font-weight: 700;
+  }
 }
 
 .hockey-calendar-month__day-num {
-  font-family: var(--hockey-font-scoreboard);
   font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
+  font-weight: 500;
+  line-height: 16px;
 }
 
 .hockey-calendar-month__day-count {
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--hockey-line-red) 80%, #000);
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--hockey-ui-red);
   color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 11px;
 }
 
-.hockey-calendar-month__day--has-events .hockey-calendar-month__day-num {
-  color: color-mix(in srgb, var(--hockey-ice-glow) 70%, currentColor);
-}
+/* ---------- Карточки событий (лента и «ближайшее») ---------- */
 
-.hockey-calendar-agenda {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  min-width: 0;
-}
-
-.hockey-calendar-agenda__section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.hockey-calendar-agenda__section-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.hockey-calendar-agenda__list {
+.hockey-calendar-featured,
+.hockey-calendar-event {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 15px;
+  border: 1px solid var(--hockey-ui-card-border);
+  background: var(--hockey-ui-card);
+  min-width: 0;
+}
+
+.hockey-calendar-featured {
+  border-radius: 25px;
 }
 
 .hockey-calendar-event {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 14px;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid var(--hockey-card-border);
-  background: var(--hockey-card-bg);
-  border-left: 4px solid var(--hockey-ice-glow);
-}
-
-.hockey-calendar-event--game {
-  border-left-color: var(--hockey-line-red);
-}
-
-.hockey-calendar-event--training {
-  border-left-color: var(--hockey-ice-glow);
-}
-
-.hockey-calendar-event--open_ice {
-  border-left-color: var(--hockey-board-gold);
-}
-
-.hockey-calendar-event__time {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-  padding-top: 2px;
-}
-
-.hockey-calendar-event__clock {
-  font-family: var(--hockey-font-scoreboard);
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-
-.hockey-calendar-event__date {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--hockey-text-muted);
-}
-
-.hockey-calendar-event__body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
+  border-radius: var(--hockey-ui-card-radius);
+  box-shadow: var(--hockey-ui-card-shadow);
 }
 
 .hockey-calendar-event__top {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.hockey-calendar-event__time {
+  display: inline-flex;
+  align-items: baseline;
   gap: 8px;
 }
 
-.hockey-calendar-event__type,
-.hockey-calendar-event__status {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+.hockey-calendar-event__clock {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 28px;
+  color: var(--hockey-ui-accent);
+  font-variant-numeric: tabular-nums;
 }
 
-.hockey-calendar-event__type--game {
-  color: color-mix(in srgb, var(--hockey-line-red) 85%, #fff);
-  background: color-mix(in srgb, var(--hockey-line-red) 16%, transparent);
+.hockey-calendar-event__clock--s {
+  font-size: 20px;
 }
 
-.hockey-calendar-event__type--training {
-  color: color-mix(in srgb, var(--hockey-ice-glow) 85%, #fff);
-  background: color-mix(in srgb, var(--hockey-ice-glow) 16%, transparent);
+.hockey-calendar-event__date {
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--hockey-ui-subtle);
 }
 
-.hockey-calendar-event__type--open_ice {
-  color: color-mix(in srgb, var(--hockey-board-gold) 85%, #fff);
-  background: color-mix(in srgb, var(--hockey-board-gold) 16%, transparent);
+.hockey-calendar-event__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
 }
 
-.hockey-calendar-event__status--going {
-  background: color-mix(in srgb, #2f9e62 18%, transparent);
-  color: color-mix(in srgb, #2f9e62 80%, #fff);
+.hockey-calendar-featured .hockey-badge {
+  font-size: 10px;
 }
 
-.hockey-calendar-event__status--wait {
-  background: color-mix(in srgb, var(--hockey-board-gold) 18%, transparent);
-  color: color-mix(in srgb, var(--hockey-board-gold) 85%, #fff);
-}
-
-.hockey-calendar-event__status--need,
-.hockey-calendar-event__status--open {
-  background: color-mix(in srgb, var(--hockey-card-border) 35%, transparent);
-  color: var(--hockey-text-muted, inherit);
+.hockey-calendar-event__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .hockey-calendar-event__title-link {
   color: inherit;
   text-decoration: none;
+
+  &:hover {
+    color: var(--hockey-ui-accent);
+  }
 }
 
-.hockey-calendar-event__title-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.hockey-calendar-event__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--hockey-ui-text);
 }
 
 .hockey-calendar-event__meta {
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 20px;
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--hockey-ui-subtle);
+}
+
+.hockey-calendar-event__pin {
+  flex-shrink: 0;
+  color: var(--hockey-ui-blue);
+}
+
+.hockey-calendar-event__note {
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--hockey-ui-subtle);
 }
 
 .hockey-calendar-event__actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  margin-top: 4px;
-  padding-top: 10px;
-  border-top: 1px solid color-mix(in srgb, var(--hockey-card-border) 75%, transparent);
+  padding-top: 4px;
+}
+
+.hockey-calendar-event__primary {
+  flex: 1 1 220px;
+  min-width: 0;
+
+  > * {
+    width: 100%;
+  }
+
+  .hockey-row > .hockey-row,
+  .hockey-row > .hockey-button {
+    flex: 1 1 auto;
+  }
+}
+
+.hockey-calendar-featured__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 8px;
+  padding-top: 4px;
+
+  .hockey-button {
+    width: 100%;
+  }
+}
+
+.hockey-calendar-featured__details {
+  display: block;
+}
+
+/* ---------- Agenda: выбранный день и «Дальше» ---------- */
+
+.hockey-calendar-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.hockey-calendar-agenda__section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.app-shell__main-col .hockey-calendar-agenda__count {
+  font-size: 14px;
+  color: var(--hockey-ui-subtle);
+}
+
+.hockey-calendar-agenda__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hockey-calendar-agenda__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 33px 20px 34px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: var(--hockey-ui-card-radius);
+  background: var(--hockey-ui-card);
+  box-shadow: var(--hockey-ui-card-shadow);
+  text-align: center;
+
+  .hockey-empty-tile {
+    margin-bottom: 10px;
+  }
+}
+
+.hockey-calendar-agenda__empty-title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--hockey-ui-text);
+}
+
+.hockey-calendar-agenda__empty-copy {
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--hockey-ui-muted);
+}
+
+/* Лента внутри виджета: карточки без собственной тени */
+.hockey-calendar-shell__widget .hockey-calendar-event,
+.hockey-calendar-shell--compact .hockey-calendar-event {
+  border-radius: 25px;
+  box-shadow: none;
 }
 
 @media (max-width: 640px) {
-  .hockey-calendar-event {
+  .hockey-calendar-featured__actions {
     grid-template-columns: 1fr;
-    gap: 10px;
   }
 
-  .hockey-calendar-event__time {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 10px;
-  }
-
-  .hockey-calendar-month {
-    position: static;
+  .hockey-calendar-shell__view-btn {
+    min-width: 60px;
   }
 }

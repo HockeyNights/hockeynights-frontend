@@ -2,7 +2,7 @@
  * SPEC-FR-24.7.3, SPEC-FR-24.7.4
  */
 
-import {Text, TextInput} from '@gravity-ui/uikit'
+import {Text, TextArea, TextInput} from '@gravity-ui/uikit'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import {useState} from 'react'
 import {Link, useParams} from 'react-router'
@@ -24,8 +24,17 @@ import {IceCard} from '@/shared/ui/IceCard'
 import {PageHeader} from '@/shared/ui/PageHeader'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 type PartnerTab = 'profile' | 'products' | 'import' | 'promos' | 'analytics'
+
+const PARTNER_TABS: {id: PartnerTab; label: string}[] = [
+  {id: 'profile', label: 'О магазине'},
+  {id: 'products', label: 'Товары'},
+  {id: 'import', label: 'Импорт'},
+  {id: 'promos', label: 'Промо'},
+  {id: 'analytics', label: 'Аналитика'},
+]
 
 /** @spec SPEC-FR-24.7.3 - Кабинет партнёра магазина */
 export function ShopPartnerDashboard() {
@@ -131,7 +140,7 @@ export function ShopPartnerDashboard() {
 
   return (
     <div
-      className="partner-dashboard hockey-stack hockey-stack--gap-16"
+      className="partner-dashboard partner-cabinet partner-cabinet--shop"
       data-testid={testId('shops', shopId, 'dashboard', 'page')}
     >
       <PageHeader
@@ -147,150 +156,143 @@ export function ShopPartnerDashboard() {
       />
 
       <div
-        className="partner-dashboard__tabs"
+        className="hockey-segmented partner-cabinet__tabs"
+        role="tablist"
         data-testid={testId('shops', shopId, 'dashboard', 'nav')}
       >
-        <HockeyButton
-          view={tab === 'profile' ? 'action' : 'outlined'}
-          size="s"
-          data-testid={testId('shops', shopId, 'dashboard', 'tab', 'profile')}
-          onClick={() => setTab('profile')}
-        >
-          О магазине
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'products' ? 'action' : 'outlined'}
-          size="s"
-          data-testid={testId('shops', shopId, 'dashboard', 'tab', 'products')}
-          onClick={() => setTab('products')}
-        >
-          Товары
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'import' ? 'action' : 'outlined'}
-          size="s"
-          data-testid={testId('shops', shopId, 'dashboard', 'tab', 'import')}
-          onClick={() => setTab('import')}
-        >
-          Импорт
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'promos' ? 'action' : 'outlined'}
-          size="s"
-          data-testid={testId('shops', shopId, 'dashboard', 'tab', 'promos')}
-          onClick={() => setTab('promos')}
-        >
-          Промо
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'analytics' ? 'action' : 'outlined'}
-          size="s"
-          data-testid={testId('shops', shopId, 'dashboard', 'tab', 'analytics')}
-          onClick={() => setTab('analytics')}
-        >
-          Аналитика
-        </HockeyButton>
+        {PARTNER_TABS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === item.id}
+            className={`hockey-segmented__item${tab === item.id ? ' is-active' : ''}`}
+            data-testid={testId('shops', shopId, 'dashboard', 'tab', item.id)}
+            onClick={() => setTab(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
       {tab === 'profile' && (
-        <IceCard padding="m">
-          <div
-            className="partner-dashboard__form hockey-stack hockey-stack--gap-10"
-            data-testid={testId('shops', shopId, 'dashboard', 'form', 'profile')}
-          >
-            <Text
-              variant="subheader-2"
-              data-testid={testId('shops', shopId, 'dashboard', 'text', 'profile-title')}
+        <section className="partner-cabinet__block">
+          <SectionHeading
+            title="Публичный профиль"
+            data-testid={testId('shops', shopId, 'dashboard', 'text', 'profile-title')}
+          />
+          <IceCard padding="m" className="partner-cabinet__card">
+            <div
+              className="partner-cabinet__form"
+              data-testid={testId('shops', shopId, 'dashboard', 'form', 'profile')}
             >
-              Публичный профиль
-            </Text>
-            <TextInput
-              label="Описание"
-              value={form.description ?? ''}
-              data-testid={testId('shops', shopId, 'dashboard', 'field', 'description')}
-              onUpdate={(value) => setDraft((prev) => ({...prev, description: value}))}
-            />
-            <TextInput
-              label="Email"
-              value={form.contactEmail ?? ''}
-              data-testid={testId('shops', shopId, 'dashboard', 'field', 'email')}
-              onUpdate={(value) => setDraft((prev) => ({...prev, contactEmail: value}))}
-            />
-            <TextInput
-              label="Телефон"
-              value={form.contactPhone ?? ''}
-              data-testid={testId('shops', shopId, 'dashboard', 'field', 'phone')}
-              onUpdate={(value) => setDraft((prev) => ({...prev, contactPhone: value}))}
-            />
-            <TextInput
-              label="Доставка"
-              value={form.deliveryInfo ?? ''}
-              data-testid={testId('shops', shopId, 'dashboard', 'field', 'delivery')}
-              onUpdate={(value) => setDraft((prev) => ({...prev, deliveryInfo: value}))}
-            />
-            <TextInput
-              label="Самовывоз"
-              value={form.pickupInfo ?? ''}
-              data-testid={testId('shops', shopId, 'dashboard', 'field', 'pickup')}
-              onUpdate={(value) => setDraft((prev) => ({...prev, pickupInfo: value}))}
-            />
-            <Text
-              color="secondary"
-              data-testid={testId('shops', shopId, 'dashboard', 'text', 'moderation-status')}
-            >
-              Статус модерации: {form.moderationStatus ?? 'draft'}
-            </Text>
-            <HockeyButton
-              view="action"
-              loading={saveMutation.isPending}
-              data-testid={testId('shops', shopId, 'dashboard', 'btn', 'save-profile')}
-              onClick={() => saveMutation.mutate(draft)}
-            >
-              Сохранить профиль
-            </HockeyButton>
-            {statusMessage && (
+              <TextInput
+                label="Описание"
+                value={form.description ?? ''}
+                data-testid={testId('shops', shopId, 'dashboard', 'field', 'description')}
+                onUpdate={(value) => setDraft((prev) => ({...prev, description: value}))}
+              />
+              <div className="partner-cabinet__field">
+                <span className="partner-cabinet__label">Доставка</span>
+                <TextArea
+                  rows={3}
+                  value={form.deliveryInfo ?? ''}
+                  data-testid={testId('shops', shopId, 'dashboard', 'field', 'delivery')}
+                  onUpdate={(value) => setDraft((prev) => ({...prev, deliveryInfo: value}))}
+                />
+              </div>
+              <div className="partner-cabinet__field">
+                <span className="partner-cabinet__label">Самовывоз</span>
+                <TextArea
+                  rows={3}
+                  value={form.pickupInfo ?? ''}
+                  data-testid={testId('shops', shopId, 'dashboard', 'field', 'pickup')}
+                  onUpdate={(value) => setDraft((prev) => ({...prev, pickupInfo: value}))}
+                />
+              </div>
+              <div className="partner-cabinet__form-row">
+                <TextInput
+                  label="Email"
+                  value={form.contactEmail ?? ''}
+                  data-testid={testId('shops', shopId, 'dashboard', 'field', 'email')}
+                  onUpdate={(value) => setDraft((prev) => ({...prev, contactEmail: value}))}
+                />
+                <TextInput
+                  label="Телефон"
+                  value={form.contactPhone ?? ''}
+                  data-testid={testId('shops', shopId, 'dashboard', 'field', 'phone')}
+                  onUpdate={(value) => setDraft((prev) => ({...prev, contactPhone: value}))}
+                />
+              </div>
               <Text
-                color="secondary"
-                data-testid={testId('shops', shopId, 'dashboard', 'text', 'status-message')}
+                className="partner-cabinet__note"
+                data-testid={testId('shops', shopId, 'dashboard', 'text', 'moderation-status')}
               >
-                {statusMessage}
+                Статус модерации: {form.moderationStatus ?? 'draft'}
               </Text>
-            )}
-          </div>
-        </IceCard>
+              <HockeyButton
+                view="action"
+                width="max"
+                loading={saveMutation.isPending}
+                data-testid={testId('shops', shopId, 'dashboard', 'btn', 'save-profile')}
+                onClick={() => saveMutation.mutate(draft)}
+              >
+                Сохранить профиль
+              </HockeyButton>
+              {statusMessage && (
+                <Text
+                  className="partner-cabinet__note"
+                  data-testid={testId('shops', shopId, 'dashboard', 'text', 'status-message')}
+                >
+                  {statusMessage}
+                </Text>
+              )}
+            </div>
+          </IceCard>
+        </section>
       )}
 
       {tab === 'products' && (
-        <IceCard
-          padding="m"
+        <div
+          className="partner-cabinet__panel partner-cabinet__panel--products"
           data-testid={testId('shops', shopId, 'dashboard', 'panel', 'products')}
         >
           <ShopProductManager shopId={shopId} />
-        </IceCard>
+        </div>
       )}
 
       {tab === 'import' && (
-        <IceCard padding="m" data-testid={testId('shops', shopId, 'dashboard', 'panel', 'import')}>
+        <div
+          className="partner-cabinet__panel partner-cabinet__panel--import"
+          data-testid={testId('shops', shopId, 'dashboard', 'panel', 'import')}
+        >
           <ShopCatalogImportPanel shopId={shopId} />
-        </IceCard>
+        </div>
       )}
 
       {tab === 'promos' && (
-        <IceCard padding="m" data-testid={testId('shops', shopId, 'dashboard', 'panel', 'promos')}>
+        <div
+          className="partner-cabinet__panel partner-cabinet__panel--promos"
+          data-testid={testId('shops', shopId, 'dashboard', 'panel', 'promos')}
+        >
           <ShopPromoManager shopId={shopId} />
-        </IceCard>
+        </div>
       )}
 
       {tab === 'analytics' && (
-        <IceCard
-          padding="m"
+        <div
+          className="partner-cabinet__panel partner-cabinet__panel--leads"
           data-testid={testId('shops', shopId, 'dashboard', 'panel', 'analytics')}
         >
           <ShopAnalyticsPanel shopId={shopId} />
-        </IceCard>
+        </div>
       )}
 
-      <Link to="/shops" data-testid={testId('shops', shopId, 'dashboard', 'link', 'back')}>
+      <Link
+        to="/shops"
+        className="partner-cabinet__back"
+        data-testid={testId('shops', shopId, 'dashboard', 'link', 'back')}
+      >
         <HockeyButton
           view="outlined"
           size="s"

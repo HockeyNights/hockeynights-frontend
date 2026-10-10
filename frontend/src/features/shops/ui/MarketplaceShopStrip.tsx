@@ -35,14 +35,15 @@ export function MarketplaceShopStrip({
     >
       <div className="marketplace-strip__header">
         <Text
-          variant="subheader-2"
+          as="h2"
+          className="marketplace-strip__title"
           data-testid={testId('shops', 'marketplace-strip', 'text', 'title')}
         >
           Магазины в приоритете
         </Text>
         <Text
           color="secondary"
-          variant="caption-1"
+          className="marketplace-strip__subtitle"
           data-testid={testId('shops', 'marketplace-strip', 'text', 'subtitle')}
         >
           Партнёры с платным размещением показываются первыми в ленте
@@ -52,32 +53,27 @@ export function MarketplaceShopStrip({
         className="marketplace-strip__scroll"
         data-testid={testId('shops', 'marketplace-strip', 'list')}
       >
-        <button
-          type="button"
-          className={`marketplace-strip__chip${!activeShopId ? ' is-active' : ''}`}
-          data-testid={testId('shops', 'marketplace-strip', 'btn', 'all')}
-          onClick={() => onSelectShop(undefined)}
-        >
-          Все магазины
-        </button>
         {shops.map(({shop, promoTitle, promoDiscount}) => {
           const tier = shop.adTier ?? 'standard'
           return (
             <button
               key={shop.id}
               type="button"
+              aria-pressed={activeShopId === shop.id}
               className={`marketplace-strip__card marketplace-strip__card--${tier}${
                 activeShopId === shop.id ? ' is-active' : ''
               }`}
               data-testid={testId('shops', 'marketplace-strip', 'card', shop.id)}
               onClick={() => onSelectShop(shop.id)}
             >
-              <span
-                className="marketplace-strip__card-tier"
-                data-testid={testId('shops', 'marketplace-strip', 'badge', 'tier', shop.id)}
-              >
-                {TIER_COPY[tier]}
-              </span>
+              {TIER_COPY[tier] ? (
+                <span
+                  className="marketplace-strip__card-tier"
+                  data-testid={testId('shops', 'marketplace-strip', 'badge', 'tier', shop.id)}
+                >
+                  {TIER_COPY[tier]}
+                </span>
+              ) : null}
               <span
                 className="marketplace-strip__card-name"
                 data-testid={testId('shops', 'marketplace-strip', 'text', 'name', shop.id)}
@@ -103,6 +99,15 @@ export function MarketplaceShopStrip({
           )
         })}
       </div>
+      <button
+        type="button"
+        aria-pressed={!activeShopId}
+        className={`marketplace-strip__chip${!activeShopId ? ' is-active' : ''}`}
+        data-testid={testId('shops', 'marketplace-strip', 'btn', 'all')}
+        onClick={() => onSelectShop(undefined)}
+      >
+        Все магазины
+      </button>
     </section>
   )
 }

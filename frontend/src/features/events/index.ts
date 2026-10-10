@@ -78,6 +78,15 @@ export {
 export {AttendanceControl} from './ui/AttendanceControl'
 export {EventCard} from './ui/EventCard'
 export {EventCreateForm} from './ui/EventCreateForm'
+export {
+  EventFactRow,
+  EventOrganizerCard,
+  EventSlotsCard,
+  EventStatTile,
+  EventStatusPill,
+  formatEventLongDate,
+  formatEventTimeRange,
+} from './ui/EventDetailsBlocks'
 export {EventRsvpBoard} from './ui/EventRsvpBoard'
 export {OrganizerAgreementsPanel} from './ui/OrganizerAgreementsPanel'
 export {OrganizerProfilePanel} from './ui/OrganizerProfilePanel'

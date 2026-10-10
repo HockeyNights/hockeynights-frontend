@@ -2,16 +2,11 @@
  * SPEC-FR-16.1.1, SPEC-UI-8.3 — строка чата в списке.
  */
 
-import {Pin, PinFill} from '@gravity-ui/icons'
+import {Bell, Person, Persons, Pin, PinFill} from '@gravity-ui/icons'
 import {Icon, Text} from '@gravity-ui/uikit'
 
 import type {Chat} from '@/entities/messenger'
-import {
-  formatChatTimestamp,
-  getChatInitial,
-  getChatSubtitle,
-  getChatTypeLabel,
-} from '@/entities/messenger'
+import {formatChatTimestamp, getChatSubtitle, getChatTypeLabel} from '@/entities/messenger'
 import {testId} from '@/shared/testing/testId'
 
 interface MessengerChatRowProps {
@@ -21,9 +16,16 @@ interface MessengerChatRowProps {
   onTogglePin: (chatId: string) => void
 }
 
+function ChatAvatarIcon({chat}: {chat: Chat}) {
+  if (chat.type === 'system') return <Icon data={Bell} size={24} />
+  if (chat.type === 'direct') return <Icon data={Person} size={28} />
+  return <Icon data={Persons} size={28} />
+}
+
 export function MessengerChatRow({chat, isActive, onSelect, onTogglePin}: MessengerChatRowProps) {
   const typeLabel = getChatTypeLabel(chat)
   const timeLabel = formatChatTimestamp(chat.lastMessage?.timestamp)
+  const lastLine = chat.isTyping ? chat.lastMessage?.content : getChatSubtitle(chat)
 
   return (
     <div
@@ -38,11 +40,15 @@ export function MessengerChatRow({chat, isActive, onSelect, onTogglePin}: Messen
         data-testid={testId('messenger', 'page', 'btn', 'open-chat', chat.id)}
       >
         <span
-          className="chat-item__avatar"
+          className={`chat-item__avatar${chat.type === 'system' ? ' chat-item__avatar--system' : ''}`}
           aria-hidden
           data-testid={testId('messenger', 'page', 'badge', 'chat-avatar', chat.id)}
         >
-          {getChatInitial(chat)}
+          {chat.avatarUrl ? (
+            <img src={chat.avatarUrl} alt="" className="chat-item__avatar-img" />
+          ) : (
+            <ChatAvatarIcon chat={chat} />
+          )}
         </span>
         <span
           className="chat-item__info"
@@ -56,6 +62,11 @@ export function MessengerChatRow({chat, isActive, onSelect, onTogglePin}: Messen
             >
               {chat.title}
             </Text>
+            {chat.isPinned && (
+              <span className="chat-item__pinned" aria-hidden>
+                <Icon data={PinFill} size={12} />
+              </span>
+            )}
             {chat.isOnline && (
               <span
                 className="chat-item__online"
@@ -67,37 +78,47 @@ export function MessengerChatRow({chat, isActive, onSelect, onTogglePin}: Messen
             )}
             {typeLabel && (
               <span
-                className="chat-item__tag"
+                className="chat-item__tag hockey-badge hockey-badge--muted"
                 data-testid={testId('messenger', 'page', 'badge', 'chat-type', chat.id)}
               >
                 {typeLabel}
               </span>
             )}
+            {timeLabel && (
+              <span
+                className="chat-item__time"
+                data-testid={testId('messenger', 'page', 'text', 'chat-time', chat.id)}
+              >
+                {timeLabel}
+              </span>
+            )}
           </span>
-          <Text
-            variant="caption-1"
-            className={`chat-item__last-msg ${chat.isTyping ? 'is-typing' : ''}`}
-            color="secondary"
-            data-testid={testId('messenger', 'page', 'text', 'chat-subtitle', chat.id)}
-          >
-            {getChatSubtitle(chat)}
-          </Text>
-        </span>
-        <span className="chat-item__meta">
-          {timeLabel && (
+          {chat.isTyping && (
             <span
-              className="chat-item__time scoreboard-text"
-              data-testid={testId('messenger', 'page', 'text', 'chat-time', chat.id)}
+              className="chat-item__typing"
+              data-testid={testId('messenger', 'page', 'text', 'chat-typing', chat.id)}
             >
-              {timeLabel}
+              печатает...
             </span>
           )}
-          {chat.unreadCount > 0 && (
-            <span
-              className="chat-item__unread"
-              data-testid={testId('messenger', 'page', 'badge', 'chat-unread', chat.id)}
-            >
-              {chat.unreadCount}
+          {(lastLine || chat.unreadCount > 0) && (
+            <span className="chat-item__last-row">
+              <Text
+                variant="caption-1"
+                className="chat-item__last-msg"
+                color="secondary"
+                data-testid={testId('messenger', 'page', 'text', 'chat-subtitle', chat.id)}
+              >
+                {lastLine}
+              </Text>
+              {chat.unreadCount > 0 && (
+                <span
+                  className="chat-item__unread"
+                  data-testid={testId('messenger', 'page', 'badge', 'chat-unread', chat.id)}
+                >
+                  {chat.unreadCount}
+                </span>
+              )}
             </span>
           )}
         </span>
@@ -111,7 +132,7 @@ export function MessengerChatRow({chat, isActive, onSelect, onTogglePin}: Messen
         onClick={() => onTogglePin(chat.id)}
         data-testid={testId('messenger', 'page', 'btn', 'pin-chat', chat.id)}
       >
-        <Icon data={chat.isPinned ? PinFill : Pin} size={16} />
+        <Icon data={chat.isPinned ? PinFill : Pin} size={14} />
       </button>
     </div>
   )

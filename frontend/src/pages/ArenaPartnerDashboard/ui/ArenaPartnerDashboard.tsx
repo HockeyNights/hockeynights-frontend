@@ -27,6 +27,7 @@ import {IceCard} from '@/shared/ui/IceCard'
 import {PageHeader} from '@/shared/ui/PageHeader'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 type CabinetTab = 'bookings' | 'schedule' | 'listings' | 'profile'
 type ListingFilter = 'all' | IceListingStatus
@@ -39,10 +40,7 @@ function toLocalInputValue(iso: string): string {
 }
 
 function defaultListingStart(): string {
-  const d = new Date(Date.now() + 86400000)
-  d.setMinutes(0, 0, 0)
-  d.setHours(20)
-  return toLocalInputValue(d.toISOString())
+  return toLocalInputValue(tomorrowAt(20).toISOString())
 }
 
 function defaultListingEnd(startLocal: string): string {
@@ -57,6 +55,14 @@ function nextWeekdayAt(weekday: number, hour: number, minute = 0): Date {
   const delta = (weekday - d.getDay() + 7) % 7 || 7
   d.setDate(d.getDate() + delta)
   d.setHours(hour, minute, 0, 0)
+  return d
+}
+
+function tomorrowAt(hour: number, minute = 0): Date {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  d.setMinutes(minute, 0, 0)
+  d.setHours(hour)
   return d
 }
 
@@ -77,6 +83,27 @@ const STATUS_LABELS: Record<IceListingStatus, string> = {
   published: 'Опубликовано',
   archived: 'Снято',
 }
+
+const STATUS_BADGES: Record<IceListingStatus, string> = {
+  draft: 'hockey-badge--gold',
+  published: 'hockey-badge--green',
+  archived: 'hockey-badge--muted',
+}
+
+const CABINET_TABS: {id: CabinetTab; label: string}[] = [
+  {id: 'bookings', label: 'Заявки'},
+  {id: 'schedule', label: 'Расписание'},
+  {id: 'listings', label: 'Объявления'},
+  {id: 'profile', label: 'Профиль'},
+]
+
+type ListingTemplate = 'friday-evening' | 'weekend-morning' | 'tomorrow-night'
+
+const LISTING_TEMPLATES: {kind: ListingTemplate; label: string; testId: string}[] = [
+  {kind: 'friday-evening', label: 'Пятница вечер', testId: 'template-friday'},
+  {kind: 'weekend-morning', label: 'Суббота утро', testId: 'template-saturday'},
+  {kind: 'tomorrow-night', label: 'Завтра вечер', testId: 'template-tomorrow'},
+]
 
 const FILTER_LABELS: Record<ListingFilter, string> = {
   all: 'Все',
@@ -278,7 +305,7 @@ export function ArenaPartnerDashboard() {
     setSuccessMessage(null)
   }
 
-  function applyTemplate(kind: 'friday-evening' | 'weekend-morning' | 'tomorrow-night') {
+  function applyTemplate(kind: ListingTemplate) {
     let start: Date
     let title: string
     if (kind === 'friday-evening') {
@@ -288,9 +315,7 @@ export function ArenaPartnerDashboard() {
       start = nextWeekdayAt(6, 10, 0)
       title = 'Свободный лёд · суббота утро'
     } else {
-      start = new Date(Date.now() + 86400000)
-      start.setMinutes(0, 0, 0)
-      start.setHours(21)
+      start = tomorrowAt(21)
       title = 'Свободный лёд · вечер'
     }
     const startLocal = toLocalInputValue(start.toISOString())
@@ -375,7 +400,7 @@ export function ArenaPartnerDashboard() {
 
   return (
     <div
-      className="hockey-stack hockey-stack--gap-16"
+      className="partner-cabinet partner-cabinet--arena"
       data-testid={testId('arenas', 'partner', 'page', arenaId)}
     >
       <PageHeader
@@ -411,378 +436,355 @@ export function ArenaPartnerDashboard() {
       />
 
       <div
-        className="partner-dashboard__tabs"
+        className="hockey-segmented partner-cabinet__tabs"
+        role="tablist"
         data-testid={testId('arenas', 'partner', 'nav', 'tabs')}
       >
-        <HockeyButton
-          view={tab === 'bookings' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('bookings')}
-          data-testid={testId('arenas', 'partner', 'tab', 'bookings')}
-        >
-          Заявки
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'schedule' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('schedule')}
-          data-testid={testId('arenas', 'partner', 'tab', 'schedule')}
-        >
-          Расписание
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'listings' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('listings')}
-          data-testid={testId('arenas', 'partner', 'tab', 'listings')}
-        >
-          Объявления
-        </HockeyButton>
-        <HockeyButton
-          view={tab === 'profile' ? 'action' : 'outlined'}
-          size="s"
-          onClick={() => setTab('profile')}
-          data-testid={testId('arenas', 'partner', 'tab', 'profile')}
-        >
-          Профиль
-        </HockeyButton>
+        {CABINET_TABS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === item.id}
+            className={`hockey-segmented__item${tab === item.id ? ' is-active' : ''}`}
+            onClick={() => setTab(item.id)}
+            data-testid={testId('arenas', 'partner', 'tab', item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
       {tab === 'bookings' && (
-        <IceCard padding="m">
+        <div className="partner-cabinet__panel partner-cabinet__panel--bookings">
           <ArenaBookingsPanel arenaId={arenaId} />
-        </IceCard>
+        </div>
       )}
 
       {tab === 'schedule' && (
-        <IceCard padding="m">
+        <div className="partner-cabinet__panel partner-cabinet__panel--schedule">
           <ArenaSchedulePanel arenaId={arenaId} />
-        </IceCard>
+        </div>
       )}
 
       {tab === 'profile' && (
-        <IceCard padding="m">
-          <div
-            className="hockey-stack hockey-stack--gap-12"
-            data-testid={testId('arenas', 'partner', 'panel', 'profile')}
-          >
-            <Text
-              variant="subheader-2"
-              data-testid={testId('arenas', 'partner', 'text', 'profile-title')}
-            >
-              Профиль арены
-            </Text>
-            <Text color="secondary" data-testid={testId('arenas', 'partner', 'text', 'address')}>
-              {arena.address} · {arena.city}
-            </Text>
-            <Switch
-              checked={visibleInCatalog}
-              onUpdate={(value) => {
-                setVisibleInCatalog(value)
-                setProfileSaved(false)
-              }}
-              content="Показывать в каталоге «Ледовые арены»"
-              data-testid={testId('arenas', 'partner', 'switch', 'visible')}
-            />
-            <TextInput
-              label="Телефон"
-              value={phone}
-              onUpdate={(value) => {
-                setPhone(value)
-                setProfileSaved(false)
-              }}
-              data-testid={testId('arenas', 'partner', 'field', 'phone')}
-            />
-            <TextInput
-              label="Сайт"
-              value={websiteUrl}
-              onUpdate={(value) => {
-                setWebsiteUrl(value)
-                setProfileSaved(false)
-              }}
-              data-testid={testId('arenas', 'partner', 'field', 'website')}
-            />
-            <TextInput
-              label="Ссылка на запись"
-              value={bookingUrl}
-              onUpdate={(value) => {
-                setBookingUrl(value)
-                setProfileSaved(false)
-              }}
-              data-testid={testId('arenas', 'partner', 'field', 'booking-url')}
-            />
-            <TextInput
-              label="Диапазон цен"
-              value={priceRange}
-              onUpdate={(value) => {
-                setPriceRange(value)
-                setProfileSaved(false)
-              }}
-              data-testid={testId('arenas', 'partner', 'field', 'price-range')}
-            />
-            <HockeyButton
-              view="action"
-              size="m"
-              loading={profileMutation.isPending}
-              onClick={() => profileMutation.mutate()}
-              data-testid={testId('arenas', 'partner', 'btn', 'save-profile')}
-            >
-              Сохранить профиль
-            </HockeyButton>
-            {profileSaved && (
+        <section
+          className="partner-cabinet__block"
+          data-testid={testId('arenas', 'partner', 'panel', 'profile')}
+        >
+          <SectionHeading
+            title="Профиль арены"
+            data-testid={testId('arenas', 'partner', 'text', 'profile-title')}
+          />
+          <IceCard padding="m" className="partner-cabinet__card">
+            <div className="partner-cabinet__form">
               <Text
-                color="positive"
-                data-testid={testId('arenas', 'partner', 'text', 'profile-saved')}
+                className="partner-cabinet__note"
+                data-testid={testId('arenas', 'partner', 'text', 'address')}
               >
-                Профиль обновлён
+                {arena.address} · {arena.city}
               </Text>
-            )}
-          </div>
-        </IceCard>
+              <Switch
+                checked={visibleInCatalog}
+                onUpdate={(value) => {
+                  setVisibleInCatalog(value)
+                  setProfileSaved(false)
+                }}
+                content="Показывать в каталоге «Ледовые арены»"
+                data-testid={testId('arenas', 'partner', 'switch', 'visible')}
+              />
+              <TextInput
+                label="Сайт"
+                value={websiteUrl}
+                onUpdate={(value) => {
+                  setWebsiteUrl(value)
+                  setProfileSaved(false)
+                }}
+                data-testid={testId('arenas', 'partner', 'field', 'website')}
+              />
+              <TextInput
+                label="Ссылка на запись"
+                value={bookingUrl}
+                onUpdate={(value) => {
+                  setBookingUrl(value)
+                  setProfileSaved(false)
+                }}
+                data-testid={testId('arenas', 'partner', 'field', 'booking-url')}
+              />
+              <div className="partner-cabinet__form-row">
+                <TextInput
+                  label="Диапазон цен"
+                  value={priceRange}
+                  onUpdate={(value) => {
+                    setPriceRange(value)
+                    setProfileSaved(false)
+                  }}
+                  data-testid={testId('arenas', 'partner', 'field', 'price-range')}
+                />
+                <TextInput
+                  label="Телефон"
+                  value={phone}
+                  onUpdate={(value) => {
+                    setPhone(value)
+                    setProfileSaved(false)
+                  }}
+                  data-testid={testId('arenas', 'partner', 'field', 'phone')}
+                />
+              </div>
+              <HockeyButton
+                view="action"
+                width="max"
+                loading={profileMutation.isPending}
+                onClick={() => profileMutation.mutate()}
+                data-testid={testId('arenas', 'partner', 'btn', 'save-profile')}
+              >
+                Сохранить профиль
+              </HockeyButton>
+              {profileSaved && (
+                <Text
+                  color="positive"
+                  data-testid={testId('arenas', 'partner', 'text', 'profile-saved')}
+                >
+                  Профиль обновлён
+                </Text>
+              )}
+            </div>
+          </IceCard>
+        </section>
       )}
 
       {tab === 'listings' && (
         <>
-          <IceCard padding="m">
-            <div
-              className="hockey-stack hockey-stack--gap-12"
-              data-testid={testId('arenas', 'partner', 'panel', 'create-listing')}
-            >
-              <Text
-                variant="subheader-2"
-                data-testid={testId('arenas', 'partner', 'text', 'form-title')}
-              >
-                {editingId ? 'Редактирование объявления' : 'Новое объявление'}
-              </Text>
-
-              <div
-                className="hockey-row hockey-row--gap-8 hockey-row--wrap"
-                data-testid={testId('arenas', 'partner', 'panel', 'templates')}
-              >
-                <HockeyButton
-                  view="flat"
-                  size="s"
-                  onClick={() => applyTemplate('friday-evening')}
-                  data-testid={testId('arenas', 'partner', 'btn', 'template-friday')}
-                >
-                  Пятница вечер
-                </HockeyButton>
-                <HockeyButton
-                  view="flat"
-                  size="s"
-                  onClick={() => applyTemplate('weekend-morning')}
-                  data-testid={testId('arenas', 'partner', 'btn', 'template-saturday')}
-                >
-                  Суббота утро
-                </HockeyButton>
-                <HockeyButton
-                  view="flat"
-                  size="s"
-                  onClick={() => applyTemplate('tomorrow-night')}
-                  data-testid={testId('arenas', 'partner', 'btn', 'template-tomorrow')}
-                >
-                  Завтра вечер
-                </HockeyButton>
-              </div>
-
-              <TextInput
-                label="Название объявления"
-                value={form.title}
-                onUpdate={(value) => updateForm('title', value)}
-                data-testid={testId('arenas', 'partner', 'field', 'listing-title')}
-              />
-              <label className="hockey-stack hockey-stack--gap-4">
-                <Text variant="body-2">Начало</Text>
-                <input
-                  type="datetime-local"
-                  className="g-text-input__control"
-                  value={form.start}
-                  onChange={(event) => {
-                    const value = event.target.value
-                    setForm((prev) => ({
-                      ...prev,
-                      start: value,
-                      end: defaultListingEnd(value),
-                    }))
-                    setFormError(null)
-                    setSuccessMessage(null)
-                  }}
-                  data-testid={testId('arenas', 'partner', 'field', 'listing-start')}
-                />
-              </label>
-              <label className="hockey-stack hockey-stack--gap-4">
-                <Text variant="body-2">Конец</Text>
-                <input
-                  type="datetime-local"
-                  className="g-text-input__control"
-                  value={form.end}
-                  onChange={(event) => updateForm('end', event.target.value)}
-                  data-testid={testId('arenas', 'partner', 'field', 'listing-end')}
-                />
-              </label>
-              <TextInput
-                label="Цена, ₽"
-                value={form.price}
-                onUpdate={(value) => updateForm('price', value)}
-                data-testid={testId('arenas', 'partner', 'field', 'listing-price')}
-              />
-              <TextInput
-                label="Контактный телефон"
-                value={form.phone}
-                onUpdate={(value) => updateForm('phone', value)}
-                data-testid={testId('arenas', 'partner', 'field', 'listing-phone')}
-              />
-              <TextInput
-                label="Комментарий"
-                value={form.note}
-                onUpdate={(value) => updateForm('note', value)}
-                data-testid={testId('arenas', 'partner', 'field', 'listing-note')}
-              />
-
-              <div
-                className="arena-partner-preview hockey-stack hockey-stack--gap-4"
-                data-testid={testId('arenas', 'partner', 'panel', 'preview')}
-              >
-                <Text color="secondary">Превью для игрока</Text>
-                <Text data-testid={testId('arenas', 'partner', 'text', 'preview-title')}>
-                  {form.title.trim() || 'Название объявления'}
-                </Text>
-                <Text
-                  color="secondary"
-                  data-testid={testId('arenas', 'partner', 'text', 'preview-schedule')}
-                >
-                  {formatListingSchedule(
-                    new Date(form.start).toISOString(),
-                    new Date(form.end).toISOString(),
-                  )}
-                  {` · ${previewPrice}`}
-                </Text>
-              </div>
-
-              {formError && (
-                <Text
-                  color="danger"
-                  data-testid={testId('arenas', 'partner', 'error', 'listing-form')}
-                >
-                  {formError}
-                </Text>
-              )}
-              {successMessage && (
+          <section
+            className="partner-cabinet__block"
+            data-testid={testId('arenas', 'partner', 'panel', 'create-listing')}
+          >
+            <SectionHeading
+              title={editingId ? 'Редактирование объявления' : 'Новое объявление'}
+              data-testid={testId('arenas', 'partner', 'text', 'form-title')}
+            />
+            <IceCard padding="m" className="partner-cabinet__card">
+              <div className="partner-cabinet__form">
                 <div
-                  className="hockey-stack hockey-stack--gap-4"
-                  data-testid={testId('arenas', 'partner', 'text', 'listing-success')}
+                  className="hockey-segmented"
+                  data-testid={testId('arenas', 'partner', 'panel', 'templates')}
                 >
-                  <Text color="positive">{successMessage}</Text>
-                  {lastPublishedId && (
-                    <Link
-                      to={`/arenas/${arena.id}`}
-                      data-testid={testId('arenas', 'partner', 'link', 'view-published')}
+                  {LISTING_TEMPLATES.map((template) => (
+                    <button
+                      key={template.kind}
+                      type="button"
+                      className="hockey-segmented__item"
+                      onClick={() => applyTemplate(template.kind)}
+                      data-testid={testId('arenas', 'partner', 'btn', template.testId)}
                     >
-                      <HockeyButton
-                        view="flat"
-                        size="s"
-                        data-testid={testId('arenas', 'partner', 'btn', 'view-published')}
+                      {template.label}
+                    </button>
+                  ))}
+                </div>
+
+                <TextInput
+                  label="Название объявления"
+                  value={form.title}
+                  onUpdate={(value) => updateForm('title', value)}
+                  data-testid={testId('arenas', 'partner', 'field', 'listing-title')}
+                />
+                <label className="hockey-stack hockey-stack--gap-4">
+                  <Text variant="body-2">Начало</Text>
+                  <input
+                    type="datetime-local"
+                    className="g-text-input__control"
+                    value={form.start}
+                    onChange={(event) => {
+                      const value = event.target.value
+                      setForm((prev) => ({
+                        ...prev,
+                        start: value,
+                        end: defaultListingEnd(value),
+                      }))
+                      setFormError(null)
+                      setSuccessMessage(null)
+                    }}
+                    data-testid={testId('arenas', 'partner', 'field', 'listing-start')}
+                  />
+                </label>
+                <label className="hockey-stack hockey-stack--gap-4">
+                  <Text variant="body-2">Конец</Text>
+                  <input
+                    type="datetime-local"
+                    className="g-text-input__control"
+                    value={form.end}
+                    onChange={(event) => updateForm('end', event.target.value)}
+                    data-testid={testId('arenas', 'partner', 'field', 'listing-end')}
+                  />
+                </label>
+                <div className="partner-cabinet__form-row">
+                  <TextInput
+                    label="Цена, ₽"
+                    value={form.price}
+                    onUpdate={(value) => updateForm('price', value)}
+                    data-testid={testId('arenas', 'partner', 'field', 'listing-price')}
+                  />
+                  <TextInput
+                    label="Контактный телефон"
+                    value={form.phone}
+                    onUpdate={(value) => updateForm('phone', value)}
+                    data-testid={testId('arenas', 'partner', 'field', 'listing-phone')}
+                  />
+                </div>
+                <TextInput
+                  label="Комментарий"
+                  value={form.note}
+                  onUpdate={(value) => updateForm('note', value)}
+                  data-testid={testId('arenas', 'partner', 'field', 'listing-note')}
+                />
+
+                <div
+                  className="arena-partner-preview hockey-stack hockey-stack--gap-4"
+                  data-testid={testId('arenas', 'partner', 'panel', 'preview')}
+                >
+                  <Text color="secondary">Превью для игрока</Text>
+                  <div className="hockey-row hockey-row--gap-8 hockey-row--align-center hockey-row--wrap">
+                    <Text
+                      className="partner-cabinet__strong"
+                      data-testid={testId('arenas', 'partner', 'text', 'preview-title')}
+                    >
+                      {form.title.trim() || 'Название объявления'}
+                    </Text>
+                    <span className="partner-cabinet__price">{previewPrice}</span>
+                  </div>
+                  <Text
+                    color="secondary"
+                    data-testid={testId('arenas', 'partner', 'text', 'preview-schedule')}
+                  >
+                    {formatListingSchedule(
+                      new Date(form.start).toISOString(),
+                      new Date(form.end).toISOString(),
+                    )}
+                  </Text>
+                </div>
+
+                {formError && (
+                  <Text
+                    color="danger"
+                    data-testid={testId('arenas', 'partner', 'error', 'listing-form')}
+                  >
+                    {formError}
+                  </Text>
+                )}
+                {successMessage && (
+                  <div
+                    className="hockey-stack hockey-stack--gap-4"
+                    data-testid={testId('arenas', 'partner', 'text', 'listing-success')}
+                  >
+                    <Text color="positive">{successMessage}</Text>
+                    {lastPublishedId && (
+                      <Link
+                        to={`/arenas/${arena.id}`}
+                        data-testid={testId('arenas', 'partner', 'link', 'view-published')}
                       >
-                        Открыть страницу арены
-                      </HockeyButton>
-                    </Link>
+                        <HockeyButton
+                          view="flat"
+                          size="s"
+                          data-testid={testId('arenas', 'partner', 'btn', 'view-published')}
+                        >
+                          Открыть страницу арены
+                        </HockeyButton>
+                      </Link>
+                    )}
+                  </div>
+                )}
+
+                <div className="partner-cabinet__actions">
+                  <HockeyButton
+                    view="action"
+                    loading={saveMutation.isPending}
+                    disabled={!form.title.trim()}
+                    onClick={() => submit('published')}
+                    data-testid={testId('arenas', 'partner', 'btn', 'publish-now')}
+                  >
+                    {editingId ? 'Сохранить и опубликовать' : 'Опубликовать'}
+                  </HockeyButton>
+                  <HockeyButton
+                    view="outlined"
+                    loading={saveMutation.isPending}
+                    disabled={!form.title.trim()}
+                    onClick={() => submit('draft')}
+                    data-testid={testId('arenas', 'partner', 'btn', 'create-listing')}
+                  >
+                    Сохранить черновик
+                  </HockeyButton>
+                  {editingId && (
+                    <HockeyButton
+                      view="flat"
+                      onClick={() => resetForm()}
+                      data-testid={testId('arenas', 'partner', 'btn', 'cancel-edit')}
+                    >
+                      Отмена
+                    </HockeyButton>
                   )}
                 </div>
-              )}
-
-              <div className="hockey-row hockey-row--gap-8 hockey-row--wrap">
-                <HockeyButton
-                  view="action"
-                  size="m"
-                  loading={saveMutation.isPending}
-                  disabled={!form.title.trim()}
-                  onClick={() => submit('published')}
-                  data-testid={testId('arenas', 'partner', 'btn', 'publish-now')}
-                >
-                  {editingId ? 'Сохранить и опубликовать' : 'Опубликовать'}
-                </HockeyButton>
-                <HockeyButton
-                  view="outlined"
-                  size="m"
-                  loading={saveMutation.isPending}
-                  disabled={!form.title.trim()}
-                  onClick={() => submit('draft')}
-                  data-testid={testId('arenas', 'partner', 'btn', 'create-listing')}
-                >
-                  {editingId ? 'Сохранить черновик' : 'Сохранить черновик'}
-                </HockeyButton>
-                {editingId && (
-                  <HockeyButton
-                    view="flat"
-                    size="m"
-                    onClick={() => resetForm()}
-                    data-testid={testId('arenas', 'partner', 'btn', 'cancel-edit')}
-                  >
-                    Отмена
-                  </HockeyButton>
-                )}
               </div>
-            </div>
-          </IceCard>
+            </IceCard>
+          </section>
 
-          <IceCard padding="m">
-            <div
-              className="hockey-stack hockey-stack--gap-12"
-              data-testid={testId('arenas', 'partner', 'panel', 'listings')}
-            >
-              <div className="hockey-row hockey-row--between hockey-row--align-center hockey-row--wrap">
-                <Text
-                  variant="subheader-2"
-                  data-testid={testId('arenas', 'partner', 'text', 'listings-title')}
-                >
-                  Список объявлений
-                </Text>
+          <section
+            className="partner-cabinet__block"
+            data-testid={testId('arenas', 'partner', 'panel', 'listings')}
+          >
+            <SectionHeading
+              title="Список объявлений"
+              data-testid={testId('arenas', 'partner', 'text', 'listings-title')}
+            />
+            <IceCard padding="m" className="partner-cabinet__card">
+              <div className="partner-cabinet__form">
                 <div
-                  className="hockey-row hockey-row--gap-8 hockey-row--wrap"
+                  className="hockey-segmented"
+                  role="tablist"
                   data-testid={testId('arenas', 'partner', 'panel', 'listing-filters')}
                 >
                   {(Object.keys(FILTER_LABELS) as ListingFilter[]).map((key) => (
-                    <HockeyButton
+                    <button
                       key={key}
-                      view={listingFilter === key ? 'action' : 'flat'}
-                      size="s"
+                      type="button"
+                      role="tab"
+                      aria-selected={listingFilter === key}
+                      className={`hockey-segmented__item${listingFilter === key ? ' is-active' : ''}`}
                       onClick={() => setListingFilter(key)}
                       data-testid={testId('arenas', 'partner', 'btn', 'filter', key)}
                     >
                       {FILTER_LABELS[key]}
-                    </HockeyButton>
+                    </button>
                   ))}
                 </div>
-              </div>
 
-              <div
-                className="hockey-stack hockey-stack--gap-8"
-                data-testid={testId('arenas', 'partner', 'list', 'listings')}
-              >
-                {listingsLoading && (
-                  <div data-testid={testId('arenas', 'partner', 'loader', 'listings')}>
-                    <ScoreboardLoader label="Загрузка объявлений..." />
-                  </div>
-                )}
-                {!listingsLoading && filteredListings.length === 0 && (
-                  <Text
-                    color="secondary"
-                    data-testid={testId('arenas', 'partner', 'empty', 'listings')}
-                  >
-                    {listingFilter === 'all'
-                      ? 'Объявлений пока нет — создайте первое выше.'
-                      : 'В этом фильтре пока пусто.'}
-                  </Text>
-                )}
-                {filteredListings.map((listing) => (
-                  <div
-                    key={listing.id}
-                    className="arena-partner-listing-row hockey-row hockey-row--between hockey-row--align-center hockey-row--wrap"
-                    data-testid={testId('arenas', 'partner', 'row', 'listing', listing.id)}
-                  >
-                    <div className="hockey-stack hockey-stack--gap-4">
-                      <div className="hockey-row hockey-row--gap-8 hockey-row--align-center hockey-row--wrap">
+                <div
+                  className="partner-cabinet__list"
+                  data-testid={testId('arenas', 'partner', 'list', 'listings')}
+                >
+                  {listingsLoading && (
+                    <div data-testid={testId('arenas', 'partner', 'loader', 'listings')}>
+                      <ScoreboardLoader label="Загрузка объявлений..." />
+                    </div>
+                  )}
+                  {!listingsLoading && filteredListings.length === 0 && (
+                    <Text
+                      className="partner-cabinet__note"
+                      data-testid={testId('arenas', 'partner', 'empty', 'listings')}
+                    >
+                      {listingFilter === 'all'
+                        ? 'Объявлений пока нет — создайте первое выше.'
+                        : 'В этом фильтре пока пусто.'}
+                    </Text>
+                  )}
+                  {filteredListings.map((listing) => (
+                    <div
+                      key={listing.id}
+                      className="partner-cabinet__listing"
+                      data-testid={testId('arenas', 'partner', 'row', 'listing', listing.id)}
+                    >
+                      <div className="partner-cabinet__listing-head">
                         <Text
+                          className="partner-cabinet__strong"
                           data-testid={testId(
                             'arenas',
                             'partner',
@@ -794,7 +796,7 @@ export function ArenaPartnerDashboard() {
                           {listing.title}
                         </Text>
                         <span
-                          className={`arena-partner-status arena-partner-status--${listing.status}`}
+                          className={`hockey-badge ${STATUS_BADGES[listing.status]}`}
                           data-testid={testId(
                             'arenas',
                             'partner',
@@ -807,7 +809,7 @@ export function ArenaPartnerDashboard() {
                         </span>
                       </div>
                       <Text
-                        color="secondary"
+                        className="partner-cabinet__listing-when"
                         data-testid={testId(
                           'arenas',
                           'partner',
@@ -817,13 +819,15 @@ export function ArenaPartnerDashboard() {
                         )}
                       >
                         {formatListingSchedule(listing.startsAt, listing.endsAt)}
-                        {listing.priceRub != null
-                          ? ` · ${listing.priceRub.toLocaleString('ru-RU')} ₽`
-                          : ''}
+                        {listing.priceRub != null && (
+                          <span className="partner-cabinet__price">
+                            {` · ${listing.priceRub.toLocaleString('ru-RU')} ₽`}
+                          </span>
+                        )}
                       </Text>
                       {listing.contactPhone && (
                         <Text
-                          color="secondary"
+                          className="partner-cabinet__note"
                           data-testid={testId(
                             'arenas',
                             'partner',
@@ -836,54 +840,54 @@ export function ArenaPartnerDashboard() {
                           {listing.contactNote ? ` · ${listing.contactNote}` : ''}
                         </Text>
                       )}
-                    </div>
-                    <div className="hockey-row hockey-row--gap-8 hockey-row--wrap">
-                      <HockeyButton
-                        view="flat"
-                        size="s"
-                        onClick={() => startEdit(listing)}
-                        data-testid={testId('arenas', 'partner', 'btn', 'edit', listing.id)}
-                      >
-                        Изменить
-                      </HockeyButton>
-                      {listing.status !== 'published' && (
-                        <HockeyButton
-                          view="action"
-                          size="s"
-                          loading={statusMutation.isPending}
-                          onClick={() =>
-                            statusMutation.mutate({
-                              listingId: listing.id,
-                              status: 'published',
-                            })
-                          }
-                          data-testid={testId('arenas', 'partner', 'btn', 'publish', listing.id)}
-                        >
-                          Опубликовать
-                        </HockeyButton>
-                      )}
-                      {listing.status === 'published' && (
+                      <div className="partner-cabinet__listing-actions">
                         <HockeyButton
                           view="outlined"
-                          size="s"
-                          loading={statusMutation.isPending}
-                          onClick={() =>
-                            statusMutation.mutate({
-                              listingId: listing.id,
-                              status: 'archived',
-                            })
-                          }
-                          data-testid={testId('arenas', 'partner', 'btn', 'archive', listing.id)}
+                          size="m"
+                          onClick={() => startEdit(listing)}
+                          data-testid={testId('arenas', 'partner', 'btn', 'edit', listing.id)}
                         >
-                          Снять
+                          Изменить
                         </HockeyButton>
-                      )}
+                        {listing.status !== 'published' && (
+                          <HockeyButton
+                            view="action"
+                            size="m"
+                            loading={statusMutation.isPending}
+                            onClick={() =>
+                              statusMutation.mutate({
+                                listingId: listing.id,
+                                status: 'published',
+                              })
+                            }
+                            data-testid={testId('arenas', 'partner', 'btn', 'publish', listing.id)}
+                          >
+                            Опубликовать
+                          </HockeyButton>
+                        )}
+                        {listing.status === 'published' && (
+                          <HockeyButton
+                            view="outlined"
+                            size="m"
+                            loading={statusMutation.isPending}
+                            onClick={() =>
+                              statusMutation.mutate({
+                                listingId: listing.id,
+                                status: 'archived',
+                              })
+                            }
+                            data-testid={testId('arenas', 'partner', 'btn', 'archive', listing.id)}
+                          >
+                            Снять
+                          </HockeyButton>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          </IceCard>
+            </IceCard>
+          </section>
         </>
       )}
     </div>

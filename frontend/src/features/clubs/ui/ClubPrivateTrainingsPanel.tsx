@@ -9,6 +9,7 @@ import {Link} from 'react-router'
 import {fetchClub, fetchClubPrivateTrainings} from '@/entities/club'
 import {testId} from '@/shared/testing/testId'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 import {LineupCoachApprovalPanel} from './LineupCoachApprovalPanel'
 import {TeamTrainingCreateWizard} from './TeamTrainingCreateWizard'
@@ -56,73 +57,75 @@ export function ClubPrivateTrainingsPanel({clubId}: ClubPrivateTrainingsPanelPro
 
   return (
     <div
-      className="club-private-trainings hockey-stack hockey-stack--gap-20"
+      className="club-hq__private"
       data-testid={testId('clubs', 'private-trainings', 'panel', clubId)}
     >
       {teamIds.length > 0 ? (
         <TeamTrainingCreateWizard clubId={clubId} teamIds={teamIds} />
       ) : (
-        <Text
-          color="secondary"
+        <p
+          className="club-hq__empty"
           data-testid={testId('clubs', 'private-trainings', 'empty', 'teams', clubId)}
         >
           Привяжите команду к клубу, чтобы создать тренировку с раскладкой.
-        </Text>
+        </p>
       )}
 
-      <div className="club-private-trainings__section">
-        <LineupCoachApprovalPanel clubId={clubId} />
-      </div>
+      <LineupCoachApprovalPanel clubId={clubId} />
 
-      <div
-        className="club-private-trainings__section hockey-stack hockey-stack--gap-10"
+      <section
+        className="club-hq__section"
         data-testid={testId('clubs', 'private-trainings', 'list', clubId)}
       >
-        <Text
-          variant="subheader-2"
+        <SectionHeading
+          title="Опубликованные приватные тренировки"
           data-testid={testId('clubs', 'private-trainings', 'text', 'list-title', clubId)}
-        >
-          Опубликованные приватные тренировки
-        </Text>
-        {isLoading && (
-          <ScoreboardLoader
-            label="Загрузка тренировок"
-            data-testid={testId('clubs', 'private-trainings', 'loader', clubId)}
-          />
-        )}
-        {!isLoading && trainings.length === 0 && (
-          <Text
-            color="secondary"
-            data-testid={testId('clubs', 'private-trainings', 'empty', clubId)}
-          >
-            Приватных тренировок пока нет
-          </Text>
-        )}
-        {trainings.map((event) => (
-          <div
-            key={event.id}
-            className="hockey-row hockey-row--between"
-            data-testid={testId('clubs', 'private-trainings', 'row', event.id)}
-          >
-            <div>
+        />
+        <div className="club-hq__card club-hq__published">
+          {isLoading && (
+            <ScoreboardLoader
+              label="Загрузка тренировок"
+              data-testid={testId('clubs', 'private-trainings', 'loader', clubId)}
+            />
+          )}
+          {!isLoading && trainings.length === 0 && (
+            <p
+              className="club-hq__empty"
+              data-testid={testId('clubs', 'private-trainings', 'empty', clubId)}
+            >
+              Приватных тренировок пока нет
+            </p>
+          )}
+          {trainings.map((event) => (
+            <div
+              key={event.id}
+              className="hockey-list-row club-hq__published-row"
+              data-testid={testId('clubs', 'private-trainings', 'row', event.id)}
+            >
               <Link
                 to={`/events/trainings/${event.id}`}
+                className="club-hq__published-title"
                 data-testid={testId('clubs', 'private-trainings', 'link', event.id)}
               >
-                <Text data-testid={testId('clubs', 'private-trainings', 'text', 'title', event.id)}>
+                <span data-testid={testId('clubs', 'private-trainings', 'text', 'title', event.id)}>
                   {event.title}
-                </Text>
+                </span>
               </Link>
-              <Text
-                color="secondary"
+              <span
+                className="club-hq__published-meta"
                 data-testid={testId('clubs', 'private-trainings', 'text', 'meta', event.id)}
               >
-                {new Date(event.startsAt).toLocaleString('ru-RU')}
-              </Text>
+                {new Date(event.startsAt).toLocaleString('ru-RU', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

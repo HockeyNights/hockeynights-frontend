@@ -16,3 +16,14 @@
 @forward 'players';
 // Последним: высоты и радиусы контролов панели фильтров перекрывают локальные стили каталогов.
 @forward 'catalog-filters';
+// Визуальная система Figma поверх всех разделов.
+@forward 'figma-skin';
+// Экранные стили по разделам макета — после общей системы.
+@forward 'screen-profile';
+@forward 'screen-events';
+@forward 'screen-calendar-feed';
+@forward 'screen-teams';
+@forward 'screen-catalogs-arenas';
+@forward 'screen-catalogs-leagues-market';
+@forward 'screen-partner-club';
+@forward 'screen-partner-other';

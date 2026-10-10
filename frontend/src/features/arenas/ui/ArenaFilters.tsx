@@ -3,8 +3,8 @@
  * HOCFRONT-32 — каталожный поиск/chips как на /events
  */
 
-import {Select, TextInput} from '@gravity-ui/uikit'
-import {useMemo} from 'react'
+import {Select} from '@gravity-ui/uikit'
+import {type ReactNode, useMemo} from 'react'
 
 import type {ArenaFilters as ArenaFiltersType} from '@/entities/arena'
 import {
@@ -27,15 +27,16 @@ export interface ArenaFiltersProps {
   onChange: (filters: ArenaFiltersType) => void
   /** @spec SPEC-FR-6.1.2 - Сбросить фильтры */
   onReset?: () => void
-  /** Режим списка / поиска на карте */
-  view?: ArenaCatalogView
-  onViewChange?: (view: ArenaCatalogView) => void
+  /** Шапка страницы внутри карточки фильтров */
+  header?: ReactNode
+  /** Значения для выпадающих «Район» / «Метро» — из полного каталога */
+  districtOptions?: readonly string[]
+  metroOptions?: readonly string[]
   resultsCount?: number
   resultsPending?: boolean
 }
 
 const AMENITY_OPTIONS = [
-  {value: '', content: 'Все удобства'},
   {value: 'parking', content: 'Парковка'},
   {value: 'shower', content: 'Душ'},
   {value: 'skate_sharpening', content: 'Заточка'},
@@ -43,20 +44,21 @@ const AMENITY_OPTIONS = [
   {value: 'cafe', content: 'Кафе'},
 ]
 
-const VIEW_TABS: Array<{id: ArenaCatalogView; label: string}> = [
-  {id: 'list', label: 'Список'},
-  {id: 'map', label: 'Карта'},
-]
+function toOptions(values: readonly string[], current?: string) {
+  const all = current && !values.includes(current) ? [...values, current] : values
+  return all.map((value) => ({value, content: value}))
+}
 
 /**
- * @spec SPEC-FR-6.1.2 - Поиск, chips и расширенные фильтры арен
+ * @spec SPEC-FR-6.1.2 - Поиск, chips и выпадающие фильтры арен
  */
 export function ArenaFilters({
   filters,
   onChange,
   onReset,
-  view = 'list',
-  onViewChange,
+  header,
+  districtOptions = [],
+  metroOptions = [],
   resultsCount,
   resultsPending,
 }: ArenaFiltersProps) {
@@ -76,6 +78,9 @@ export function ArenaFilters({
     <CatalogFilterBar
       testIdPrefix="arenas"
       testIdSection="filters"
+      className="arenas-filters"
+      header={header}
+      advancedDefaultOpen
       searchValue={filters.query ?? ''}
       onSearchChange={(value) => patch({query: value || undefined})}
       searchPlaceholder="Название, метро, район, город…"
@@ -88,50 +93,53 @@ export function ArenaFilters({
       onReset={onReset}
       resultsCount={resultsCount}
       resultsPending={resultsPending}
-      toolbar={
-        onViewChange ? (
-          <div
-            className="page-hub__tabs"
-            role="group"
-            aria-label="Режим просмотра"
-            data-testid={testId('arenas', 'filters', 'panel', 'view')}
-          >
-            {VIEW_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`catalog-filters__chip${view === tab.id ? ' is-active' : ''}`}
-                aria-pressed={view === tab.id}
-                onClick={() => onViewChange(tab.id)}
-                data-testid={testId('arenas', 'filters', 'btn', 'view', tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        ) : undefined
-      }
       advanced={
         <>
-          <TextInput
-            label="Район"
-            value={filters.district ?? ''}
-            onUpdate={(value) => patch({district: value.trim() ? value : undefined})}
+          <div
+            className="arenas-filters__select"
             data-testid={testId('arenas', 'filters', 'field', 'district')}
-          />
-          <TextInput
-            label="Метро"
-            value={filters.metro ?? ''}
-            onUpdate={(value) => patch({metro: value.trim() ? value : undefined})}
+          >
+            <Select
+              size="l"
+              width="max"
+              placeholder="Район"
+              aria-label="Район"
+              hasClear
+              value={filters.district ? [filters.district] : []}
+              onUpdate={(value) => patch({district: value[0] || undefined})}
+              options={toOptions(districtOptions, filters.district)}
+            />
+          </div>
+          <div
+            className="arenas-filters__select"
             data-testid={testId('arenas', 'filters', 'field', 'metro')}
-          />
-          <Select
-            label="Удобство"
-            value={[filters.amenity ?? '']}
-            onUpdate={(value) => patch({amenity: value[0] || undefined})}
-            options={AMENITY_OPTIONS}
+          >
+            <Select
+              size="l"
+              width="max"
+              placeholder="Метро"
+              aria-label="Метро"
+              hasClear
+              value={filters.metro ? [filters.metro] : []}
+              onUpdate={(value) => patch({metro: value[0] || undefined})}
+              options={toOptions(metroOptions, filters.metro)}
+            />
+          </div>
+          <div
+            className="arenas-filters__select"
             data-testid={testId('arenas', 'filters', 'select', 'amenity')}
-          />
+          >
+            <Select
+              size="l"
+              width="max"
+              placeholder="Удобства"
+              aria-label="Удобства"
+              hasClear
+              value={filters.amenity ? [filters.amenity] : []}
+              onUpdate={(value) => patch({amenity: value[0] || undefined})}
+              options={AMENITY_OPTIONS}
+            />
+          </div>
         </>
       }
     />

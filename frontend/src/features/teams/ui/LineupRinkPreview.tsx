@@ -9,6 +9,7 @@ import type {PlayerPosition} from '@/entities/common'
 import type {TrainingDraftAssignment} from '@/entities/team'
 import {testId} from '@/shared/testing/testId'
 
+import {formatPlayersCount} from '../lib/formatPlayersCount'
 import {FifaPlayerCardModal} from './FifaPlayerCardModal'
 
 type TeamSide = 'red' | 'white'
@@ -74,6 +75,8 @@ export function LineupRinkPreview({
     RINK_SLOTS.map((slot) => playerForSlot(slot)?.userId).filter(Boolean) as string[],
   )
   const unplaced = assignments.filter((item) => item.side !== 'bench' && !onIceIds.has(item.userId))
+  const redCount = assignments.filter((item) => item.side === 'red').length
+  const whiteCount = assignments.filter((item) => item.side === 'white').length
 
   function onDragStart(userId: string, event: DragEvent<HTMLElement>) {
     if (!canEdit) return
@@ -118,6 +121,7 @@ export function LineupRinkPreview({
       >
         <div className="lineup-board__rink" data-testid={testId('teams', testIdPrefix, 'map')}>
           <div className="lineup-board__rink-center-line" />
+          <div className="lineup-board__rink-circle" aria-hidden />
           <div className="lineup-board__rink-zone lineup-board__rink-zone--red" />
           <div className="lineup-board__rink-zone lineup-board__rink-zone--white" />
           {RINK_SLOTS.map((slot) => {
@@ -167,18 +171,22 @@ export function LineupRinkPreview({
         <div className="lineup-board__legend">
           <div className="lineup-board__legend-item">
             <span className="lineup-board__legend-dot lineup-board__legend-dot--red" />
-            <Text color="secondary">Красные</Text>
+            <Text color="secondary">Красные ({formatPlayersCount(redCount)})</Text>
           </div>
           <div className="lineup-board__legend-item">
             <span className="lineup-board__legend-dot lineup-board__legend-dot--white" />
-            <Text color="secondary">Белые</Text>
+            <Text color="secondary">Белые ({formatPlayersCount(whiteCount)})</Text>
+          </div>
+          <div className="lineup-board__legend-item">
+            <span className="lineup-board__legend-dot lineup-board__legend-dot--free" />
+            <Text color="secondary">Свободный слот позиции</Text>
           </div>
         </div>
       </div>
 
       <div className="lineup-board__utility">
         <div className="lineup-board__utility-section">
-          <Text variant="subheader-2">Запасные ({bench.length})</Text>
+          <p className="lineup-board__utility-title">Запасные ({bench.length})</p>
           <ul
             className={`lineup-board__list ${activeDropZone === 'bench' ? 'is-drop-active' : ''}`}
             onDragOver={(event) => event.preventDefault()}
@@ -189,7 +197,7 @@ export function LineupRinkPreview({
           >
             {bench.length === 0 && (
               <li className="lineup-board__list-empty">
-                <Text color="secondary">Перетащите сюда запасных</Text>
+                <Text color="secondary">Перетащите сюда игроков со льда для отдыха</Text>
               </li>
             )}
             {bench.map((player) => (
@@ -202,8 +210,13 @@ export function LineupRinkPreview({
                   onClick={() => openPlayerCard(player.userId)}
                   data-testid={testId('teams', testIdPrefix, 'row', 'bench', player.userId)}
                 >
-                  <Text>{player.displayName}</Text>
-                  <Text color="secondary">{player.position}</Text>
+                  <span className="lineup-board__list-avatar" aria-hidden>
+                    {player.displayName.charAt(0).toUpperCase()}
+                  </span>
+                  <Text className="lineup-board__list-name">{player.displayName}</Text>
+                  <span className="hockey-badge hockey-badge--muted lineup-board__list-tag">
+                    {player.position}
+                  </span>
                 </button>
               </li>
             ))}
@@ -211,7 +224,7 @@ export function LineupRinkPreview({
         </div>
         {unplaced.length > 0 && (
           <div className="lineup-board__utility-section">
-            <Text variant="subheader-2">На льду (вне слотов) ({unplaced.length})</Text>
+            <p className="lineup-board__utility-title">На льду (вне слотов) ({unplaced.length})</p>
             <ul className="lineup-board__list">
               {unplaced.map((player) => (
                 <li key={player.userId}>
@@ -223,10 +236,13 @@ export function LineupRinkPreview({
                     onClick={() => openPlayerCard(player.userId)}
                     data-testid={testId('teams', testIdPrefix, 'row', 'unplaced', player.userId)}
                   >
-                    <Text>{player.displayName}</Text>
-                    <Text color="secondary">
+                    <span className="lineup-board__list-avatar" aria-hidden>
+                      {player.displayName.charAt(0).toUpperCase()}
+                    </span>
+                    <Text className="lineup-board__list-name">{player.displayName}</Text>
+                    <span className="hockey-badge hockey-badge--muted lineup-board__list-tag">
                       {player.side} · {player.position}
-                    </Text>
+                    </span>
                   </button>
                 </li>
               ))}

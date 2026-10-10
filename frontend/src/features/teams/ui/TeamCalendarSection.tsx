@@ -83,7 +83,11 @@ export function TeamCalendarSection({
                     data-testid={testId(testIdPrefix, 'calendar', 'text', 'meta', event.id)}
                   >
                     {dateLabel} · {typeLabel}
-                    {needsGoalie ? ' · нужен вратарь' : ''}
+                    {needsGoalie && (
+                      <span className="team-calendar-section__need">
+                        <span aria-hidden> · </span>нужен вратарь
+                      </span>
+                    )}
                   </Text>
                 </div>
               </li>

@@ -18,6 +18,7 @@ import {PageHub} from '@/shared/ui/PageHub'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 import {ScrollReveal} from '@/shared/ui/ScrollStory'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 import {PlayerCard} from '@/widgets/PlayerCard'
 
 const EMPTY_FILTERS: PlayersFilterParams = {}
@@ -66,8 +67,8 @@ export function PlayersPage() {
         aria-hidden
         data-testid={testId('players', 'players-page', 'progress')}
       />
-      <PageHeader title="Игроки" testIdPrefix="players" testIdSection="players-page" />
       <PlayerFilters
+        header={<PageHeader title="Игроки" testIdPrefix="players" testIdSection="players-page" />}
         filters={filters}
         onChange={setFilters}
         onReset={handleResetFilters}
@@ -83,7 +84,7 @@ export function PlayersPage() {
             data-testid={testId('players', 'players-page', 'loader')}
           />
           <div
-            className="hockey-grid hockey-grid--cards-260"
+            className="players-page__grid"
             data-testid={testId('players', 'players-page', 'list', 'skeleton')}
           >
             <IceSkeleton count={3} height={180} testIdPrefix="players" />
@@ -101,8 +102,16 @@ export function PlayersPage() {
       )}
 
       {!isPending && !isError && players.length > 0 && (
+        <SectionHeading
+          title="Найдено игроков"
+          extra={<span className="hockey-section-label">{players.length}</span>}
+          data-testid={testId('players', 'players-page', 'text', 'found')}
+        />
+      )}
+
+      {!isPending && !isError && players.length > 0 && (
         <div
-          className={`bento-grid${showProgress ? ' players-page__list--fetching' : ''}`}
+          className={`players-page__grid${showProgress ? ' players-page__list--fetching' : ''}`}
           data-testid={testId('players', 'players-page', 'list', 'cards')}
         >
           {players.map((player, index) => (

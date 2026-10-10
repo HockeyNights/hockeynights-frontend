@@ -27,7 +27,11 @@ export interface PlayerPublicInfoSectionProps {
   visibleFields?: Partial<Record<keyof ProfileFieldPrivacy, boolean>>
   /** Контакты, разрешённые зрителю */
   visibleContacts?: ProfileContacts
+  /** Ссылка «Подробнее» в шапке карточки */
+  moreTo?: string
 }
+
+const ACHIEVEMENT_TONES = ['gold', 'blue', 'green'] as const
 
 function isVisible(
   visibleFields: Partial<Record<keyof ProfileFieldPrivacy, boolean>> | undefined,
@@ -37,12 +41,12 @@ function isVisible(
 }
 
 function ContactsList({contacts, playerId}: {contacts: ProfileContacts; playerId: string}) {
-  const rows: Array<{label: string; value: string; key: string}> = []
+  const rows: Array<{label: string; value: string; key: string; showLabel?: boolean}> = []
   if (contacts.phone) rows.push({label: 'Телефон', value: contacts.phone, key: 'phone'})
   if (contacts.email) rows.push({label: 'Email', value: contacts.email, key: 'email'})
   if (contacts.telegram) rows.push({label: 'Telegram', value: contacts.telegram, key: 'telegram'})
   if (contacts.maxMessenger) {
-    rows.push({label: 'MAX', value: contacts.maxMessenger, key: 'max'})
+    rows.push({label: 'MAX', value: contacts.maxMessenger, key: 'max', showLabel: true})
   }
 
   return (
@@ -51,8 +55,14 @@ function ContactsList({contacts, playerId}: {contacts: ProfileContacts; playerId
       data-testid={testId('players', 'public-info', 'list', 'contacts', playerId)}
     >
       {rows.map((row) => (
-        <li key={row.key} data-testid={testId('players', 'public-info', 'item', row.key, playerId)}>
-          <span className="hockey-public-info__contact-label">{row.label}: </span>
+        <li
+          key={row.key}
+          className={`hockey-public-info__contact hockey-public-info__contact--${row.key}`}
+          data-testid={testId('players', 'public-info', 'item', row.key, playerId)}
+        >
+          <span className={row.showLabel ? 'hockey-public-info__contact-label' : 'hockey-sr-only'}>
+            {row.label}:{' '}
+          </span>
           <span data-testid={testId('players', 'public-info', 'text', row.key, playerId)}>
             {row.value}
           </span>
@@ -116,6 +126,7 @@ export function PlayerPublicInfoSection({
   hideHistory = false,
   visibleFields,
   visibleContacts,
+  moreTo,
 }: PlayerPublicInfoSectionProps) {
   const history = participationHistory ?? []
   const showHistory = !hideHistory && participationHistoryVisible && history.length > 0
@@ -147,16 +158,38 @@ export function PlayerPublicInfoSection({
 
   const displayTeams = teams.length > 0 ? teams : fallbackTeams
   const teamsLabel = displayTeams.length > 1 ? 'Команды' : 'Команда'
+  const showPosition = isVisible(visibleFields, 'position')
+  const showSkill = isVisible(visibleFields, 'skillLevel')
+  const showCity = isVisible(visibleFields, 'city') && player.city.trim() !== ''
+  const showBio = isVisible(visibleFields, 'bio')
+  const roleLabel = [showPosition && 'Амплуа', showSkill && 'Уровень'].filter(Boolean).join(' / ')
+  const cityLabel = [showCity && 'Город', showBio && 'О себе'].filter(Boolean).join(' / ')
 
   return (
-    <IceCard padding="m" data-testid={testId('players', 'public-info', 'card', player.userId)}>
+    <IceCard
+      padding="m"
+      className="hockey-public-info"
+      data-testid={testId('players', 'public-info', 'card', player.userId)}
+    >
       <div className="hockey-stack hockey-stack--gap-16">
-        <Text
-          variant="subheader-2"
-          data-testid={testId('players', 'public-info', 'text', 'title', player.userId)}
-        >
-          Публичная информация
-        </Text>
+        <div className="hockey-section-head">
+          <Text
+            variant="subheader-2"
+            className="hockey-public-info__title"
+            data-testid={testId('players', 'public-info', 'text', 'title', player.userId)}
+          >
+            Публичная информация
+          </Text>
+          {moreTo ? (
+            <Link
+              to={moreTo}
+              className="hockey-section-link hockey-public-info__more"
+              data-testid={testId('players', 'public-info', 'link', 'more', player.userId)}
+            >
+              Подробнее
+            </Link>
+          ) : null}
+        </div>
 
         <dl
           className="hockey-public-info__facts"
@@ -256,44 +289,49 @@ export function PlayerPublicInfoSection({
             </div>
           )}
 
-          {isVisible(visibleFields, 'position') && (
+          {roleLabel && (
             <div>
-              <dt>Амплуа</dt>
-              <dd data-testid={testId('players', 'public-info', 'text', 'role', player.userId)}>
-                {POSITION_LABELS[player.position] ?? player.position}
-              </dd>
-            </div>
-          )}
-
-          {isVisible(visibleFields, 'skillLevel') && (
-            <div>
-              <dt>Уровень</dt>
-              <dd data-testid={testId('players', 'public-info', 'text', 'skill', player.userId)}>
-                {getPlayerLevelLabel(player)}
-              </dd>
-            </div>
-          )}
-
-          {isVisible(visibleFields, 'city') && (
-            <div>
-              <dt>Город</dt>
-              <dd data-testid={testId('players', 'public-info', 'text', 'city', player.userId)}>
-                {player.city}
-              </dd>
-            </div>
-          )}
-
-          {isVisible(visibleFields, 'bio') && (
-            <div>
-              <dt>О себе</dt>
+              <dt>{roleLabel}</dt>
               <dd>
-                {player.bio ? (
-                  <Text
+                {showPosition && (
+                  <span
+                    data-testid={testId('players', 'public-info', 'text', 'role', player.userId)}
+                  >
+                    {POSITION_LABELS[player.position] ?? player.position}
+                  </span>
+                )}
+                {showPosition && showSkill ? ' · ' : null}
+                {showSkill && (
+                  <span
+                    data-testid={testId('players', 'public-info', 'text', 'skill', player.userId)}
+                  >
+                    {getPlayerLevelLabel(player)}
+                  </span>
+                )}
+              </dd>
+            </div>
+          )}
+
+          {cityLabel && (
+            <div>
+              <dt>{cityLabel}</dt>
+              <dd>
+                {showCity && (
+                  <span
+                    data-testid={testId('players', 'public-info', 'text', 'city', player.userId)}
+                  >
+                    {player.city}
+                  </span>
+                )}
+                {showCity && showBio && player.bio ? ' · ' : null}
+                {showBio && player.bio ? (
+                  <span
                     data-testid={testId('players', 'public-info', 'text', 'bio', player.userId)}
                   >
                     {player.bio}
-                  </Text>
-                ) : (
+                  </span>
+                ) : null}
+                {showBio && !player.bio && !showCity ? (
                   <Text
                     color="secondary"
                     data-testid={testId(
@@ -306,13 +344,13 @@ export function PlayerPublicInfoSection({
                   >
                     Описание не заполнено.
                   </Text>
-                )}
+                ) : null}
               </dd>
             </div>
           )}
 
-          <div>
-            <dt>Контакты</dt>
+          <div className="hockey-public-info__contacts-row">
+            <dt>Контакты:</dt>
             <dd>
               {hasContacts && contacts ? (
                 <ContactsList contacts={contacts} playerId={player.userId} />
@@ -345,51 +383,46 @@ export function PlayerPublicInfoSection({
               )}
             </dd>
           </div>
+        </dl>
 
-          {isVisible(visibleFields, 'achievements') &&
-            player.achievements &&
-            player.achievements.length > 0 && (
-              <div
+        {isVisible(visibleFields, 'achievements') &&
+          player.achievements &&
+          player.achievements.length > 0 && (
+            <div
+              className="hockey-public-info__achievements-block"
+              data-testid={testId('players', 'public-info', 'panel', 'achievements', player.userId)}
+            >
+              <p className="hockey-public-info__achievements-title">Микро-ачивки</p>
+              <ul
+                className="hockey-public-info__achievements"
                 data-testid={testId(
                   'players',
                   'public-info',
-                  'panel',
+                  'list',
                   'achievements',
                   player.userId,
                 )}
               >
-                <dt>Микро-ачивки</dt>
-                <dd>
-                  <ul
-                    className="hockey-public-info__achievements"
+                {player.achievements.map((ach, index) => (
+                  <li
+                    key={ach}
+                    className={`hockey-public-info__achievement hockey-public-info__achievement--${
+                      ACHIEVEMENT_TONES[index % ACHIEVEMENT_TONES.length]
+                    }`}
                     data-testid={testId(
                       'players',
                       'public-info',
-                      'list',
-                      'achievements',
-                      player.userId,
+                      'item',
+                      'achievement',
+                      `${player.userId}-${ach}`,
                     )}
                   >
-                    {player.achievements.map((ach) => (
-                      <li
-                        key={ach}
-                        className="hockey-public-info__achievement"
-                        data-testid={testId(
-                          'players',
-                          'public-info',
-                          'item',
-                          'achievement',
-                          `${player.userId}-${ach}`,
-                        )}
-                      >
-                        {ach}
-                      </li>
-                    ))}
-                  </ul>
-                </dd>
-              </div>
-            )}
-        </dl>
+                    {ach}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
         {showHistory && (
           <div

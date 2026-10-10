@@ -1,0 +1,433 @@
+@use '../mixins' as *;
+
+/* Экраны Figma: calendar-feed */
+
+/* ---------- /calendar: отступы карточек поверх .ice-card--padding-m ---------- */
+
+.ice-card.hockey-calendar-shell__controls {
+  padding: 26px 18px 22px;
+}
+
+.ice-card.hockey-calendar-shell__widget {
+  padding: 17px;
+}
+
+/* ---------- /notifications ---------- */
+
+.hockey-notifications-unread {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: 999px;
+  background: var(--hockey-ui-card);
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--hockey-ui-subtle);
+  white-space: nowrap;
+
+  strong {
+    font-weight: 700;
+    color: var(--hockey-ui-text);
+  }
+}
+
+.hockey-notifications-unread__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hockey-ui-accent);
+}
+
+.hockey-notifications {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hockey-notification {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 17px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: 22px;
+  background: var(--hockey-ui-card);
+  box-shadow: var(--hockey-ui-card-shadow);
+}
+
+.hockey-notification--unread {
+  border-color: var(--hockey-ui-accent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--hockey-ui-accent) 18%, transparent),
+    var(--hockey-ui-card-shadow);
+
+  .hockey-notification__title {
+    color: var(--hockey-ui-green);
+  }
+}
+
+.hockey-notification__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hockey-notification__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hockey-notification__type {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: var(--hockey-ui-icon-tile);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--hockey-ui-subtle);
+}
+
+.hockey-notification__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 15px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--hockey-ui-subtle);
+}
+
+.hockey-notification__new {
+  flex-shrink: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--hockey-ui-accent);
+}
+
+.hockey-notification__body {
+  margin: 0;
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--hockey-ui-text);
+}
+
+.hockey-notification__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  min-height: 16px;
+}
+
+.hockey-notification--unread .hockey-notification__foot {
+  margin-top: 8px;
+}
+
+.hockey-notification__time {
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--hockey-ui-subtle);
+}
+
+/* ---------- /feedback: форма оценки + фильтры справа ---------- */
+
+.hockey-feedback-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 596fr) minmax(280px, 371fr);
+  gap: 32px;
+  align-items: start;
+
+  @include breakpoint($max: 1100px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}
+
+.hockey-feedback-layout__main {
+  min-width: 0;
+}
+
+.hockey-feedback-layout__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.ice-card.hockey-feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 21px;
+  border-radius: 42px;
+}
+
+.hockey-feedback-form__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--hockey-ui-row-border);
+}
+
+.hockey-feedback-form__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hockey-ui-green);
+}
+
+.app-shell__main-col .hockey-feedback-form__title,
+.hockey-feedback-form__title {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 16px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--hockey-ui-muted);
+}
+
+.hockey-feedback-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hockey-feedback-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hockey-feedback-field__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hockey-feedback-field__label {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+  color: var(--hockey-ui-muted);
+}
+
+.hockey-feedback-field__hint {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 15px;
+  letter-spacing: 0.55px;
+  color: var(--hockey-ui-muted);
+}
+
+.app-shell__main-col .hockey-feedback-entity-select .g-select-control__button {
+  height: auto;
+  min-height: 62px;
+  padding-inline: 10px;
+  border-radius: 22px;
+  background: var(--hockey-ui-card);
+}
+
+.hockey-feedback-entity {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.hockey-feedback-entity__avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--hockey-ui-icon-tile);
+  color: var(--hockey-ui-text);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.hockey-feedback-entity__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hockey-feedback-entity__title {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: 0.35px;
+  color: var(--hockey-ui-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hockey-feedback-entity__meta {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 13px;
+  color: var(--hockey-ui-subtle);
+}
+
+.hockey-feedback-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+
+  @include breakpoint($max: 480px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.hockey-feedback-choice {
+  --hockey-choice-color: var(--hockey-ui-muted);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 58px;
+  padding: 6px 12px;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: 22px;
+  background: var(--hockey-ui-card);
+  color: var(--hockey-ui-muted);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color var(--hockey-motion-fast) var(--hockey-motion-ease),
+    background var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--hockey-choice-color) 45%, transparent);
+  }
+
+  &.is-active {
+    border-color: color-mix(in srgb, var(--hockey-choice-color) 20%, transparent);
+    background: color-mix(in srgb, var(--hockey-choice-color) 12%, transparent);
+    color: var(--hockey-choice-color);
+
+    .hockey-feedback-choice__label {
+      font-weight: 700;
+    }
+  }
+}
+
+.hockey-feedback-choice--green {
+  --hockey-choice-color: var(--hockey-ui-green);
+}
+
+.hockey-feedback-choice--gold {
+  --hockey-choice-color: var(--hockey-ui-gold);
+}
+
+.hockey-feedback-choice--red {
+  --hockey-choice-color: var(--hockey-ui-red);
+}
+
+.hockey-feedback-choice--blue {
+  --hockey-choice-color: var(--hockey-ui-blue);
+}
+
+.hockey-feedback-choice__label {
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.hockey-feedback-choice__caption {
+  font-size: 10px;
+  line-height: 12px;
+  opacity: 0.8;
+}
+
+.hockey-feedback-form .g-text-area {
+  --g-text-area-border-radius: var(--hockey-ui-control-radius);
+}
+
+.app-shell__main-col .hockey-feedback-form .g-text-area_view_normal .g-text-area__content {
+  background: var(--hockey-ui-card);
+}
+
+.hockey-feedback-form__submit {
+  --g-button-border-radius: var(--hockey-ui-control-radius);
+}
+
+.hockey-feedback-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.hockey-feedback-filters__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 1.92px;
+  text-transform: uppercase;
+  color: var(--hockey-ui-muted);
+}
+
+.hockey-feedback-filters__toggle.g-checkbox {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 37px;
+  padding: 0 12px;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: var(--hockey-ui-control-radius);
+  background: var(--hockey-ui-card);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--hockey-ui-text);
+  cursor: pointer;
+}
+
+.ice-card.hockey-feedback-karma {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 17px 15px;
+
+  .g-text {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--hockey-ui-muted);
+  }
+}
+
+.hockey-feedback-karma__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--hockey-ui-blue) 30%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--hockey-ui-blue) 15%, transparent);
+  color: var(--hockey-ui-blue);
+}

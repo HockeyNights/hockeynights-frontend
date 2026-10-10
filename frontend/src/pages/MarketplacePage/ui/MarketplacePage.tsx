@@ -17,9 +17,27 @@ import {PageHeader} from '@/shared/ui/PageHeader'
 import {PageHub} from '@/shared/ui/PageHub'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 const DEFAULT_FILTERS: MarketplaceFilters = {sort: 'recommended', inStockOnly: false}
 const SHOP_CHIP_ID = 'shop-filter'
+const ALL_CATEGORIES_CHIP_ID = 'all-categories'
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function productsCountLabel(count: number): string {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  const word =
+    mod10 === 1 && mod100 !== 11
+      ? 'товар'
+      : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+        ? 'товара'
+        : 'товаров'
+  return `${count} ${word}`
+}
 
 const SORT_OPTIONS = [
   {value: 'recommended', content: 'Рекомендуемые'},
@@ -82,12 +100,14 @@ export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
   }
 
   const categoryChips = useMemo(
-    () =>
-      (data?.categories ?? []).map((category) => ({
+    () => [
+      {id: ALL_CATEGORIES_CHIP_ID, label: 'Все категории', active: !filters.category},
+      ...(data?.categories ?? []).map((category) => ({
         id: category,
-        label: category,
+        label: capitalize(category),
         active: filters.category === category,
       })),
+    ],
     [data?.categories, filters.category],
   )
 
@@ -102,27 +122,29 @@ export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
 
   return (
     <PageHub className="marketplace" data-testid={testId('shops', 'marketplace', 'page')}>
-      {banner}
-      <PageHeader
-        title="Маркет экипировки"
-        subtitle="Лента товаров от партнёрских магазинов — как маркетплейс, с приоритетом для продвигаемых продавцов."
-        testIdPrefix="shops"
-        testIdSection="marketplace"
-      />
-
-      <MarketplaceShopStrip
-        shops={spotlightShops}
-        activeShopId={filters.shopId}
-        onSelectShop={(shopId) => patchFilters({shopId})}
-      />
-
       <CatalogFilterBar
         testIdPrefix="shops"
         testIdSection="marketplace"
-        sticky
+        className="marketplace-filters"
+        header={
+          <div className="marketplace-filters__header">
+            <PageHeader
+              title="Маркет экипировки"
+              subtitle="Лента товаров от партнёрских магазинов — как маркетплейс, с приоритетом для продвигаемых продавцов."
+              testIdPrefix="shops"
+              testIdSection="marketplace"
+            />
+            {banner}
+            <MarketplaceShopStrip
+              shops={spotlightShops}
+              activeShopId={filters.shopId}
+              onSelectShop={(shopId) => patchFilters({shopId})}
+            />
+          </div>
+        }
         searchValue={filters.q ?? ''}
         onSearchChange={(value) => patchFilters({q: value || undefined})}
-        searchPlaceholder="Коньки, клюшка, Bauer…"
+        searchPlaceholder="Поиск…"
         searchLabel="Поиск по маркету"
         chips={chips}
         onChipToggle={(chipId) => {
@@ -130,9 +152,12 @@ export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
             patchFilters({shopId: undefined})
             return
           }
+          if (chipId === ALL_CATEGORIES_CHIP_ID) {
+            patchFilters({category: undefined})
+            return
+          }
           patchFilters({category: filters.category === chipId ? undefined : chipId})
         }}
-        chipsLabel="Категория"
         activeCount={countActiveFilters(filters)}
         onReset={() =>
           setFilters((prev) => ({...DEFAULT_FILTERS, sort: prev.sort ?? 'recommended'}))
@@ -143,6 +168,7 @@ export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
           <>
             <Select
               label="Сортировка"
+              size="l"
               value={[filters.sort ?? 'recommended']}
               onUpdate={(value) => patchFilters({sort: value[0] as MarketplaceSort})}
               options={SORT_OPTIONS}
@@ -150,6 +176,7 @@ export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
             />
             <Select
               label="Для позиции"
+              size="l"
               value={[filters.position ?? 'any']}
               onUpdate={(value) => {
                 const next = value[0] as PlayerPosition | 'any'
@@ -159,10 +186,11 @@ export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
               data-testid={testId('shops', 'marketplace', 'select', 'position')}
             />
             <div
-              className="catalog-filters__check"
+              className="catalog-filters__check marketplace-filters__stock"
               data-testid={testId('shops', 'marketplace', 'toggle', 'in-stock')}
             >
               <Switch
+                size="l"
                 checked={Boolean(filters.inStockOnly)}
                 onUpdate={(checked) => patchFilters({inStockOnly: checked})}
                 content="Только в наличии"
@@ -200,18 +228,24 @@ export function MarketplacePage({banner}: {banner?: ReactNode} = {}) {
           </Text>
         </div>
       ) : (
-        <div className="marketplace__grid" data-testid={testId('shops', 'marketplace', 'list')}>
-          {listings.map((listing) => (
-            <MarketplaceProductCard
-              key={listing.offer.id}
-              listing={listing}
-              highlighted={productIdFromUrl === listing.offer.id}
-              cardRef={(node) => {
-                productCardRefs.current.set(listing.offer.id, node)
-              }}
-            />
-          ))}
-        </div>
+        <section className="marketplace__feed" aria-label="Товары">
+          <SectionHeading
+            title={productsCountLabel(listings.length)}
+            data-testid={testId('shops', 'marketplace', 'text', 'count')}
+          />
+          <div className="marketplace__grid" data-testid={testId('shops', 'marketplace', 'list')}>
+            {listings.map((listing) => (
+              <MarketplaceProductCard
+                key={listing.offer.id}
+                listing={listing}
+                highlighted={productIdFromUrl === listing.offer.id}
+                cardRef={(node) => {
+                  productCardRefs.current.set(listing.offer.id, node)
+                }}
+              />
+            ))}
+          </div>
+        </section>
       )}
     </PageHub>
   )

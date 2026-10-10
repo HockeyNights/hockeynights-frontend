@@ -3,7 +3,7 @@
  */
 
 import {Select} from '@gravity-ui/uikit'
-import {useMemo} from 'react'
+import {type ReactNode, useMemo} from 'react'
 
 import type {SkillLevel} from '@/entities/common'
 import type {LeagueFilters as LeagueFiltersType} from '@/entities/league'
@@ -24,6 +24,8 @@ export interface LeagueFiltersProps {
   onReset?: () => void
   resultsCount?: number
   resultsPending?: boolean
+  /** Шапка страницы внутри общей карточки фильтров. */
+  header?: ReactNode
 }
 
 const LEVEL_OPTIONS: Array<{value: '' | SkillLevel; content: string}> = [
@@ -53,6 +55,7 @@ export function LeagueFilters({
   onReset,
   resultsCount,
   resultsPending,
+  header,
 }: LeagueFiltersProps) {
   const patch = (partial: Partial<LeagueFiltersType>) => onChange({...filters, ...partial})
 
@@ -70,9 +73,11 @@ export function LeagueFilters({
     <CatalogFilterBar
       testIdPrefix="leagues"
       testIdSection="filters"
+      className="leagues-filters"
+      header={header}
       searchValue={filters.query ?? ''}
       onSearchChange={(value) => patch({query: value || undefined})}
-      searchPlaceholder="Название лиги…"
+      searchPlaceholder="Поиск…"
       searchLabel="Поиск лиг"
       chips={chips}
       onChipToggle={(chipId) =>

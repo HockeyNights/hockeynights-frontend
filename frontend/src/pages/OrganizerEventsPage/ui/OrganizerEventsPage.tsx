@@ -27,8 +27,33 @@ import {PageHub} from '@/shared/ui/PageHub'
 import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 type CabinetTab = 'trainings' | 'agreements' | 'calendar' | 'registrations' | 'profile'
+
+interface CabinetTabMeta {
+  key: CabinetTab
+  label: string
+  /** Подзаголовок вкладки внутри hero-карточки */
+  heroTitle?: string
+  heroHint?: string
+  /** Подпись секции над панелью вкладки */
+  sectionTitle?: string
+}
+
+const CABINET_TABS: CabinetTabMeta[] = [
+  {key: 'trainings', label: 'Тренировки'},
+  {
+    key: 'agreements',
+    label: 'Договорённости',
+    heroTitle: 'Заявки на лёд',
+    heroHint:
+      'Статусы от черновика до подтверждённой брони. Краткая инфа, телефон арены и чат — в карточке заявки.',
+  },
+  {key: 'calendar', label: 'Календарь'},
+  {key: 'registrations', label: 'Участники', sectionTitle: 'Участники и заявки'},
+  {key: 'profile', label: 'Профиль', sectionTitle: 'Профиль организатора'},
+]
 
 export function OrganizerEventsPage() {
   const {userId, session, canOrganizeEvents, isLoading: sessionLoading} = useSessionAccess()
@@ -87,92 +112,95 @@ export function OrganizerEventsPage() {
     )
   }
 
-  return (
-    <PageHub data-testid={testId('events', 'organizer-page', 'page')}>
-      <PageHeader
-        title="Кабинет организатора тренировок"
-        subtitle={`Тренировки, договорённости по льду, календарь, участники и профиль · всего ${mine.length} · набор ${counts.open} · заполнены ${counts.full} · черновики ${counts.draft}`}
-        testIdPrefix="events"
-        testIdSection="organizer-page"
-        actions={
-          <div className="page-hub__actions">
-            <Link
-              to={routes.eventsCreate}
-              data-testid={testId('events', 'organizer-page', 'link', 'create')}
-            >
-              <HockeyButton
-                view="action"
-                size="m"
-                data-testid={testId('events', 'organizer-page', 'btn', 'create')}
-              >
-                Создать
-              </HockeyButton>
-            </Link>
-            <Link
-              to={routes.events}
-              data-testid={testId('events', 'organizer-page', 'link', 'back')}
-            >
-              <HockeyButton
-                view="outlined"
-                size="m"
-                data-testid={testId('events', 'organizer-page', 'btn', 'back')}
-              >
-                К каталогу
-              </HockeyButton>
-            </Link>
-          </div>
-        }
-      />
+  const activeTab = CABINET_TABS.find((item) => item.key === tab)
 
+  return (
+    <PageHub
+      className="organizer-cabinet fin-pc"
+      data-testid={testId('events', 'organizer-page', 'page')}
+    >
       <div
-        className="page-hub__toolbar"
+        className="hockey-segmented organizer-cabinet__tabs"
+        role="tablist"
+        aria-label="Разделы кабинета"
         data-testid={testId('events', 'organizer-page', 'panel', 'tabs')}
       >
-        <div className="page-hub__tabs" role="group" aria-label="Разделы кабинета">
-          <HockeyButton
-            view={tab === 'trainings' ? 'action' : 'outlined'}
-            size="s"
-            onClick={() => setTab('trainings')}
-            data-testid={testId('events', 'organizer-page', 'btn', 'tab-trainings')}
+        {CABINET_TABS.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            role="tab"
+            aria-selected={tab === item.key}
+            className={`hockey-segmented__item${tab === item.key ? ' is-active' : ''}`}
+            onClick={() => setTab(item.key)}
+            data-testid={testId('events', 'organizer-page', 'btn', `tab-${item.key}`)}
           >
-            Тренировки
-          </HockeyButton>
-          <HockeyButton
-            view={tab === 'agreements' ? 'action' : 'outlined'}
-            size="s"
-            onClick={() => setTab('agreements')}
-            data-testid={testId('events', 'organizer-page', 'btn', 'tab-agreements')}
-          >
-            Договорённости
-          </HockeyButton>
-          <HockeyButton
-            view={tab === 'calendar' ? 'action' : 'outlined'}
-            size="s"
-            onClick={() => setTab('calendar')}
-            data-testid={testId('events', 'organizer-page', 'btn', 'tab-calendar')}
-          >
-            Календарь
-          </HockeyButton>
-          <HockeyButton
-            view={tab === 'registrations' ? 'action' : 'outlined'}
-            size="s"
-            onClick={() => setTab('registrations')}
-            data-testid={testId('events', 'organizer-page', 'btn', 'tab-registrations')}
-          >
-            Участники
-          </HockeyButton>
-          <HockeyButton
-            view={tab === 'profile' ? 'action' : 'outlined'}
-            size="s"
-            onClick={() => setTab('profile')}
-            data-testid={testId('events', 'organizer-page', 'btn', 'tab-profile')}
-          >
-            Профиль
-          </HockeyButton>
-        </div>
+            {item.label}
+          </button>
+        ))}
       </div>
 
-      <div className="page-hub__panel">
+      <section
+        className="organizer-cabinet__hero"
+        data-testid={testId('events', 'organizer-page', 'card', 'hero')}
+      >
+        <PageHeader
+          title="Кабинет организатора тренировок"
+          subtitle={
+            tab === 'trainings'
+              ? `Тренировки, договорённости по льду, календарь, участники и профиль — всего ${mine.length} · набор ${counts.open} · заполнены ${counts.full} · черновики ${counts.draft}`
+              : 'Тренировки, договорённости по льду, календарь, участники и профиль —'
+          }
+          testIdPrefix="events"
+          testIdSection="organizer-page"
+          actions={
+            tab === 'trainings' ? (
+              <div className="page-hub__actions">
+                <Link
+                  to={routes.eventsCreate}
+                  data-testid={testId('events', 'organizer-page', 'link', 'create')}
+                >
+                  <HockeyButton
+                    view="action"
+                    size="m"
+                    data-testid={testId('events', 'organizer-page', 'btn', 'create')}
+                  >
+                    Создать
+                  </HockeyButton>
+                </Link>
+                <Link
+                  to={routes.events}
+                  data-testid={testId('events', 'organizer-page', 'link', 'back')}
+                >
+                  <HockeyButton
+                    view="outlined"
+                    size="m"
+                    data-testid={testId('events', 'organizer-page', 'btn', 'back')}
+                  >
+                    К каталогу
+                  </HockeyButton>
+                </Link>
+              </div>
+            ) : undefined
+          }
+        />
+        {activeTab?.heroTitle ? (
+          <div className="organizer-cabinet__hero-sub">
+            <h2
+              className="organizer-cabinet__hero-title"
+              data-testid={testId('events', 'organizer-page', 'text', 'tab-title')}
+            >
+              {activeTab.heroTitle}
+            </h2>
+            {activeTab.heroHint ? (
+              <p className="organizer-cabinet__hero-hint">{activeTab.heroHint}</p>
+            ) : null}
+          </div>
+        ) : null}
+      </section>
+
+      <div className={`page-hub__panel organizer-cabinet__panel organizer-cabinet__panel--${tab}`}>
+        {activeTab?.sectionTitle ? <SectionHeading title={activeTab.sectionTitle} /> : null}
         {isLoading ? (
           <div data-testid={testId('events', 'organizer-page', 'loader')}>
             <ScoreboardLoader label="Загрузка…" />

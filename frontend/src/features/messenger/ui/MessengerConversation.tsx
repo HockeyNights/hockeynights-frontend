@@ -134,6 +134,7 @@ export function MessengerConversation({
           <HockeyButton
             size="m"
             view={chat.isPinned ? 'action' : 'outlined'}
+            className="messenger-header__pin"
             onClick={onTogglePin}
             loading={isPinPending}
             aria-label={chat.isPinned ? 'Открепить чат' : 'Закрепить чат'}
@@ -277,6 +278,7 @@ export function MessengerConversation({
           disabled
           aria-label="Вложение — скоро"
           title="Вложения появятся позже"
+          className="messenger-input__side-btn"
           data-testid={testId('messenger', 'page', 'btn', 'attach')}
         >
           <Icon data={Paperclip} size={16} />
@@ -301,7 +303,8 @@ export function MessengerConversation({
         />
         <HockeyButton
           size="m"
-          view="action"
+          view="outlined"
+          className="messenger-input__side-btn messenger-input__send"
           disabled={!inputText.trim()}
           onClick={handleSend}
           aria-label="Отправить сообщение"

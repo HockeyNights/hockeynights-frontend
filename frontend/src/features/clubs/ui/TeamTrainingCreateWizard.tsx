@@ -4,7 +4,7 @@
 
 import {Select, Text, TextInput} from '@gravity-ui/uikit'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
-import {useEffect, useMemo, useState} from 'react'
+import {useEffect, useId, useMemo, useState} from 'react'
 
 import {
   createTrainingLineupDraft,
@@ -28,6 +28,7 @@ import {testId} from '@/shared/testing/testId'
 import {DateTimeField} from '@/shared/ui/DateTimeField'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 const ARENA_OPTIONS = [
   {value: 'arena-001', content: 'Ледовый дворец на Ходынке'},
@@ -82,6 +83,7 @@ function isLocalBeforeOrEqual(left: string, right: string): boolean {
 
 export function TeamTrainingCreateWizard({clubId, teamIds}: TeamTrainingCreateWizardProps) {
   const queryClient = useQueryClient()
+  const fieldId = useId()
   const {roles} = useSessionAccess()
   const isCoach = roles.includes('coach') || roles.includes('admin')
 
@@ -267,256 +269,290 @@ export function TeamTrainingCreateWizard({clubId, teamIds}: TeamTrainingCreateWi
   const canSaveLineup = assignments.length > 0
   const canPublish = Boolean(isCoach && draftId && draftStatus === 'approved')
 
+  const steps: Array<{key: WizardStep; label: string; disabled: boolean; testKey: string}> = [
+    {key: 'details', label: 'Детали', disabled: false, testKey: 'step-details'},
+    {key: 'lineup', label: 'Раскладка', disabled: !canGoLineup, testKey: 'step-lineup'},
+    {key: 'review', label: 'Черновик / Создать', disabled: !draftId, testKey: 'step-review'},
+  ]
+
   return (
-    <div
-      className="team-training-wizard hockey-stack hockey-stack--gap-16"
+    <section
+      className="club-hq__section team-training-wizard"
       data-testid={testId('clubs', 'training-wizard', 'panel', clubId)}
     >
-      <div className="team-training-wizard__header hockey-stack hockey-stack--gap-8">
-        <Text
-          variant="header-2"
-          className="variable-font-header"
-          data-testid={testId('clubs', 'training-wizard', 'text', 'title', clubId)}
-        >
-          Новая тренировка команды
-        </Text>
-        <Text
-          color="secondary"
-          className="team-training-wizard__hint"
-          data-testid={testId('clubs', 'training-wizard', 'text', 'hint', clubId)}
-        >
-          Раскладку можно сохранить как черновик. Создать саму тренировку и разослать назначения —
-          только тренер.
-        </Text>
-      </div>
-
-      <div
-        className="team-training-wizard__steps hockey-row hockey-row--gap-8"
-        data-testid={testId('clubs', 'training-wizard', 'nav', 'steps', clubId)}
-      >
-        <HockeyButton
-          size="s"
-          view={step === 'details' ? 'action' : 'outlined'}
-          onClick={() => setStep('details')}
-          data-testid={testId('clubs', 'training-wizard', 'btn', 'step-details', clubId)}
-        >
-          1. Детали
-        </HockeyButton>
-        <HockeyButton
-          size="s"
-          view={step === 'lineup' ? 'action' : 'outlined'}
-          disabled={!canGoLineup}
-          onClick={() => setStep('lineup')}
-          data-testid={testId('clubs', 'training-wizard', 'btn', 'step-lineup', clubId)}
-        >
-          2. Раскладка
-        </HockeyButton>
-        <HockeyButton
-          size="s"
-          view={step === 'review' ? 'action' : 'outlined'}
-          disabled={!draftId}
-          onClick={() => setStep('review')}
-          data-testid={testId('clubs', 'training-wizard', 'btn', 'step-review', clubId)}
-        >
-          3. Черновик / создание
-        </HockeyButton>
-      </div>
-
-      {step === 'details' && (
-        <div
-          className="team-training-wizard__body hockey-stack hockey-stack--gap-16"
-          data-testid={testId('clubs', 'training-wizard', 'panel', 'details', clubId)}
-        >
-          <Select
-            label="Команда"
-            value={[teamId]}
-            options={teamIds.map((id) => ({
-              value: id,
-              content: id === team?.id ? team.name : id,
-            }))}
-            onUpdate={(value) => {
-              setTeamId(value[0] ?? defaultTeamId)
-              setAssignments([])
-              setSyncedRosterKey('')
-            }}
-            data-testid={testId('clubs', 'training-wizard', 'select', 'team', clubId)}
-          />
-          <TextInput
-            label="Название"
-            value={title}
-            onUpdate={setTitle}
-            data-testid={testId('clubs', 'training-wizard', 'field', 'title', clubId)}
-          />
-          <DateTimeField
-            label="Начало"
-            value={startsAt}
-            onChange={handleStartsAtChange}
-            testIdQualifier="starts-at"
-          />
-          <DateTimeField
-            label="Конец"
-            value={endsAt}
-            onChange={setEndsAt}
-            testIdQualifier="ends-at"
-          />
-          <Select
-            label="Арена"
-            value={[arenaId]}
-            options={ARENA_OPTIONS}
-            onUpdate={(value) => setArenaId(value[0] ?? 'arena-001')}
-            data-testid={testId('clubs', 'training-wizard', 'select', 'arena', clubId)}
-          />
-          <TextInput
-            label="Комментарий для тренера"
-            value={note}
-            onUpdate={setNote}
-            data-testid={testId('clubs', 'training-wizard', 'field', 'note', clubId)}
-          />
-          <HockeyButton
-            size="s"
-            disabled={!canGoLineup}
-            onClick={() => setStep('lineup')}
-            data-testid={testId('clubs', 'training-wizard', 'btn', 'next-lineup', clubId)}
+      <SectionHeading
+        title="Новая тренировка команды"
+        data-testid={testId('clubs', 'training-wizard', 'text', 'title', clubId)}
+      />
+      <div className="club-hq__card club-hq__wizard">
+        <div className="club-hq__wizard-head">
+          <p
+            className="club-hq__wizard-hint"
+            data-testid={testId('clubs', 'training-wizard', 'text', 'hint', clubId)}
           >
-            Дальше: расстановка на льду
-          </HockeyButton>
-        </div>
-      )}
-
-      {step === 'lineup' && (
-        <div
-          className="team-training-wizard__body hockey-stack hockey-stack--gap-16"
-          data-testid={testId('clubs', 'training-wizard', 'panel', 'lineup', clubId)}
-        >
-          {rosterLoading && (
-            <ScoreboardLoader
-              label="Загрузка состава"
-              data-testid={testId('clubs', 'training-wizard', 'loader', 'roster', clubId)}
-            />
-          )}
-
-          {templates.length > 0 && (
-            <div
-              className="hockey-stack hockey-stack--gap-8"
-              data-testid={testId('clubs', 'training-wizard', 'panel', 'templates', clubId)}
+            Раскладку можно сохранить как черновик. Создать саму тренировку и разослать назначения —
+            только тренер.
+          </p>
+          {draftId ? (
+            <span
+              className="club-hq__draft-chip"
+              data-testid={testId('clubs', 'training-wizard', 'badge', 'draft', clubId)}
             >
-              <Text color="secondary">Шаблоны из вкладки «Состав»</Text>
+              Черновик #{draftId}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="club-hq__wizard-steps">
+          <div
+            className="hockey-segmented"
+            role="tablist"
+            aria-label="Шаги мастера"
+            data-testid={testId('clubs', 'training-wizard', 'nav', 'steps', clubId)}
+          >
+            {steps.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                role="tab"
+                aria-selected={step === item.key}
+                disabled={item.disabled}
+                className={`hockey-segmented__item${step === item.key ? ' is-active' : ''}`}
+                onClick={() => setStep(item.key)}
+                data-testid={testId('clubs', 'training-wizard', 'btn', item.testKey, clubId)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {step === 'details' && (
+          <div
+            className="club-hq__wizard-body"
+            data-testid={testId('clubs', 'training-wizard', 'panel', 'details', clubId)}
+          >
+            <div className="club-hq__field">
+              <label className="club-hq__label" htmlFor={`${fieldId}-team`}>
+                Команда
+              </label>
               <Select
-                size="m"
-                value={[]}
-                placeholder="Подставить шаблон постановки"
-                options={templates.map((item) => ({
-                  value: item.id,
-                  content: item.name,
+                id={`${fieldId}-team`}
+                size="l"
+                width="max"
+                value={[teamId]}
+                options={teamIds.map((id) => ({
+                  value: id,
+                  content: id === team?.id ? team.name : id,
                 }))}
                 onUpdate={(value) => {
-                  if (value[0]) applyTemplate(String(value[0]))
+                  setTeamId(value[0] ?? defaultTeamId)
+                  setAssignments([])
+                  setSyncedRosterKey('')
                 }}
-                data-testid={testId('clubs', 'training-wizard', 'select', 'template', clubId)}
+                data-testid={testId('clubs', 'training-wizard', 'select', 'team', clubId)}
               />
             </div>
-          )}
-
-          {!rosterLoading && assignments.length > 0 && (
-            <LineupRinkPreview
-              assignments={assignments}
-              canEdit
-              testIdPrefix="training-wizard-rink"
-              onDropToBench={(userId) => updatePlayer(userId, {side: 'bench'})}
-              onDropToSlot={(userId, slot) =>
-                updatePlayer(userId, {
-                  side: slot.side,
-                  position: slot.position,
-                  line: slot.line,
-                })
-              }
-            />
-          )}
-
-          <div className="hockey-row hockey-row--gap-8">
+            <div className="club-hq__field">
+              <label className="club-hq__label" htmlFor={`${fieldId}-title`}>
+                Название тренировки
+              </label>
+              <TextInput
+                id={`${fieldId}-title`}
+                size="l"
+                value={title}
+                onUpdate={setTitle}
+                data-testid={testId('clubs', 'training-wizard', 'field', 'title', clubId)}
+              />
+            </div>
+            <div className="club-hq__wizard-time">
+              <DateTimeField
+                label="Начало"
+                value={startsAt}
+                onChange={handleStartsAtChange}
+                testIdQualifier="starts-at"
+              />
+              <DateTimeField
+                label="Конец"
+                value={endsAt}
+                onChange={setEndsAt}
+                testIdQualifier="ends-at"
+              />
+            </div>
+            <div className="club-hq__field">
+              <label className="club-hq__label" htmlFor={`${fieldId}-arena`}>
+                Арена и локация
+              </label>
+              <Select
+                id={`${fieldId}-arena`}
+                size="l"
+                width="max"
+                value={[arenaId]}
+                options={ARENA_OPTIONS}
+                onUpdate={(value) => setArenaId(value[0] ?? 'arena-001')}
+                data-testid={testId('clubs', 'training-wizard', 'select', 'arena', clubId)}
+              />
+            </div>
+            <div className="club-hq__field">
+              <label className="club-hq__label" htmlFor={`${fieldId}-note`}>
+                Комментарий для тренера
+              </label>
+              <TextInput
+                id={`${fieldId}-note`}
+                size="l"
+                value={note}
+                onUpdate={setNote}
+                data-testid={testId('clubs', 'training-wizard', 'field', 'note', clubId)}
+              />
+            </div>
             <HockeyButton
-              size="s"
-              view="outlined"
-              onClick={() => setStep('details')}
-              data-testid={testId('clubs', 'training-wizard', 'btn', 'back-details', clubId)}
+              view="action"
+              size="l"
+              width="max"
+              disabled={!canGoLineup}
+              onClick={() => setStep('lineup')}
+              data-testid={testId('clubs', 'training-wizard', 'btn', 'next-lineup', clubId)}
             >
-              Назад
-            </HockeyButton>
-            <HockeyButton
-              size="s"
-              loading={createMutation.isPending}
-              disabled={!canSaveLineup}
-              onClick={() => createMutation.mutate()}
-              data-testid={testId('clubs', 'training-wizard', 'btn', 'save-draft', clubId)}
-            >
-              Сохранить черновик
+              Дальше: расстановка на льду
             </HockeyButton>
           </div>
-        </div>
-      )}
+        )}
 
-      {step === 'review' && draftId && (
-        <div
-          className="team-training-wizard__body hockey-stack hockey-stack--gap-16"
-          data-testid={testId('clubs', 'training-wizard', 'panel', 'review', clubId)}
-        >
-          <Text data-testid={testId('clubs', 'training-wizard', 'text', 'review-hint', clubId)}>
-            {isCoach
-              ? 'Вы тренер — можно создать тренировку и разослать назначения игрокам.'
-              : 'Черновик сохранён. Отправьте тренеру: только он создаёт тренировку и шлёт appointment в мессенджер.'}
-          </Text>
-          {draftStatus && (
-            <Text
-              color="secondary"
-              data-testid={testId('clubs', 'training-wizard', 'text', 'draft-status', clubId)}
-            >
-              Статус черновика: {draftStatus}
+        {step === 'lineup' && (
+          <div
+            className="club-hq__wizard-body"
+            data-testid={testId('clubs', 'training-wizard', 'panel', 'lineup', clubId)}
+          >
+            {rosterLoading && (
+              <ScoreboardLoader
+                label="Загрузка состава"
+                data-testid={testId('clubs', 'training-wizard', 'loader', 'roster', clubId)}
+              />
+            )}
+
+            {templates.length > 0 && (
+              <div
+                className="hockey-stack hockey-stack--gap-8"
+                data-testid={testId('clubs', 'training-wizard', 'panel', 'templates', clubId)}
+              >
+                <Text color="secondary">Шаблоны из вкладки «Состав»</Text>
+                <Select
+                  size="m"
+                  value={[]}
+                  placeholder="Подставить шаблон постановки"
+                  options={templates.map((item) => ({
+                    value: item.id,
+                    content: item.name,
+                  }))}
+                  onUpdate={(value) => {
+                    if (value[0]) applyTemplate(String(value[0]))
+                  }}
+                  data-testid={testId('clubs', 'training-wizard', 'select', 'template', clubId)}
+                />
+              </div>
+            )}
+
+            {!rosterLoading && assignments.length > 0 && (
+              <LineupRinkPreview
+                assignments={assignments}
+                canEdit
+                testIdPrefix="training-wizard-rink"
+                onDropToBench={(userId) => updatePlayer(userId, {side: 'bench'})}
+                onDropToSlot={(userId, slot) =>
+                  updatePlayer(userId, {
+                    side: slot.side,
+                    position: slot.position,
+                    line: slot.line,
+                  })
+                }
+              />
+            )}
+
+            <div className="hockey-row hockey-row--gap-8">
+              <HockeyButton
+                size="s"
+                view="outlined"
+                onClick={() => setStep('details')}
+                data-testid={testId('clubs', 'training-wizard', 'btn', 'back-details', clubId)}
+              >
+                Назад
+              </HockeyButton>
+              <HockeyButton
+                size="s"
+                loading={createMutation.isPending}
+                disabled={!canSaveLineup}
+                onClick={() => createMutation.mutate()}
+                data-testid={testId('clubs', 'training-wizard', 'btn', 'save-draft', clubId)}
+              >
+                Сохранить черновик
+              </HockeyButton>
+            </div>
+          </div>
+        )}
+
+        {step === 'review' && draftId && (
+          <div
+            className="club-hq__wizard-body"
+            data-testid={testId('clubs', 'training-wizard', 'panel', 'review', clubId)}
+          >
+            <Text data-testid={testId('clubs', 'training-wizard', 'text', 'review-hint', clubId)}>
+              {isCoach
+                ? 'Вы тренер — можно создать тренировку и разослать назначения игрокам.'
+                : 'Черновик сохранён. Отправьте тренеру: только он создаёт тренировку и шлёт appointment в мессенджер.'}
             </Text>
-          )}
-
-          {assignments.length > 0 && (
-            <LineupRinkPreview
-              assignments={assignments}
-              canEdit={false}
-              testIdPrefix="wizard-review"
-            />
-          )}
-
-          <div className="hockey-row hockey-row--gap-8">
-            {!isCoach && (
-              <HockeyButton
-                size="s"
-                loading={submitMutation.isPending}
-                onClick={() => submitMutation.mutate(draftId)}
-                data-testid={testId('clubs', 'training-wizard', 'btn', 'submit-coach', clubId)}
+            {draftStatus && (
+              <Text
+                color="secondary"
+                data-testid={testId('clubs', 'training-wizard', 'text', 'draft-status', clubId)}
               >
-                Отправить тренеру
-              </HockeyButton>
+                Статус черновика: {draftStatus}
+              </Text>
             )}
-            {isCoach && (
-              <HockeyButton
-                size="s"
-                view="action"
-                loading={publishMutation.isPending}
-                disabled={!canPublish}
-                onClick={() => publishMutation.mutate(draftId)}
-                data-testid={testId('clubs', 'training-wizard', 'btn', 'publish', clubId)}
-              >
-                Создать тренировку и разослать
-              </HockeyButton>
+
+            {assignments.length > 0 && (
+              <LineupRinkPreview
+                assignments={assignments}
+                canEdit={false}
+                testIdPrefix="wizard-review"
+              />
             )}
+
+            <div className="hockey-row hockey-row--gap-8">
+              {!isCoach && (
+                <HockeyButton
+                  size="s"
+                  loading={submitMutation.isPending}
+                  onClick={() => submitMutation.mutate(draftId)}
+                  data-testid={testId('clubs', 'training-wizard', 'btn', 'submit-coach', clubId)}
+                >
+                  Отправить тренеру
+                </HockeyButton>
+              )}
+              {isCoach && (
+                <HockeyButton
+                  size="s"
+                  view="action"
+                  loading={publishMutation.isPending}
+                  disabled={!canPublish}
+                  onClick={() => publishMutation.mutate(draftId)}
+                  data-testid={testId('clubs', 'training-wizard', 'btn', 'publish', clubId)}
+                >
+                  Создать тренировку и разослать
+                </HockeyButton>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {statusMessage && (
-        <Text
-          color="secondary"
-          data-testid={testId('clubs', 'training-wizard', 'text', 'status', clubId)}
-        >
-          {statusMessage}
-        </Text>
-      )}
-    </div>
+        {statusMessage && (
+          <p
+            className="club-hq__status"
+            data-testid={testId('clubs', 'training-wizard', 'text', 'status', clubId)}
+          >
+            {statusMessage}
+          </p>
+        )}
+      </div>
+    </section>
   )
 }

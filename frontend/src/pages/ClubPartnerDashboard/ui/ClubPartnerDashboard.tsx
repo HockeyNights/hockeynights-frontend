@@ -11,12 +11,14 @@ import {fetchClub, fetchClubCalendar, fetchClubPrivateTrainings} from '@/entitie
 import {fetchTeamRoster, fetchTeams} from '@/entities/team'
 import {canManageClubEntity, useSessionAccess} from '@/features/access'
 import {
+  ClubCalendarPanel,
+  ClubDashboardHero,
   ClubDashboardSummary,
   type ClubPartnerTab,
   ClubPrivateTrainingsPanel,
   ClubProfileEditForm,
 } from '@/features/clubs'
-import {AddTeamMember, TeamCalendarSection, TeamLineupStudio, TeamRoster} from '@/features/teams'
+import {AddTeamMember, TeamLineupStudio, TeamRoster} from '@/features/teams'
 import {isNotFoundError} from '@/shared/api/client'
 import {testId} from '@/shared/testing/testId'
 import {EmptyNetState} from '@/shared/ui/EmptyNetState'
@@ -25,6 +27,7 @@ import {IceCard} from '@/shared/ui/IceCard'
 import {PageHeader} from '@/shared/ui/PageHeader'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 const TAB_LABELS: Record<ClubPartnerTab, string> = {
   dashboard: 'Дашборд',
@@ -166,42 +169,71 @@ export function ClubPartnerDashboard() {
     )
   }
 
+  const singleTeamId = teamIds.length === 1 ? teamIds[0] : null
+
   return (
     <div
-      className="partner-dashboard club-cabinet hockey-stack hockey-stack--gap-16"
+      className="partner-dashboard club-hq fin-pc"
       data-testid={testId('clubs', 'partner', 'page', clubId)}
     >
-      <PageHeader
-        title="Кабинет клуба"
-        subtitle={`${club.name} · управление составом, штабом и приватными тренировками`}
-        testIdPrefix="clubs"
-        testIdSection="partner"
-        actions={
-          <Link to="/partner" data-testid={testId('clubs', 'partner', 'link', 'back', clubId)}>
-            <HockeyButton
-              view="flat"
-              size="s"
-              data-testid={testId('clubs', 'partner', 'btn', 'back', clubId)}
-            >
-              ← Все кабинеты
-            </HockeyButton>
-          </Link>
-        }
-      />
-
-      <div className="club-cabinet__tabs" data-testid={testId('clubs', 'partner', 'nav', clubId)}>
+      <div
+        className="hockey-segmented club-hq__tabs"
+        role="tablist"
+        aria-label="Разделы кабинета клуба"
+        data-testid={testId('clubs', 'partner', 'nav', clubId)}
+      >
         {(Object.keys(TAB_LABELS) as ClubPartnerTab[]).map((tabKey) => (
-          <HockeyButton
+          <button
             key={tabKey}
-            view={tab === tabKey ? 'action' : 'outlined'}
-            size="m"
+            type="button"
+            role="tab"
+            aria-selected={tab === tabKey}
+            className={`hockey-segmented__item${tab === tabKey ? ' is-active' : ''}`}
             onClick={() => setTab(tabKey)}
             data-testid={testId('clubs', 'partner', 'tab', tabKey, clubId)}
           >
             {TAB_LABELS[tabKey]}
-          </HockeyButton>
+          </button>
         ))}
       </div>
+
+      <section className="club-hq__hero" data-testid={testId('clubs', 'partner', 'card', 'hero')}>
+        <PageHeader
+          title="Кабинет клуба"
+          subtitle={`${club.name} · управление составом, штабом и приватными тренировками`}
+          testIdPrefix="clubs"
+          testIdSection="partner"
+          actions={
+            <Link to="/partner" data-testid={testId('clubs', 'partner', 'link', 'back', clubId)}>
+              <HockeyButton
+                view="flat"
+                size="s"
+                data-testid={testId('clubs', 'partner', 'btn', 'back', clubId)}
+              >
+                ← Все кабинеты
+              </HockeyButton>
+            </Link>
+          }
+        />
+        {tab === 'dashboard' ? <ClubDashboardHero club={club} /> : null}
+        {tab === 'roster' && singleTeamId ? (
+          <div className="club-hq__hero-sub">
+            <h2
+              className="club-hq__hero-subtitle"
+              data-testid={testId('clubs', 'partner', 'text', 'roster-team', singleTeamId)}
+            >
+              Расстановка {teamNameById.get(singleTeamId) ?? ''}
+            </h2>
+            <p
+              className="club-hq__hero-hint"
+              data-testid={testId('clubs', 'partner', 'text', 'roster-hint', singleTeamId)}
+            >
+              Собирайте постановки на льду и сохраняйте шаблоны — их можно подставить при создании
+              тренировки
+            </p>
+          </div>
+        ) : null}
+      </section>
 
       {tab === 'dashboard' && (
         <div data-testid={testId('clubs', 'partner', 'panel', 'dashboard', clubId)}>
@@ -219,68 +251,65 @@ export function ClubPartnerDashboard() {
 
       {tab === 'profile' && (
         <div data-testid={testId('clubs', 'partner', 'panel', 'profile', clubId)}>
-          <IceCard padding="m">
-            <ClubProfileEditForm key={club.id} club={club} />
-          </IceCard>
+          <ClubProfileEditForm key={club.id} club={club} />
         </div>
       )}
 
       {tab === 'roster' && (
         <div
-          className="club-cabinet__roster hockey-stack hockey-stack--gap-20"
+          className="club-hq__roster"
           data-testid={testId('clubs', 'partner', 'panel', 'roster', clubId)}
         >
           {teamIds.length === 0 && (
-            <Text
-              color="secondary"
+            <p
+              className="club-hq__empty"
               data-testid={testId('clubs', 'partner', 'empty', 'roster', clubId)}
             >
               У клуба нет привязанных команд
-            </Text>
+            </p>
           )}
           {teamIds.map((teamId) => {
             const canEditLineup = teamPermissions('captain').canEditLineup
             const canManageRoster = teamPermissions('captain').canManageRoster
+            const teamName = teamNameById.get(teamId) ?? teamId
             return (
               <div
                 key={teamId}
-                className="hockey-stack hockey-stack--gap-16"
+                className="club-hq__section"
                 data-testid={testId('clubs', 'partner', 'card', 'roster', teamId)}
               >
-                <div className="club-cabinet__roster-head">
-                  <Text
-                    variant="header-2"
-                    className="variable-font-header"
-                    data-testid={testId('clubs', 'partner', 'text', 'roster-team', teamId)}
-                  >
-                    Расстановка · {teamNameById.get(teamId) ?? teamId}
-                  </Text>
-                  <Text
-                    color="secondary"
-                    data-testid={testId('clubs', 'partner', 'text', 'roster-hint', teamId)}
-                  >
-                    Собирайте постановки на льду и сохраняйте шаблоны — их можно подставить при
-                    создании тренировки
-                  </Text>
-                </div>
+                {singleTeamId ? (
+                  <SectionHeading title="Постановки и шаблоны" />
+                ) : (
+                  <div className="club-hq__roster-head">
+                    <SectionHeading
+                      title={`Постановки и шаблоны · ${teamName}`}
+                      data-testid={testId('clubs', 'partner', 'text', 'roster-team', teamId)}
+                    />
+                    <p
+                      className="club-hq__hero-hint"
+                      data-testid={testId('clubs', 'partner', 'text', 'roster-hint', teamId)}
+                    >
+                      Собирайте постановки на льду и сохраняйте шаблоны — их можно подставить при
+                      создании тренировки
+                    </p>
+                  </div>
+                )}
 
                 <TeamLineupStudio teamId={teamId} canEdit={canEditLineup} />
 
                 {canManageRoster && (
-                  <IceCard
-                    padding="m"
+                  <div
+                    className="club-hq__card club-hq__roster-manage"
                     data-testid={testId('clubs', 'partner', 'card', 'roster-manage', teamId)}
                   >
-                    <Text
-                      variant="subheader-2"
-                      className="hockey-mb-12"
+                    <SectionHeading
+                      title="Статусы и роли состава"
                       data-testid={testId('clubs', 'partner', 'text', 'roster-manage', teamId)}
-                    >
-                      Статусы и роли состава
-                    </Text>
+                    />
                     <AddTeamMember teamId={teamId} />
                     <TeamRoster teamId={teamId} userId={userId} teamPermissions={teamPermissions} />
-                  </IceCard>
+                  </div>
                 )}
               </div>
             )
@@ -290,23 +319,13 @@ export function ClubPartnerDashboard() {
 
       {tab === 'calendar' && (
         <div data-testid={testId('clubs', 'partner', 'panel', 'calendar', clubId)}>
-          <IceCard padding="m">
-            <TeamCalendarSection
-              events={calendar}
-              emptyText="В календаре клуба пока нет событий"
-              testIdPrefix="clubs"
-              scope="club"
-              scopeId={clubId}
-            />
-          </IceCard>
+          <ClubCalendarPanel clubId={clubId} events={calendar} />
         </div>
       )}
 
       {tab === 'private' && (
         <div data-testid={testId('clubs', 'partner', 'panel', 'private', clubId)}>
-          <IceCard padding="m">
-            <ClubPrivateTrainingsPanel clubId={clubId} />
-          </IceCard>
+          <ClubPrivateTrainingsPanel clubId={clubId} />
         </div>
       )}
     </div>

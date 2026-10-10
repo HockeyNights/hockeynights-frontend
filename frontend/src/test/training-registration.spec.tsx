@@ -55,7 +55,7 @@ describe('HOCFRONT-28 training registration', () => {
     await waitFor(() => {
       expect(
         screen.getByTestId('events-training-registration-text-status-event-002'),
-      ).toHaveTextContent('Вы записаны')
+      ).toHaveTextContent('Вы успешно записаны на тренировку')
     })
 
     await user.click(screen.getByTestId('events-training-registration-btn-cancel-event-002'))

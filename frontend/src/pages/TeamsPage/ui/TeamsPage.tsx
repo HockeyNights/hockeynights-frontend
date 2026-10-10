@@ -10,6 +10,7 @@ import {useMemo, useState} from 'react'
 import {Link} from 'react-router'
 
 import type {SkillLevel} from '@/entities/common'
+import {favoriteKey, fetchFavorites} from '@/entities/favorites'
 import {fetchTeams, type TeamsFilterParams} from '@/entities/team'
 import {useSessionAccess} from '@/features/access'
 import {TeamCard, TeamFilters} from '@/features/teams'
@@ -44,6 +45,7 @@ function countActiveFilters(filters: TeamsFilterParams): number {
 export function TeamsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<TeamsFilterParams>(EMPTY_FILTERS)
+  const [favoritesOnly, setFavoritesOnly] = useState(false)
   const {teamPermissions} = useSessionAccess()
   const {canCreateTeam} = teamPermissions('player')
 
@@ -55,7 +57,7 @@ export function TeamsPage() {
     [filters, searchQuery],
   )
 
-  const activeCount = countActiveFilters(filters)
+  const activeCount = countActiveFilters(filters) + (favoritesOnly ? 1 : 0)
   const hasSearch = Boolean(searchQuery.trim())
 
   const {
@@ -70,6 +72,19 @@ export function TeamsPage() {
     placeholderData: (previous) => previous,
   })
 
+  // Тот же ключ, что у FavoriteButton: сердечко на карточке сразу меняет выборку.
+  const {data: favorites = []} = useQuery({
+    queryKey: ['favorites'],
+    queryFn: fetchFavorites,
+    select: (data) => data.items,
+  })
+
+  const visibleTeams = useMemo(() => {
+    if (!favoritesOnly) return teams
+    const ids = new Set(favorites.map((item) => item.id))
+    return teams.filter((team) => ids.has(favoriteKey('team', team.id)))
+  }, [teams, favorites, favoritesOnly])
+
   const skillChips = useMemo(
     () =>
       SKILL_CHIPS.map((chip) => ({
@@ -83,53 +98,112 @@ export function TeamsPage() {
   const handleResetAll = () => {
     setSearchQuery('')
     setFilters(EMPTY_FILTERS)
+    setFavoritesOnly(false)
   }
+
+  // Макет игрока (27:53078) — поиск + 3 фильтра; club-admin/admin — chips, «Уровень» и «Создать».
+  const showExtendedFilters = canCreateTeam
+
+  const header = (
+    <PageHeader
+      title="Команды"
+      subtitle="Лента публичных команд: поиск, фильтры, профиль и чат в мессенджере."
+      testIdPrefix="teams"
+      testIdSection="teams-page"
+      actions={
+        canCreateTeam ? (
+          <Link
+            to={routes.teamsCreate}
+            className="teams-hero__create"
+            data-testid={testId('teams', 'teams-page', 'link', 'create')}
+          >
+            <HockeyButton
+              view="action"
+              size="l"
+              data-testid={testId('teams', 'teams-page', 'btn', 'create')}
+            >
+              Создать команду
+            </HockeyButton>
+          </Link>
+        ) : undefined
+      }
+    />
+  )
 
   return (
     <PageHub data-testid={testId('teams', 'teams-page', 'page')}>
-      <PageHeader
-        title="Команды"
-        subtitle="Лента публичных команд: поиск, фильтры, профиль и чат в мессенджере."
+      <CatalogFilterBar
+        className={`teams-hero${showExtendedFilters ? ' teams-hero--extended' : ''}`}
         testIdPrefix="teams"
         testIdSection="teams-page"
-        actions={
-          canCreateTeam ? (
-            <Link
-              to={routes.teamsCreate}
-              data-testid={testId('teams', 'teams-page', 'link', 'create')}
-            >
-              <HockeyButton
-                view="outlined"
-                size="s"
-                data-testid={testId('teams', 'teams-page', 'btn', 'create')}
-              >
-                Создать команду
-              </HockeyButton>
-            </Link>
-          ) : undefined
+        header={header}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Поиск.."
+        searchLabel="Поиск команд"
+        chips={showExtendedFilters ? skillChips : undefined}
+        onChipToggle={
+          showExtendedFilters
+            ? (chipId) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  skillLevel: prev.skillLevel === chipId ? undefined : (chipId as SkillLevel),
+                }))
+            : undefined
+        }
+        advanced={
+          <div
+            className="teams-hero__filters"
+            data-testid={testId('teams', 'teams-page', 'panel', 'selects')}
+          >
+            <span className="catalog-filters__chips-label">Фильтры</span>
+            <div className="teams-hero__filters-row">
+              <TeamFilters
+                filters={filters}
+                onChange={setFilters}
+                showSkillLevel={showExtendedFilters}
+              />
+            </div>
+          </div>
         }
       />
 
-      <CatalogFilterBar
-        testIdPrefix="teams"
-        testIdSection="teams-page"
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="Название или описание команды…"
-        searchLabel="Поиск команд"
-        chips={skillChips}
-        onChipToggle={(chipId) =>
-          setFilters((prev) => ({
-            ...prev,
-            skillLevel: prev.skillLevel === chipId ? undefined : (chipId as SkillLevel),
-          }))
-        }
-        activeCount={activeCount}
-        onReset={handleResetAll}
-        resultsCount={teams.length}
-        resultsPending={isFetching}
-        advanced={<TeamFilters filters={filters} onChange={setFilters} />}
-      />
+      <div className="teams-results" data-testid={testId('teams', 'teams-page', 'row', 'results')}>
+        <p
+          className="teams-results__count"
+          aria-live="polite"
+          data-testid={testId('teams', 'teams-page', 'text', 'results')}
+        >
+          {isFetching && !isLoading ? (
+            'Обновляем результаты…'
+          ) : (
+            <>
+              Найдено: <strong>{visibleTeams.length}</strong>
+            </>
+          )}
+        </p>
+        <div className="teams-results__actions">
+          {activeCount > 0 || hasSearch ? (
+            <button
+              type="button"
+              className="hockey-section-link teams-results__reset"
+              onClick={handleResetAll}
+              data-testid={testId('teams', 'teams-page', 'btn', 'reset-filters')}
+            >
+              Сбросить
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className={`hockey-section-link teams-results__favorites${favoritesOnly ? ' is-active' : ''}`}
+            aria-pressed={favoritesOnly}
+            onClick={() => setFavoritesOnly((prev) => !prev)}
+            data-testid={testId('teams', 'teams-page', 'btn', 'favorites')}
+          >
+            {favoritesOnly ? 'Все команды' : 'Избранные'}
+          </button>
+        </div>
+      </div>
 
       {isLoading && (
         <ScoreboardLoader
@@ -147,10 +221,14 @@ export function TeamsPage() {
         />
       )}
 
-      {!isLoading && !isError && teams.length === 0 && (
+      {!isLoading && !isError && visibleTeams.length === 0 && (
         <EmptyNetState
-          title="Команды не найдены"
-          copy="Измените поиск или сбросьте фильтры."
+          title={favoritesOnly ? 'В избранном нет команд' : 'Команды не найдены'}
+          copy={
+            favoritesOnly
+              ? 'Отметьте команды сердечком — они появятся здесь.'
+              : 'Измените поиск или сбросьте фильтры.'
+          }
           testIdPrefix="teams"
           data-testid={testId('teams', 'teams-page', 'empty')}
           action={
@@ -173,7 +251,7 @@ export function TeamsPage() {
           className="team-feed hockey-stack hockey-stack--gap-12"
           data-testid={testId('teams', 'teams-page', 'panel', 'feed')}
         >
-          {teams.map((team, index) => (
+          {visibleTeams.map((team, index) => (
             <ScrollReveal
               key={team.id}
               direction={index % 2 === 0 ? 'left' : 'right'}

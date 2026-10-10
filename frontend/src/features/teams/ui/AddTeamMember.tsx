@@ -17,8 +17,11 @@ import {
   fetchTeamRoster,
   inviteTeamMemberByEmail,
 } from '@/entities/team'
+import {POSITION_LABELS, SKILL_LEVEL_LABELS} from '@/features/events'
 import {testId} from '@/shared/testing/testId'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
+
+import {TeamPositionBadge} from './TeamPositionBadge'
 
 const INVITE_STATUS_LABELS: Record<TeamInviteStatus, string> = {
   sent: 'Отправлено приглашение',
@@ -161,7 +164,7 @@ export function AddTeamMember({teamId}: AddTeamMemberProps) {
       />
 
       <div
-        className="add-team-member__results hockey-stack hockey-stack--gap-8"
+        className="add-team-member__results"
         data-testid={testId('teams', 'add-team-member', 'list', 'search', teamId)}
       >
         {playersLoading && (
@@ -185,32 +188,36 @@ export function AddTeamMember({teamId}: AddTeamMemberProps) {
         {searchablePlayers.slice(0, 8).map((player) => (
           <div
             key={player.userId}
-            className="hockey-row hockey-row--between hockey-row--gap-8"
+            className="hockey-list-row team-invite-row"
             data-testid={testId('teams', 'add-team-member', 'row', 'player', player.userId)}
           >
-            <div className="hockey-stack hockey-stack--gap-2">
+            <TeamPositionBadge position={player.position} />
+            <div className="team-invite-row__body">
               <Text
-                variant="subheader-2"
+                className="team-invite-row__name"
                 data-testid={testId('teams', 'add-team-member', 'text', 'name', player.userId)}
               >
                 {player.displayName}
               </Text>
               <Text
                 color="secondary"
+                className="team-invite-row__meta"
                 data-testid={testId('teams', 'add-team-member', 'text', 'meta', player.userId)}
               >
-                {player.position} · {player.skillLevel}
+                {POSITION_LABELS[player.position] ?? player.position} ·{' '}
+                {SKILL_LEVEL_LABELS[player.skillLevel] ?? player.skillLevel}
                 {player.city ? ` · ${player.city}` : ''}
               </Text>
             </div>
             <HockeyButton
-              size="s"
+              size="l"
               view="action"
+              className="team-invite-row__btn"
               loading={addMemberMutation.isPending && addMemberMutation.variables === player.userId}
               onClick={() => addMemberMutation.mutate(player.userId)}
               data-testid={testId('teams', 'add-team-member', 'btn', 'invite', player.userId)}
             >
-              Пригласить
+              Отправить приглашение
             </HockeyButton>
           </div>
         ))}

@@ -6,7 +6,6 @@
 
 import {CalendarShell} from '@/features/calendar'
 import {testId} from '@/shared/testing/testId'
-import {IceCard} from '@/shared/ui/IceCard'
 import {PageHub} from '@/shared/ui/PageHub'
 
 /**
@@ -17,9 +16,9 @@ import {PageHub} from '@/shared/ui/PageHub'
 export function CalendarPage() {
   return (
     <PageHub data-testid={testId('calendar', 'page')}>
-      <IceCard padding="m" data-testid={testId('calendar', 'page', 'card', 'shell')}>
+      <div data-testid={testId('calendar', 'page', 'card', 'shell')}>
         <CalendarShell />
-      </IceCard>
+      </div>
     </PageHub>
   )
 }

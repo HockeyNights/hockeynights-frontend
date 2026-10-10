@@ -4,6 +4,7 @@ export {
   writeLeagueFiltersToSearchParams,
 } from './lib/leagueCatalogFilters'
 export {LeagueAnalyticsPanel} from './ui/LeagueAnalyticsPanel'
+export {LeagueApplicationPanel} from './ui/LeagueApplicationPanel'
 export {LeagueApplicationsPanel} from './ui/LeagueApplicationsPanel'
 export {LeagueCard} from './ui/LeagueCard'
 export {LeagueFilters} from './ui/LeagueFilters'

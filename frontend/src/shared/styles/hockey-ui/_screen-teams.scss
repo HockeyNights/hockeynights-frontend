@@ -1,0 +1,1335 @@
+@use '../mixins' as *;
+
+/* Экраны Figma: teams — каталог, профиль команды, расстановка, мессенджер */
+
+/* ---------- Общие примитивы раздела ---------- */
+
+/** Квадратная плитка-аватар с жёлтой рамкой (команда, диалог). */
+.team-avatar-tile {
+  --team-avatar-size: 78px;
+
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--team-avatar-size);
+  height: var(--team-avatar-size);
+  overflow: hidden;
+  border: 1px solid var(--hockey-ui-accent);
+  border-radius: 15px;
+  /* Полупрозрачная подложка — одинаково темнит карточку в обеих темах. */
+  background: rgb(0 0 0 / 25%);
+  color: #fff;
+}
+
+.team-avatar-tile__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/** Плашка-метка «5 игроков», «В лиге». */
+.team-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 7px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: 10px;
+  background: var(--hockey-ui-card);
+  color: var(--hockey-ui-muted);
+  font-size: 14px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+/** Круглое «сердечко» из макета. */
+.favorite-btn.team-favorite {
+  width: 52px;
+  height: 52px;
+  border: 1px solid color-mix(in srgb, var(--hockey-ui-red) 20%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hockey-ui-red) 10%, transparent);
+  color: var(--hockey-ui-red);
+  box-shadow:
+    0 6px 16px rgb(0 0 0 / 8%),
+    0 3px 6px -4px rgb(0 0 0 / 12%);
+
+  &:hover:not(:disabled),
+  &.favorite-btn--active {
+    border-color: color-mix(in srgb, var(--hockey-ui-red) 45%, transparent);
+    color: var(--hockey-ui-red);
+  }
+}
+
+.favorite-btn.team-favorite--s {
+  width: 46px;
+  height: 46px;
+}
+
+/** Строка участника: аватар, имя + бейдж амплуа, роль справа. */
+.team-person-row {
+  min-height: 42px;
+
+  &__avatar {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 25%);
+    color: #fff;
+    font-size: 12px;
+  }
+
+  &__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    min-width: 0;
+  }
+
+  &__name {
+    color: var(--hockey-ui-text);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 20px;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--hockey-ui-accent);
+    }
+  }
+
+  &__role {
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: var(--hockey-ui-muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: right;
+
+    &.is-lead {
+      color: var(--hockey-ui-green);
+    }
+  }
+}
+
+/** Бейдж амплуа «ВР / ЗЩ / НП». */
+.team-pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 31px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: var(--hockey-ui-badge-radius);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 15px;
+  background: color-mix(in srgb, var(--team-pos-color) 18%, transparent);
+  color: var(--team-pos-color);
+
+  --team-pos-color: var(--hockey-ui-blue);
+
+  &--goalie {
+    --team-pos-color: var(--hockey-ui-green);
+  }
+
+  &--forward {
+    --team-pos-color: var(--hockey-ui-gold);
+  }
+
+  &--any {
+    --team-pos-color: var(--hockey-ui-muted);
+  }
+}
+
+/** Подпись группы в списке: «Вратари», «Защитники». */
+.team-group-label {
+  margin: 0;
+  padding: 4px 0 0;
+  color: var(--hockey-ui-muted);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+/* ---------- /teams: hero с поиском и фильтрами ---------- */
+
+.catalog-filters.teams-hero {
+  row-gap: 14px;
+
+  .page-header {
+    align-items: flex-start;
+  }
+
+  .teams-hero__create .g-button {
+    --g-button-border-radius: var(--hockey-ui-control-radius);
+  }
+
+  .catalog-filters__advanced {
+    display: block;
+    padding-top: 0;
+    border-top: 0;
+    animation: none;
+  }
+
+  .teams-hero__filters {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .teams-hero__filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .team-filters__select {
+    flex: 1 1 140px;
+    min-width: 0;
+
+    .g-select-control__button {
+      height: var(--hockey-ui-control-height);
+      min-height: var(--hockey-ui-control-height);
+      padding-inline: 20px 14px;
+      border-color: var(--hockey-ui-card-border);
+      background: var(--hockey-ui-card);
+      text-align: left;
+    }
+
+    .g-select-control__placeholder,
+    .g-select-control__option-text {
+      color: var(--hockey-ui-text);
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+
+  @include breakpoint(769px) {
+    /* Выпадающие фильтры на desktop всегда раскрыты — кнопка-переключатель не нужна. */
+    .catalog-filters__meta {
+      display: none;
+    }
+
+    .catalog-filters__advanced[hidden] {
+      display: block;
+    }
+  }
+
+  @include breakpoint(1024px) {
+    /* Игрок: шапка → поиск слева / фильтры справа (27:53078). */
+    grid-template-columns: minmax(240px, 1fr) auto;
+    grid-template-areas:
+      'header header'
+      'search advanced'
+      'meta meta';
+    column-gap: 14px;
+    align-items: end;
+
+    .catalog-filters__header {
+      grid-area: header;
+    }
+
+    .catalog-filters__search {
+      grid-area: search;
+      max-width: 500px;
+    }
+
+    .catalog-filters__advanced {
+      grid-area: advanced;
+      justify-self: end;
+    }
+
+    .catalog-filters__meta {
+      grid-area: meta;
+    }
+
+    .teams-hero__filters-row {
+      flex-wrap: nowrap;
+    }
+
+    .team-filters__select {
+      flex: 0 0 auto;
+      width: auto;
+      max-width: 240px;
+    }
+
+    &.teams-hero--extended {
+      grid-template-areas:
+        'header header'
+        'search advanced'
+        'chips chips'
+        'meta meta';
+
+      .catalog-filters__chips {
+        grid-area: chips;
+        padding-top: 6px;
+      }
+
+      .catalog-filters__search {
+        max-width: none;
+      }
+    }
+  }
+}
+
+.teams-results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+
+  &__count {
+    margin: 0;
+    color: var(--hockey-ui-subtle);
+    font-size: 20px;
+    line-height: 20px;
+
+    strong {
+      margin-left: 4px;
+      color: var(--hockey-ui-text);
+      font-weight: 600;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__reset {
+    color: var(--hockey-ui-muted);
+  }
+
+  &__favorites.is-active {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+/* ---------- Карточка команды в ленте ---------- */
+
+.ice-card.team-card--feed {
+  padding: 17px;
+  border-radius: 20px;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--hockey-ui-accent) 45%, var(--hockey-ui-card-border));
+    transform: none;
+  }
+
+  .team-card__feed-row {
+    align-items: center;
+    gap: 16px;
+  }
+
+  .team-card__feed-main {
+    gap: 0;
+  }
+
+  .team-card__name {
+    color: var(--hockey-ui-text);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 32px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  .team-card__subtitle {
+    font-size: 16px;
+    line-height: 20px;
+  }
+
+  .team-card__feed-meta {
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  @include breakpoint($max: 768px) {
+    .team-avatar-tile {
+      --team-avatar-size: 56px;
+    }
+
+    .team-card__name {
+      font-size: 18px;
+      line-height: 24px;
+    }
+
+    .favorite-btn.team-favorite {
+      width: 40px;
+      height: 40px;
+    }
+  }
+}
+
+/* ---------- /teams/:id: профиль команды ---------- */
+
+.team-profile {
+  .team-profile__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 574px);
+    gap: 18px 32px;
+    align-items: start;
+    padding: 18px;
+    border: 1px solid var(--hockey-ui-card-border);
+    border-left: 1px solid var(--hockey-ui-card-border);
+    border-radius: var(--hockey-ui-card-radius);
+    background: var(--hockey-ui-card);
+    box-shadow: var(--hockey-ui-card-shadow);
+  }
+
+  .team-profile__identity {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 0;
+    padding-top: 4px;
+  }
+
+  .team-profile__hero-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .team-profile__avatar {
+    --team-avatar-size: 85px;
+
+    border-radius: 20px;
+  }
+
+  .team-profile__hero-copy {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding-inline: 2px 12px;
+  }
+
+  .team-profile__title {
+    margin: 0;
+    color: var(--hockey-ui-text);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 32px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  .team-profile__subline {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 16px;
+  }
+
+  .team-profile__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .team-profile__pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 95px;
+    min-height: 38px;
+    padding: 0 21px;
+    border: 1px solid var(--hockey-ui-card-border);
+    border-radius: 22px;
+    background: var(--hockey-ui-card);
+    color: var(--hockey-ui-muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: 0.1px;
+  }
+
+  .team-profile__contact {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 36px 18px 24px 30px;
+    border: 1px solid var(--hockey-ui-card-border);
+    border-radius: var(--hockey-ui-card-radius);
+    background: var(--hockey-ui-card);
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 20%),
+      0 4px 6px -4px rgb(0 0 0 / 20%);
+
+    .g-button_view_action {
+      --g-button-border-radius: var(--hockey-ui-button-radius);
+    }
+  }
+
+  .team-profile__lead {
+    font-size: 16px;
+    line-height: 20px;
+  }
+
+  .team-profile__hint {
+    font-size: 14px;
+    line-height: 16px;
+  }
+
+  .team-profile__sections {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px;
+    align-items: start;
+  }
+
+  .team-profile__column,
+  .team-profile__section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .team-profile__column {
+    gap: 14px;
+  }
+
+  .team-profile__section {
+    gap: 11px;
+  }
+
+  .team-profile__toggle {
+    color: var(--hockey-ui-muted);
+
+    &:hover {
+      color: var(--hockey-ui-text);
+    }
+  }
+
+  .ice-card.team-profile__card {
+    padding: 15px;
+    border-radius: var(--hockey-ui-card-radius);
+  }
+
+  .team-profile__list,
+  .team-profile__group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .team-profile__list {
+    gap: 6px;
+  }
+
+  .team-profile__rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .team-person-row {
+    padding: 12px 0 13px;
+    border-top: 1px solid var(--hockey-ui-row-border);
+    border-bottom: 0;
+  }
+
+  .team-profile__group .team-person-row:first-child {
+    border-top: 1px solid var(--hockey-ui-row-border);
+  }
+
+  .team-profile__card > .team-profile__rows > .team-person-row:first-child {
+    border-top: 0;
+  }
+
+  /* Календарь: общий превью-блок из features/calendar под вид макета. */
+  .team-profile__calendar {
+    [data-testid='teams-schedule-preview-text-title'] {
+      display: none;
+    }
+
+    [data-testid='teams-schedule-preview-panel'] > .hockey-row > a {
+      flex: 1 1 100%;
+    }
+
+    [data-testid='teams-schedule-preview-btn-open'] {
+      width: 100%;
+      height: 46px;
+    }
+
+    [data-testid='teams-schedule-preview-list'] {
+      margin: 4px 0 0;
+      padding: 0;
+      gap: 12px;
+      list-style: none;
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &::before {
+          content: '';
+          flex: 0 0 auto;
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: var(--hockey-ui-accent);
+        }
+      }
+
+      .g-text {
+        color: var(--hockey-ui-text);
+        font-size: 12px;
+        line-height: 16px;
+      }
+    }
+  }
+
+  .team-calendar-section {
+    gap: 0;
+    margin-top: 12px;
+  }
+
+  .team-calendar-section__row {
+    padding: 13px 0 12px;
+    border-top: 1px solid var(--hockey-ui-row-border);
+    border-bottom: 0;
+
+    .g-text_variant_subheader-2 {
+      color: var(--hockey-ui-text);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 14px;
+      letter-spacing: 0.45px;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    .g-text_color_secondary {
+      font-size: 14px;
+      line-height: 14px;
+    }
+  }
+
+  .team-calendar-section__need {
+    color: var(--hockey-ui-green);
+  }
+
+  .ice-card.team-profile__info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 13px;
+    border-radius: 25px;
+
+    p {
+      margin: 0;
+      font-size: 16px;
+      line-height: 20px;
+    }
+  }
+
+  .team-profile__info-label,
+  .team-profile__info-muted {
+    color: var(--hockey-ui-subtle);
+  }
+
+  .team-profile__info-line strong {
+    color: var(--hockey-ui-text);
+    font-weight: 500;
+  }
+
+  .team-profile__info-text {
+    color: var(--hockey-ui-text);
+  }
+
+  @include breakpoint($max: 1023px) {
+    .team-profile__hero,
+    .team-profile__sections {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .team-profile__contact {
+      padding: 18px;
+    }
+  }
+
+  @include breakpoint($max: 640px) {
+    .team-profile__avatar {
+      --team-avatar-size: 64px;
+    }
+
+    .team-profile__title {
+      font-size: 20px;
+      line-height: 26px;
+    }
+  }
+}
+
+[data-hockey-theme='ice'] .team-profile .team-profile__hero {
+  background: var(--hockey-ui-card);
+}
+
+/* ---------- /messenger ---------- */
+
+.messenger-hub {
+  --messenger-radius: var(--hockey-ui-control-radius);
+  --messenger-typing: var(--hockey-ui-blue);
+
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+}
+
+/* Карточка-hero: заголовок, вкладки и строка «поиск + новый канал + новый чат». */
+.messenger-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 26px 18px 18px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: var(--hockey-ui-card-radius);
+  background: var(--hockey-ui-card);
+  box-shadow: var(--hockey-ui-card-shadow);
+
+  .app-shell__main-col & .page-header {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .messenger-hub__toolbar {
+    justify-content: flex-end;
+  }
+
+  .hockey-segmented__item {
+    min-height: 40px;
+  }
+}
+
+.messenger-hero__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  .messenger-hero__search {
+    flex: 1 1 320px;
+    min-width: 0;
+
+    .g-text-input__content {
+      min-height: var(--hockey-ui-control-height);
+      border-color: var(--hockey-ui-card-border);
+      border-radius: var(--hockey-ui-control-radius);
+      background: var(--hockey-ui-card);
+    }
+  }
+
+  .messenger-hero__btn {
+    flex: 0 1 299px;
+    min-width: 150px;
+    --g-button-border-radius: var(--hockey-ui-control-radius);
+  }
+}
+
+/* Список диалогов — отдельные карточки без общей подложки. */
+.messenger-hub .ice-card.messenger-hub__sidebar--bare {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.messenger-hub .chat-list {
+  gap: 10px;
+  padding: 3px;
+}
+
+.messenger-hub .chat-item {
+  position: relative;
+  padding: 0;
+  border: 1px solid var(--hockey-ui-row-border);
+  border-radius: 24px;
+  background: var(--hockey-ui-card);
+  box-shadow: var(--hockey-ui-card-shadow);
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--hockey-ui-accent) 45%, var(--hockey-ui-row-border));
+    background: var(--hockey-ui-card);
+  }
+
+  &--selected,
+  &--selected:hover {
+    border-color: var(--hockey-ui-accent);
+    background: var(--hockey-ui-card);
+    box-shadow: 0 0 6px var(--hockey-ui-accent);
+  }
+
+  &:active {
+    transform: none;
+  }
+
+  .chat-item__open {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px;
+    border-radius: 23px;
+  }
+
+  .chat-item__avatar {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    overflow: hidden;
+    border: 1px solid var(--hockey-ui-accent);
+    border-radius: 13px;
+    background: rgb(0 0 0 / 25%);
+    color: #fff;
+
+    &--system {
+      border-color: var(--hockey-ui-card-border);
+      background: var(--hockey-ui-card);
+      color: var(--hockey-ui-muted);
+    }
+  }
+
+  .chat-item__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .chat-item__info {
+    gap: 2px;
+  }
+
+  .chat-item__title-row {
+    gap: 6px;
+  }
+
+  .chat-item__title {
+    flex: 0 1 auto;
+    color: var(--hockey-ui-text);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
+  }
+
+  .chat-item__pinned {
+    display: inline-flex;
+    color: var(--hockey-ui-accent);
+  }
+
+  .chat-item__tag {
+    padding: 0 6px;
+    border: 0;
+  }
+
+  .chat-item__time {
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: var(--hockey-ui-muted);
+    font-family: var(--hockey-font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 16px;
+  }
+
+  .chat-item__typing {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--messenger-typing);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 16px;
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentcolor;
+    }
+  }
+
+  .chat-item__last-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .chat-item__last-msg {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--hockey-ui-muted);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 16px;
+  }
+
+  .chat-item__unread {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: var(--hockey-ui-red);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  /* Desktop: переключатель закрепления появляется на месте времени при наведении. */
+  @include breakpoint(769px) {
+    .chat-item__pin {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--hockey-ui-card-border);
+      border-radius: 999px;
+      background: var(--hockey-ui-card);
+    }
+
+    .chat-item__pin,
+    .chat-item__pin.is-pinned {
+      opacity: 0;
+    }
+
+    .chat-item__pin:not(.is-pinned):not(:hover):not(:focus-visible) {
+      background: var(--hockey-ui-card);
+    }
+
+    &:hover .chat-item__pin,
+    &:has(:focus-visible) .chat-item__pin {
+      opacity: 1;
+    }
+
+    &:hover .chat-item__time,
+    &:has(:focus-visible) .chat-item__time {
+      visibility: hidden;
+    }
+  }
+}
+
+/* Открытый диалог */
+.messenger-hub .ice-card.messenger-hub__conversation {
+  border-radius: var(--hockey-ui-card-radius);
+  overflow: hidden;
+}
+
+.messenger-hub .messenger-header {
+  align-items: flex-start;
+  padding: 30px 18px 4px;
+  border-bottom: 0;
+  background: none;
+  backdrop-filter: none;
+
+  .messenger-header__avatar {
+    display: none;
+  }
+
+  .messenger-header__title .g-text_variant_subheader-2 {
+    color: var(--hockey-ui-text);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 32px;
+    letter-spacing: -0.6px;
+    text-transform: uppercase;
+  }
+
+  .messenger-header__typing {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding-left: 5px;
+    color: var(--messenger-typing);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 16px;
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentcolor;
+    }
+  }
+
+  .messenger-header__actions {
+    gap: 6px;
+  }
+
+  .messenger-header__actions .hockey-button {
+    height: 33px !important;
+    min-height: 33px;
+    font-size: 12px;
+  }
+
+  .messenger-header__pin {
+    width: 33px;
+    min-width: 33px;
+    padding: 0;
+    --g-button-border-radius: 8px;
+  }
+}
+
+.messenger-hub .messenger-topics {
+  gap: 10px;
+  padding: 8px 18px 12px;
+  border-bottom: 0;
+
+  .messenger-topics__item {
+    height: 33px;
+    padding: 0 15px;
+    border-color: var(--hockey-ui-raised-border);
+    border-radius: var(--hockey-ui-control-radius);
+    background: var(--hockey-ui-raised);
+    color: var(--hockey-ui-muted);
+    font-weight: 600;
+
+    small {
+      opacity: 1;
+    }
+
+    &.is-active {
+      border-color: var(--hockey-ui-accent);
+      background: var(--hockey-ui-raised);
+      color: var(--hockey-ui-text);
+    }
+  }
+}
+
+.messenger-hub .messenger-messages {
+  gap: 14px;
+  padding: 18px;
+  background: none;
+}
+
+.messenger-hub .chat-bubble-sender {
+  margin: 0 0 4px 3px;
+  color: var(--hockey-ui-muted);
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 1;
+}
+
+.messenger-hub .chat-bubble {
+  padding: 15px;
+  border: 1px solid var(--hockey-ui-row-border);
+  border-radius: 14px 20px 20px 20px;
+  background: var(--hockey-ui-card);
+  backdrop-filter: none;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 10%),
+    0 1px 2px -1px rgb(0 0 0 / 10%);
+  color: var(--hockey-ui-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 23px;
+
+  &::after {
+    content: none;
+  }
+
+  &--own {
+    border-color: var(--hockey-ui-accent);
+    border-radius: 20px 14px 20px 20px;
+    background: var(--hockey-ui-accent);
+    color: var(--hockey-ui-accent-ink);
+
+    .chat-bubble-time,
+    .chat-bubble-status {
+      color: color-mix(in srgb, var(--hockey-ui-accent-ink) 70%, transparent);
+    }
+  }
+}
+
+.messenger-hub .chat-bubble-time {
+  color: var(--hockey-ui-muted);
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 1;
+}
+
+.messenger-hub .actionable-card {
+  border-radius: 14px 31px 31px 31px;
+
+  .g-button {
+    --g-button-border-radius: var(--hockey-ui-button-radius);
+  }
+}
+
+/* Композер: капсула с кнопками-плитками по краям. */
+.messenger-hub .messenger-input {
+  --messenger-composer-size: 51px;
+  --messenger-composer-line: 24px;
+
+  gap: 9px;
+  margin: 0;
+  padding: 9px 8px 20px;
+  border: 1px solid var(--hockey-ui-row-border);
+  border-radius: 29px;
+  background: color-mix(in srgb, var(--hockey-ui-surface) 70%, var(--hockey-ui-card));
+  backdrop-filter: blur(12px);
+
+  .g-text-area__content {
+    border-color: var(--hockey-ui-card-border);
+    border-radius: var(--hockey-ui-control-radius);
+    background: var(--hockey-ui-surface);
+  }
+
+  .g-text-area__control {
+    font-size: 16px;
+  }
+
+  .messenger-input__side-btn {
+    width: var(--messenger-composer-size);
+    min-width: var(--messenger-composer-size);
+    height: var(--messenger-composer-size) !important;
+    min-height: var(--messenger-composer-size);
+    padding: 0;
+    --g-button-border-radius: var(--hockey-ui-control-radius);
+    --g-button-background-color: var(--hockey-ui-card);
+  }
+
+  .messenger-input__send:not(:disabled) {
+    --g-button-text-color: var(--hockey-ui-accent);
+    --g-button-border-color: var(--hockey-ui-accent);
+  }
+}
+
+@include breakpoint(1200px) {
+  .messenger-hub__grid {
+    grid-template-columns: 371px minmax(0, 1fr);
+  }
+}
+
+@include breakpoint($max: 768px) {
+  .messenger-hero {
+    padding: 18px 14px 14px;
+  }
+
+  .messenger-hero__row .messenger-hero__btn {
+    flex: 1 1 calc(50% - 3px);
+  }
+
+  .messenger-hub--mobile-chat .messenger-hero {
+    display: none;
+  }
+
+  .messenger-hub .messenger-input {
+    --messenger-composer-size: 44px;
+
+    padding-bottom: 9px;
+  }
+}
+
+/* ---------- TeamLineupStudio: постановки и шаблоны (27:49546) ---------- */
+
+.lineup-studio {
+  display: grid;
+  gap: 12px;
+
+  .lineup-studio__card {
+    display: grid;
+    gap: 16px;
+    border-radius: var(--hockey-ui-card-radius);
+  }
+
+  .lineup-studio__toolbar {
+    display: grid;
+    gap: 12px;
+  }
+
+  .lineup-studio__hint {
+    margin: 0;
+    color: var(--hockey-ui-muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .lineup-studio__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .lineup-studio__name {
+    flex: 1 1 220px;
+    min-width: 0;
+    max-width: 360px;
+
+    .g-text-input__control {
+      height: var(--hockey-ui-control-height);
+      min-height: var(--hockey-ui-control-height);
+      border-radius: var(--hockey-ui-control-radius);
+    }
+  }
+
+  .lineup-studio__load {
+    flex: 0 1 220px;
+    min-width: 160px;
+
+    .g-select-control__button {
+      height: var(--hockey-ui-control-height);
+      min-height: var(--hockey-ui-control-height);
+      border-color: var(--hockey-ui-card-border);
+      border-radius: var(--hockey-ui-control-radius);
+      background: var(--hockey-ui-raised);
+    }
+  }
+
+  .lineup-studio__templates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .lineup-studio__template {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .lineup-board {
+    display: grid;
+    gap: 14px;
+  }
+
+  .lineup-board__rink-wrap {
+    border: 1px solid var(--hockey-ui-card-border);
+    border-radius: 20px;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgb(56 120 180 / 18%) 0%, transparent 68%),
+      linear-gradient(180deg, #16304d 0%, #0d1e33 100%);
+  }
+
+  .lineup-board__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    align-items: center;
+    padding: 12px 14px;
+    color: var(--hockey-ui-muted);
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .lineup-board__legend-item {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .lineup-board__legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    border: 1px solid var(--hockey-ui-card-border);
+
+    &--red {
+      background: color-mix(in srgb, var(--hockey-ui-red) 80%, #fff);
+      border-color: transparent;
+    }
+
+    &--white {
+      background: #f8fafc;
+      border-color: var(--hockey-ui-card-border);
+    }
+
+    &--free {
+      background: transparent;
+      border-color: var(--hockey-ui-muted);
+    }
+  }
+
+  .lineup-board__utility {
+    display: grid;
+    gap: 12px;
+
+    @include breakpoint(769px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .lineup-board__utility-section {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .lineup-board__utility-title {
+    margin: 0;
+    color: var(--hockey-ui-muted);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+  }
+
+  .lineup-board__list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--hockey-ui-card-border);
+    border-radius: 20px;
+    background: var(--hockey-ui-raised);
+    list-style: none;
+  }
+
+  .lineup-board__list-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    min-height: 42px;
+    padding: 6px 0;
+    border: 0;
+    border-bottom: 1px solid var(--hockey-ui-row-border);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: grab;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  @include breakpoint($max: 768px) {
+    .lineup-studio__controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .lineup-studio__name,
+    .lineup-studio__load {
+      max-width: none;
+    }
+  }
+}

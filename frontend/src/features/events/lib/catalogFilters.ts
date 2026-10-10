@@ -45,7 +45,7 @@ export const CATALOG_CHIPS: CatalogChip[] = [
   {id: 'tomorrow', label: 'Завтра'},
   {id: 'weekend', label: 'На выходных'},
   {id: 'evening', label: 'Вечером'},
-  {id: 'price-1500', label: 'До 1 500 ₽'},
+  {id: 'price-1500', label: 'До 1500 ₽'},
   {id: 'has-seats', label: 'Есть места'},
   {id: 'needs-goalie', label: 'Ищут вратаря'},
 ]

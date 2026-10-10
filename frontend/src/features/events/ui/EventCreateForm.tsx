@@ -468,19 +468,31 @@ function EventCreateFormFields({
   const showPaywallHint =
     type === 'training' && accessScope === 'public_open' && !hasPaidSubscription
 
+  const stepProgress = Math.round(((stepIndex + 1) / STEPS.length) * 100)
+
   return (
     <div
-      className="hockey-stack hockey-stack--gap-12"
+      className="hockey-stack hockey-stack--gap-12 event-create-form"
       data-testid={testId('events', 'create-form', 'panel')}
     >
-      <Text variant="subheader-2" data-testid={testId('events', 'create-form', 'text', 'title')}>
-        {isEdit
-          ? 'Редактировать тренировку'
-          : `Создание: шаг ${stepIndex + 1} из ${STEPS.length} — ${STEPS[stepIndex]?.label}`}
-      </Text>
+      <div className="event-create-form__step-head">
+        <Text variant="subheader-2" data-testid={testId('events', 'create-form', 'text', 'title')}>
+          {isEdit
+            ? 'Редактировать тренировку'
+            : `Создание: шаг ${stepIndex + 1} из ${STEPS.length} — ${STEPS[stepIndex]?.label}`}
+        </Text>
+        {!isEdit ? (
+          <span
+            className="event-create-form__progress"
+            data-testid={testId('events', 'create-form', 'text', 'progress')}
+          >
+            {stepProgress}%
+          </span>
+        ) : null}
+      </div>
 
       <div
-        className="hockey-row hockey-row--gap-8 hockey-row--wrap"
+        className="hockey-row hockey-row--gap-8 hockey-row--wrap event-create-form__steps"
         data-testid={testId('events', 'create-form', 'panel', 'steps')}
       >
         {STEPS.map((item, index) => (
@@ -488,12 +500,13 @@ function EventCreateFormFields({
             key={item.id}
             view={step === item.id ? 'action' : 'outlined'}
             size="s"
+            className="event-create-form__step"
             onClick={() => {
               if (index <= stepIndex || canProceedFrom(step)) setStep(item.id)
             }}
             data-testid={testId('events', 'create-form', 'btn', 'step', item.id)}
           >
-            {index + 1}. {item.label}
+            {item.label}
           </HockeyButton>
         ))}
       </div>
