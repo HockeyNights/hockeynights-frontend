@@ -1,8 +1,9 @@
 /**
- * Поле auth-формы: подпись сверху + единый отступ ввода.
+ * Поле auth-формы: подпись сверху + antd Input.
  */
 
-import {PasswordInput, TextInput} from '@gravity-ui/uikit'
+import {Input} from 'antd'
+import type {ReactNode} from 'react'
 
 import {testId} from '@/shared/testing/testId'
 
@@ -14,6 +15,7 @@ export interface AuthFieldProps {
   type?: 'text' | 'email' | 'password'
   autoComplete?: string
   placeholder?: string
+  labelExtra?: ReactNode
   testIdQualifier: string
   testIdScope?: 'login' | 'register'
 }
@@ -26,35 +28,42 @@ export function AuthField({
   type = 'text',
   autoComplete,
   placeholder,
+  labelExtra,
   testIdQualifier,
   testIdScope = 'login',
 }: AuthFieldProps) {
+  const inputTestId = testId('auth', testIdScope, 'field', testIdQualifier)
+  const resolvedPlaceholder =
+    placeholder ?? (type === 'email' ? 'ivanov@mail.ru' : type === 'password' ? 'Ваш пароль' : '')
+
   return (
     <div className="auth-form-field">
-      <label className="auth-form-field__label" htmlFor={fieldId}>
-        {label}
-      </label>
+      <div className="auth-form-field__label-row">
+        <label className="auth-form-field__label" htmlFor={fieldId}>
+          {label}
+        </label>
+        {labelExtra}
+      </div>
       {type === 'password' ? (
-        <PasswordInput
+        <Input.Password
           id={fieldId}
-          size="l"
+          size="large"
           value={value}
-          onUpdate={onUpdate}
+          onChange={(event) => onUpdate(event.target.value)}
           autoComplete={autoComplete}
-          placeholder={placeholder}
-          hideCopyButton
-          data-testid={testId('auth', testIdScope, 'field', testIdQualifier)}
+          placeholder={resolvedPlaceholder}
+          data-testid={inputTestId}
         />
       ) : (
-        <TextInput
+        <Input
           id={fieldId}
-          size="l"
+          size="large"
           type={type}
           value={value}
-          onUpdate={onUpdate}
+          onChange={(event) => onUpdate(event.target.value)}
           autoComplete={autoComplete}
-          placeholder={placeholder}
-          data-testid={testId('auth', testIdScope, 'field', testIdQualifier)}
+          placeholder={resolvedPlaceholder}
+          data-testid={inputTestId}
         />
       )}
     </div>

@@ -12,6 +12,8 @@ import {useSessionAccess} from '@/features/access'
 import {testId} from '@/shared/testing/testId'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 
+import {EventRegistrationNotice} from './EventDetailsBlocks'
+
 export interface TrainingRegistrationControlProps {
   eventId: string
   /** Для корректного текста «на игру» / «на тренировку» */
@@ -21,6 +23,11 @@ export interface TrainingRegistrationControlProps {
   currentUserId?: string
   /** Без текста статуса — для плотных карточек календаря */
   compact?: boolean
+  /**
+   * `block` — без текста статуса, кнопки во всю ширину (карточка каталога);
+   * `panel` — статус плиткой, кнопки во всю ширину (деталка события).
+   */
+  layout?: 'default' | 'block' | 'panel'
 }
 
 function invalidateTrainingQueries(
@@ -42,6 +49,7 @@ export function TrainingRegistrationControl({
   currentStatus,
   registrationStatus = 'open',
   compact = false,
+  layout = 'default',
 }: TrainingRegistrationControlProps) {
   const queryClient = useQueryClient()
   const {session} = useSessionAccess()
@@ -52,6 +60,8 @@ export function TrainingRegistrationControl({
   const isWaitlisted = currentStatus === 'maybe'
   const isFull = registrationStatus === 'full'
   const entityLabel = eventType === 'game' ? 'игру' : 'тренировку'
+  const isBlock = layout === 'block'
+  const isPanel = layout === 'panel'
 
   const mutation = useMutation({
     mutationFn: (status: AttendanceStatus) => updateAttendance(eventId, status, displayName),
@@ -63,23 +73,28 @@ export function TrainingRegistrationControl({
   })
 
   const statusText = isRegistered
-    ? `Вы записаны на ${entityLabel}`
+    ? isPanel
+      ? `Вы успешно записаны на ${entityLabel}`
+      : `Вы записаны на ${entityLabel}`
     : isWaitlisted
       ? 'Вы в листе ожидания'
       : isFull
         ? 'Мест нет — можно встать в лист ожидания'
         : 'Есть свободные места'
+  const statusHint =
+    isPanel && isRegistered ? 'Вам придёт напоминание за 2 часа до начала.' : undefined
+
+  const layoutClass = layout === 'default' ? '' : ` training-registration--${layout}`
+  const rootClass = compact
+    ? 'hockey-row hockey-row--gap-8 hockey-row--wrap'
+    : 'hockey-stack hockey-stack--gap-8'
 
   return (
     <div
-      className={
-        compact
-          ? 'hockey-row hockey-row--gap-8 hockey-row--wrap'
-          : 'hockey-stack hockey-stack--gap-8'
-      }
+      className={`${rootClass} training-registration${layoutClass}`}
       data-testid={testId('events', 'training-registration', 'panel', eventId)}
     >
-      {!compact && (
+      {!compact && !isBlock && !isPanel && (
         <Text
           color="secondary"
           data-testid={testId('events', 'training-registration', 'text', 'status', eventId)}
@@ -88,8 +103,28 @@ export function TrainingRegistrationControl({
         </Text>
       )}
 
+      {isPanel && (
+        <EventRegistrationNotice positive={isRegistered}>
+          <Text
+            className="event-details__notice-title"
+            data-testid={testId('events', 'training-registration', 'text', 'status', eventId)}
+          >
+            {statusText}
+          </Text>
+          {statusHint ? (
+            <Text
+              color="secondary"
+              className="event-details__notice-hint"
+              data-testid={testId('events', 'training-registration', 'text', 'hint', eventId)}
+            >
+              {statusHint}
+            </Text>
+          ) : null}
+        </EventRegistrationNotice>
+      )}
+
       <div
-        className="hockey-row hockey-row--gap-8 hockey-row--wrap"
+        className="hockey-row hockey-row--gap-8 hockey-row--wrap training-registration__actions"
         data-testid={testId('events', 'training-registration', 'list', 'actions', eventId)}
       >
         {!isRegistered && !isWaitlisted && !isFull && (
@@ -120,6 +155,7 @@ export function TrainingRegistrationControl({
           <HockeyButton
             view="outlined"
             size="m"
+            className="training-registration__cancel"
             loading={mutation.isPending}
             onClick={() => setConfirmCancel(true)}
             data-testid={testId('events', 'training-registration', 'btn', 'cancel', eventId)}

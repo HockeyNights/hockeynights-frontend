@@ -81,30 +81,39 @@ export function LeaguesPage() {
   const showEmpty = showLayout && leagues.length === 0
 
   return (
-    <PageHub data-testid={testId('leagues', 'page')}>
-      <PageHeader
-        title={LEAGUES_PAGE_TITLE}
-        subtitle="Лиги Москвы и России. Данные могут быть mock, manual, imported или external — смотрите бейдж источника."
-        testIdPrefix="leagues"
-      />
+    <PageHub className="leagues-page" data-testid={testId('leagues', 'page')}>
+      <section className="leagues-hero" data-testid={testId('leagues', 'page', 'card', 'hero')}>
+        <LeagueFilters
+          filters={filters}
+          onChange={applyFilters}
+          onReset={handleResetFilters}
+          resultsCount={leagues.length}
+          resultsPending={isFetching}
+          header={
+            <div className="leagues-hero__header">
+              <PageHeader
+                title={LEAGUES_PAGE_TITLE}
+                subtitle="Лиги Москвы и России. Данные могут быть mock, manual, imported или external — смотрите бейдж источника."
+                testIdPrefix="leagues"
+              />
+              {leagueMembership ? (
+                <div data-testid={testId('leagues', 'page', 'panel', 'partner-access')}>
+                  <PartnerCabinetBanner membership={leagueMembership} />
+                </div>
+              ) : null}
+            </div>
+          }
+        />
 
-      <div data-testid={testId('leagues', 'page', 'panel', 'partner-access')}>
-        {leagueMembership ? (
-          <PartnerCabinetBanner membership={leagueMembership} />
-        ) : (
-          <PartnerAccessHint kind="league" />
-        )}
-      </div>
-
-      <MyLeagueWidget />
-
-      <LeagueFilters
-        filters={filters}
-        onChange={applyFilters}
-        onReset={handleResetFilters}
-        resultsCount={leagues.length}
-        resultsPending={isFetching}
-      />
+        <div className="leagues-hero__row" data-testid={testId('leagues', 'page', 'row', 'hero')}>
+          {leagueMembership ? null : (
+            <div data-testid={testId('leagues', 'page', 'panel', 'partner-access')}>
+              <PartnerAccessHint kind="league" />
+            </div>
+          )}
+          <MyLeagueWidget />
+        </div>
+      </section>
 
       {isPending && (
         <div data-testid={testId('leagues', 'page', 'loader')}>
@@ -146,10 +155,7 @@ export function LeaguesPage() {
       )}
 
       {showLayout && leagues.length > 0 && (
-        <div
-          className="hockey-grid hockey-grid--cards-300"
-          data-testid={testId('leagues', 'page', 'list')}
-        >
+        <div className="leagues-page__list" data-testid={testId('leagues', 'page', 'list')}>
           {leagues.map((league: League) => (
             <LeagueCard key={league.id} league={league} onOpenDetails={openLeague} />
           ))}

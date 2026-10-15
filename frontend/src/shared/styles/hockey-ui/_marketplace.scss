@@ -1,109 +1,236 @@
+@use '../mixins' as *;
+
 /**
- * SPEC-FR-9.3.1
+ * SPEC-FR-9.3.1 — /shops «Маркет экипировки» (макет Figma 27:61267 / 27:62090)
  */
+
+/* ---------- Hero: шапка, магазины в приоритете, фильтры ---------- */
+
+/**
+ * Desktop: поиск | сортировка | позиция в одну строку, переключатель «Только в наличии» —
+ * отдельной строкой под быстрым фильтром. Контролы расширенных фильтров становятся
+ * ячейками общей сетки (`display: contents`), поэтому кнопка «Фильтры» на desktop скрыта.
+ */
+.marketplace-filters.catalog-filters {
+  @include breakpoint(769px) {
+    grid-template-columns: minmax(0, 500fr) minmax(0, 275fr) minmax(0, 280fr);
+    grid-template-areas:
+      'header header header'
+      'search sort position'
+      'chips chips chips'
+      'check check .'
+      'meta meta meta';
+    column-gap: 20px;
+
+    .catalog-filters__search {
+      margin-right: 32px;
+    }
+
+    .catalog-filters__advanced,
+    .catalog-filters__advanced[hidden] {
+      display: contents;
+    }
+
+    .catalog-filters__advanced > :nth-child(1) {
+      grid-area: sort;
+    }
+
+    .catalog-filters__advanced > :nth-child(2) {
+      grid-area: position;
+    }
+
+    .marketplace-filters__stock {
+      grid-area: check;
+    }
+  }
+
+  .catalog-filters__advanced .g-select,
+  .catalog-filters__advanced .g-select-control {
+    width: 100%;
+  }
+}
+
+.marketplace-filters__stock {
+  box-sizing: border-box;
+  min-height: 55px;
+  padding: 0 11px;
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: 16px;
+  background: var(--hockey-ui-card);
+
+  --g-color-base-brand: var(--hockey-ui-accent);
+  --g-color-base-brand-hover: var(--hockey-ui-accent-hover);
+
+  .g-switch {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .g-control-label__text,
+  .g-switch__text {
+    color: var(--hockey-ui-subtle);
+    font-size: 16px;
+    line-height: 16px;
+  }
+}
+
+.marketplace-strip {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.marketplace-strip__header {
+  display: grid;
+  gap: 4px;
+}
+
+.app-shell__main-col .marketplace-strip__title {
+  margin: 0;
+  color: var(--hockey-ui-text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+}
+
+.app-shell__main-col .marketplace-strip__subtitle {
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--hockey-ui-subtle);
+}
+
+.marketplace-strip__scroll {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 12px 28px;
+}
+
+.marketplace-strip__card {
+  --strip-tier-color: var(--hockey-ui-muted);
+
+  box-sizing: border-box;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 8px;
+  min-width: 0;
+  min-height: 124px;
+  padding: 11px 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--strip-tier-color) 20%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--strip-tier-color) 10%, transparent);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--strip-tier-color) 55%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--hockey-ui-accent);
+    outline-offset: 2px;
+  }
+
+  &.is-active {
+    border-color: var(--strip-tier-color);
+    box-shadow: 0 0 0 1px var(--strip-tier-color);
+  }
+}
+
+.marketplace-strip__card--premium {
+  --strip-tier-color: var(--hockey-ui-gold);
+}
+
+.marketplace-strip__card--boosted {
+  --strip-tier-color: var(--hockey-ui-blue);
+}
+
+.marketplace-strip__card-tier {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--strip-tier-color) 20%, transparent);
+  color: var(--strip-tier-color);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.marketplace-strip__card-name {
+  color: var(--hockey-ui-text);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.marketplace-strip__card-meta {
+  color: var(--hockey-ui-subtle);
+  font-size: 14px;
+  line-height: 15px;
+}
+
+.marketplace-strip__card-promo {
+  color: var(--strip-tier-color);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.marketplace-strip__chip {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 15px;
+  border: 1px solid var(--hockey-ui-raised-border);
+  border-radius: var(--hockey-ui-control-radius);
+  background: var(--hockey-ui-card);
+  color: var(--hockey-ui-muted);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.15px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--hockey-ui-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--hockey-ui-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------- Лента товаров ---------- */
+
+.marketplace__feed {
+  display: grid;
+  gap: 23px;
+  min-width: 0;
+}
 
 .marketplace__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
-  align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 23px 19px;
+  align-items: stretch;
 }
 
 .marketplace__empty {
   padding: 32px;
   text-align: center;
-  border: 1px dashed var(--g-color-line-generic);
-  border-radius: 16px;
-}
-
-.marketplace-strip__header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-
-.marketplace-strip__scroll {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  scroll-snap-type: x mandatory;
-}
-
-.marketplace-strip__chip,
-.marketplace-strip__card {
-  flex: 0 0 auto;
-  scroll-snap-align: start;
-  border: 1px solid var(--g-color-line-generic);
-  border-radius: 14px;
-  background: var(--g-color-base-background);
-  cursor: pointer;
-  text-align: left;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.marketplace-strip__chip {
-  padding: 12px 16px;
-  font: inherit;
-  color: inherit;
-}
-
-.marketplace-strip__chip.is-active,
-.marketplace-strip__card.is-active {
-  border-color: var(--g-color-line-brand);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--g-color-line-brand) 40%, transparent);
-}
-
-.marketplace-strip__card {
-  width: 220px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.marketplace-strip__card--premium {
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, #f5c542 12%, var(--g-color-base-background)),
-    var(--g-color-base-background)
-  );
-  border-color: color-mix(in srgb, #f5c542 55%, var(--g-color-line-generic));
-}
-
-.marketplace-strip__card--boosted {
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, #8b5cf6 10%, var(--g-color-base-background)),
-    var(--g-color-base-background)
-  );
-  border-color: color-mix(in srgb, #8b5cf6 45%, var(--g-color-line-generic));
-}
-
-.marketplace-strip__card-tier {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--g-color-text-secondary);
-}
-
-.marketplace-strip__card-name {
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.marketplace-strip__card-meta,
-.marketplace-strip__card-promo {
-  font-size: 12px;
-  color: var(--g-color-text-secondary);
-}
-
-.marketplace-strip__card-promo {
-  color: var(--g-color-text-brand);
+  border: 1px dashed var(--hockey-ui-card-border);
+  border-radius: var(--hockey-ui-card-radius);
 }
 
 .marketplace-card {
@@ -111,124 +238,152 @@
   flex-direction: column;
   width: 100%;
   min-width: 0;
-  border: 1px solid var(--g-color-line-generic);
-  border-radius: 16px;
   overflow: hidden;
-  background: var(--g-color-base-background);
-}
-
-.marketplace-card--premium {
-  border-color: color-mix(in srgb, #f5c542 50%, var(--g-color-line-generic));
-}
-
-.marketplace-card--boosted {
-  border-color: color-mix(in srgb, #8b5cf6 40%, var(--g-color-line-generic));
+  border: 1px solid var(--hockey-ui-card-border);
+  border-radius: 16px;
+  background: var(--hockey-ui-card);
+  box-shadow: var(--hockey-ui-card-shadow);
 }
 
 .marketplace-card--deep-linked {
-  border-color: var(--hockey-line-red, var(--g-color-line-brand));
-  box-shadow: 0 0 0 2px
-    color-mix(in srgb, var(--hockey-line-red, var(--g-color-line-brand)) 35%, transparent);
+  border-color: var(--hockey-ui-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hockey-ui-accent) 35%, transparent);
 }
 
 .marketplace-card__media {
   position: relative;
-  width: 100%;
-  aspect-ratio: 1;
   flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 273 / 209;
   overflow: hidden;
-  background: var(--g-color-base-generic);
+  background: var(--hockey-ui-icon-tile);
 }
 
 .marketplace-card__image {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 .marketplace-card__placeholder {
-  width: 100%;
-  height: 100%;
   display: grid;
   place-items: center;
+  width: 100%;
+  height: 100%;
   font-size: 48px;
   opacity: 0.35;
 }
 
 .marketplace-card__badges {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 9px;
+  left: 10px;
+  right: 52px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .marketplace-card__badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--g-color-base-background) 88%, transparent);
-  backdrop-filter: blur(4px);
+  display: inline-flex;
+  align-items: center;
+  min-height: 35px;
+  padding: 0 4px;
+  border-radius: var(--hockey-ui-button-radius);
+  background: var(--hockey-ui-muted);
+  color: var(--hockey-ui-accent-ink);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 14px;
 }
 
 .marketplace-card__badge--tier {
-  background: #f5c542;
-  color: #1a1400;
+  background: var(--hockey-ui-gold);
 }
 
 .marketplace-card--boosted .marketplace-card__badge--tier {
-  background: #8b5cf6;
-  color: #fff;
+  background: var(--hockey-ui-blue);
 }
 
 .marketplace-card__badge--sale {
-  background: #ef4444;
-  color: #fff;
+  background: var(--hockey-ui-red);
 }
 
 .marketplace-card__badge--stock {
-  background: color-mix(in srgb, #22c55e 85%, #000);
-  color: #fff;
+  background: var(--hockey-ui-green);
+}
+
+.marketplace-card__favorite {
+  position: absolute;
+  top: 9px;
+  right: 7px;
+
+  .favorite-btn {
+    width: 35px;
+    height: 35px;
+    border: 1px solid color-mix(in srgb, var(--hockey-ui-red) 20%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--hockey-ui-red) 10%, var(--hockey-ui-card));
+    color: var(--hockey-ui-red);
+  }
 }
 
 .marketplace-card__body {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   padding: 12px;
 }
 
 .marketplace-card__price-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
 }
 
-.marketplace-card__favorite {
-  margin-left: auto;
-}
+.app-shell__main-col .marketplace-card {
+  .marketplace-card__price {
+    color: var(--hockey-ui-gold);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 24px;
+  }
 
-.marketplace-card__price {
-  font-size: 18px;
-  font-weight: 700;
-}
+  .marketplace-card__price-old {
+    color: var(--hockey-ui-subtle);
+    font-size: 14px;
+    line-height: 15px;
+    text-decoration: line-through;
+  }
 
-.marketplace-card__price-old {
-  text-decoration: line-through;
-  font-size: 13px;
-}
+  .marketplace-card__title {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: 6px;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 20px;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
 
-.marketplace-card__title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.35;
+  .marketplace-card__meta {
+    color: var(--hockey-ui-subtle);
+    font-size: 14px;
+    line-height: 15px;
+  }
 }
 
 .marketplace-card__action {
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 2px;
+
+  .g-button {
+    --g-button-height: 32px;
+    height: 32px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
 }

@@ -5,7 +5,7 @@
 
 import {Checkbox, Select, TextInput} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {useMemo} from 'react'
+import {type ReactNode, useMemo} from 'react'
 
 import type {PlayerPosition, SkillLevel} from '@/entities/common'
 import type {PlayersFilterParams} from '@/entities/profile'
@@ -52,6 +52,8 @@ export interface PlayerFiltersProps {
   activeCount?: number
   resultsCount?: number
   resultsPending?: boolean
+  /** Шапка страницы внутри карточки фильтров */
+  header?: ReactNode
 }
 
 function isChipActive(chipId: PlayerChipId, filters: PlayersFilterParams): boolean {
@@ -81,6 +83,7 @@ export function PlayerFilters({
   activeCount = 0,
   resultsCount,
   resultsPending,
+  header,
 }: PlayerFiltersProps) {
   const {data: teams = []} = useQuery({queryKey: ['teams'], queryFn: () => fetchTeams()})
 
@@ -116,9 +119,12 @@ export function PlayerFilters({
     <CatalogFilterBar
       testIdPrefix="players"
       testIdSection="player-filters"
+      className="players-filters"
+      header={header}
+      layout="split"
       searchValue={filters.q ?? ''}
       onSearchChange={(value) => onChange({...filters, q: value || undefined})}
-      searchPlaceholder="Имя или фамилия игрока…"
+      searchPlaceholder="Поиск…"
       searchLabel="Поиск игроков"
       chips={chips}
       onChipToggle={(chipId) => onChange(toggleChip(chipId as PlayerChipId, filters))}

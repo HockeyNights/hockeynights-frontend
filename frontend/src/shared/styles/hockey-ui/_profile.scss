@@ -2,17 +2,9 @@
 @use '../mixins' as *;
 
 .profile-hub {
-  --profile-radius: 16px;
-  --g-border-radius-xs: var(--profile-radius);
-  --g-border-radius-s: var(--profile-radius);
-  --g-border-radius-m: var(--profile-radius);
-  --g-border-radius-l: var(--profile-radius);
-  --g-border-radius-xl: var(--profile-radius);
+  --profile-radius: var(--hockey-ui-control-radius);
   display: grid;
   gap: 16px;
-
-  @include hub-surface-radius(var(--profile-radius));
-  @include hub-hockey-button(var(--profile-radius));
 
   .favorites-profile-group__row {
     border-radius: var(--profile-radius);

@@ -57,6 +57,17 @@ export interface CatalogFilterBarProps {
   /** Вкладки/переключатели вида над поиском. */
   toolbar?: ReactNode
 
+  /**
+   * Шапка страницы (обычно `PageHeader`) внутри той же карточки, что и поиск —
+   * так устроены экраны каталогов в макете.
+   */
+  header?: ReactNode
+  /**
+   * `split` — шапка и поиск слева, быстрый фильтр справа (desktop);
+   * `stack` — всё в одну колонку.
+   */
+  layout?: 'stack' | 'split'
+
   /** Число найденных элементов — показывается в строке состояния. */
   resultsCount?: number
   /** Идёт загрузка/обновление результатов. */
@@ -114,6 +125,8 @@ export function CatalogFilterBar({
   advancedTitle = 'Фильтры',
   advancedDefaultOpen,
   toolbar,
+  header,
+  layout = 'stack',
   resultsCount,
   resultsPending = false,
   activeCount = 0,
@@ -155,6 +168,8 @@ export function CatalogFilterBar({
   const classes = [
     'catalog-filters',
     sticky ? 'catalog-filters--sticky' : '',
+    layout === 'split' ? 'catalog-filters--split' : '',
+    header ? 'catalog-filters--with-header' : '',
     activeCount > 0 ? 'catalog-filters--active' : '',
     className ?? '',
   ]
@@ -168,6 +183,8 @@ export function CatalogFilterBar({
       aria-label={`${advancedTitle} и поиск`}
       data-testid={testId(testIdPrefix, testIdSection, 'panel', 'filters')}
     >
+      {header ? <div className="catalog-filters__header">{header}</div> : null}
+
       {toolbar ? (
         <div
           className="catalog-filters__toolbar"

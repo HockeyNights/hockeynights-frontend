@@ -12,6 +12,7 @@ import {
   formatArenaAmenities,
   resolveArenaCityRegion,
 } from '@/entities/arena'
+import {formatArenaPrice} from '@/features/arenas/lib/formatArenaPrice'
 import {ArenaBookingPanel} from '@/features/arenas/ui/ArenaBookingPanel'
 import {ArenaListingsPanel} from '@/features/arenas/ui/ArenaListingsPanel'
 import {FavoriteButton} from '@/features/favorites'
@@ -19,7 +20,7 @@ import {testId} from '@/shared/testing/testId'
 import {EntityProfileBadge} from '@/shared/ui/EntityProfileBadge'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
-import {ScoreboardText} from '@/shared/ui/ScoreboardText'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 const MODE_LABELS = {
   slot_calendar: 'Запись по слотам',
@@ -40,152 +41,167 @@ export function ArenaDetailPanel({arena, slots, hasFreeSlot}: ArenaDetailPanelPr
   const freeCount = slots.filter((s) => s.status === 'free').length
   const cityRegion = resolveArenaCityRegion(arena.city)
   const cityLabel = ARENA_CITY_REGION_LABELS[cityRegion]
+  const isSlots = arena.bookingMode === 'slot_calendar'
 
   return (
-    <div
-      className="arena-detail hockey-stack hockey-stack--gap-16"
-      data-testid={testId('arenas', 'detail', 'panel', arena.id)}
-    >
-      <IceCard padding="m" data-testid={testId('arenas', 'detail', 'panel', 'hero', arena.id)}>
-        <div className="hockey-row hockey-row--between hockey-row--align-start hockey-row--wrap">
-          <div className="hockey-stack hockey-stack--gap-8">
-            <div
-              className="hockey-row hockey-row--gap-8 hockey-row--wrap hockey-row--align-center"
-              data-testid={testId('arenas', 'detail', 'panel', 'chips', arena.id)}
-            >
-              <EntityProfileBadge
-                kind="arena"
-                className="arena-meta-chip"
-                data-testid={testId('arenas', 'detail', 'badge', 'profile', arena.id)}
-              />
-              <span
-                className={`arena-meta-chip arena-meta-chip--${arena.bookingMode === 'slot_calendar' ? 'slots' : 'portal'}`}
-                data-testid={testId('arenas', 'detail', 'badge', 'mode', arena.id)}
-              >
-                {MODE_LABELS[arena.bookingMode]}
-              </span>
-              {arena.bookingMode === 'slot_calendar' && (
-                <span
-                  className={`rink-slot-lamp${hasFreeSlot ? '' : ' rink-slot-lamp--busy'}`}
-                  data-testid={testId('arenas', 'detail', 'badge', 'slot-lamp', arena.id)}
-                >
-                  <span className="rink-slot-lamp__dot" aria-hidden />
-                  {hasFreeSlot === false
-                    ? 'Сейчас занято'
-                    : freeCount > 0
-                      ? `Свободных слотов: ${freeCount}`
-                      : 'Слоты скоро появятся'}
-                </span>
-              )}
-            </div>
-
-            <Text
-              variant="header-1"
-              className="variable-font-header"
-              data-testid={testId('arenas', 'detail', 'text', 'name', arena.id)}
-            >
-              {arena.name}
-            </Text>
-            <Text
-              color="secondary"
-              data-testid={testId('arenas', 'detail', 'text', 'address', arena.id)}
-            >
-              {arena.address}
-            </Text>
-            {arena.priceRange && (
-              <ScoreboardText
-                tone="accent"
-                data-testid={testId('arenas', 'detail', 'text', 'price', arena.id)}
-              >
-                {arena.priceRange}
-              </ScoreboardText>
-            )}
-          </div>
-
-          <div className="hockey-row hockey-row--gap-8 hockey-row--align-center">
-            <FavoriteButton type="arena" entityId={arena.id} title={arena.name} size="m" />
-            {arena.websiteUrl && (
-              <a
-                href={arena.websiteUrl}
-                target="_blank"
-                rel="noreferrer"
-                data-testid={testId('arenas', 'detail', 'link', 'website', arena.id)}
-              >
-                <HockeyButton
-                  view="outlined"
-                  size="m"
-                  data-testid={testId('arenas', 'detail', 'btn', 'website', arena.id)}
-                >
-                  Сайт арены
-                </HockeyButton>
-              </a>
-            )}
-          </div>
+    <div className="arena-detail" data-testid={testId('arenas', 'detail', 'panel', arena.id)}>
+      <IceCard
+        padding="m"
+        className="arena-detail__hero"
+        data-testid={testId('arenas', 'detail', 'panel', 'hero', arena.id)}
+      >
+        <div className="arena-detail__title-row">
+          <Text
+            variant="header-1"
+            className="arena-detail__name"
+            data-testid={testId('arenas', 'detail', 'text', 'name', arena.id)}
+          >
+            {arena.name}
+          </Text>
+          <FavoriteButton
+            type="arena"
+            entityId={arena.id}
+            title={arena.name}
+            size="m"
+            className="arena-favorite"
+          />
         </div>
+        <Text
+          color="secondary"
+          className="arena-detail__address"
+          data-testid={testId('arenas', 'detail', 'text', 'address', arena.id)}
+        >
+          {arena.address}
+        </Text>
+        {arena.priceRange && (
+          <Text
+            className="arena-detail__price"
+            data-testid={testId('arenas', 'detail', 'text', 'price', arena.id)}
+          >
+            {formatArenaPrice(arena.priceRange)}
+          </Text>
+        )}
+        <div
+          className="arena-detail__badges"
+          data-testid={testId('arenas', 'detail', 'panel', 'chips', arena.id)}
+        >
+          <EntityProfileBadge
+            kind="arena"
+            className="hockey-badge arena-badge arena-badge--lg"
+            data-testid={testId('arenas', 'detail', 'badge', 'profile', arena.id)}
+          />
+          <span
+            className={`hockey-badge arena-badge arena-badge--lg ${isSlots ? 'hockey-badge--green' : 'hockey-badge--gold'}`}
+            data-testid={testId('arenas', 'detail', 'badge', 'mode', arena.id)}
+          >
+            {MODE_LABELS[arena.bookingMode]}
+          </span>
+        </div>
+        {isSlots && (
+          <span
+            className={`rink-slot-lamp rink-slot-lamp--compact${hasFreeSlot ? '' : ' rink-slot-lamp--busy'}`}
+            data-testid={testId('arenas', 'detail', 'badge', 'slot-lamp', arena.id)}
+          >
+            <span className="rink-slot-lamp__dot" aria-hidden />
+            {hasFreeSlot === false
+              ? 'Сейчас занято'
+              : freeCount > 0
+                ? `Свободных слотов: ${freeCount}`
+                : 'Слоты скоро появятся'}
+          </span>
+        )}
+        {arena.websiteUrl && (
+          <a
+            href={arena.websiteUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="arena-detail__website"
+            data-testid={testId('arenas', 'detail', 'link', 'website', arena.id)}
+          >
+            <HockeyButton
+              view="outlined"
+              size="xl"
+              width="max"
+              tabIndex={-1}
+              data-testid={testId('arenas', 'detail', 'btn', 'website', arena.id)}
+            >
+              Сайт арены
+            </HockeyButton>
+          </a>
+        )}
       </IceCard>
 
       <div className="arena-detail__grid">
-        <IceCard padding="m" data-testid={testId('arenas', 'detail', 'panel', 'meta', arena.id)}>
-          <div className="hockey-stack hockey-stack--gap-16">
-            <div>
-              <Text
-                variant="subheader-2"
-                data-testid={testId('arenas', 'detail', 'text', 'about-title', arena.id)}
-              >
-                О площадке
-              </Text>
-              <div className="arena-detail__facts">
+        <div className="arena-detail__aside">
+          <section className="arena-detail__section">
+            <SectionHeading
+              title="О площадке"
+              as="h3"
+              data-testid={testId('arenas', 'detail', 'text', 'about-title', arena.id)}
+            />
+            <IceCard
+              padding="m"
+              className="arena-detail__card"
+              data-testid={testId('arenas', 'detail', 'panel', 'meta', arena.id)}
+            >
+              <dl className="arena-detail__facts">
                 <div className="arena-detail__fact">
-                  <Text color="secondary">Локация</Text>
-                  <Text data-testid={testId('arenas', 'detail', 'text', 'city', arena.id)}>
+                  <dt>Локация</dt>
+                  <dd data-testid={testId('arenas', 'detail', 'text', 'city', arena.id)}>
                     {cityLabel}
                     {arena.city !== cityLabel ? ` · ${arena.city}` : ''}
-                  </Text>
+                  </dd>
                 </div>
                 {arena.metro && (
                   <div className="arena-detail__fact">
-                    <Text color="secondary">Метро</Text>
-                    <Text data-testid={testId('arenas', 'detail', 'text', 'metro', arena.id)}>
+                    <dt>Метро</dt>
+                    <dd data-testid={testId('arenas', 'detail', 'text', 'metro', arena.id)}>
                       м. {arena.metro}
                       {arena.district ? ` · ${arena.district}` : ''}
-                    </Text>
+                    </dd>
                   </div>
                 )}
                 {arena.phone && (
                   <div className="arena-detail__fact">
-                    <Text color="secondary">Телефон</Text>
-                    <Text data-testid={testId('arenas', 'detail', 'text', 'phone', arena.id)}>
+                    <dt>Телефон</dt>
+                    <dd data-testid={testId('arenas', 'detail', 'text', 'phone', arena.id)}>
                       <a href={`tel:${arena.phone.replace(/\s/g, '')}`}>{arena.phone}</a>
-                    </Text>
+                    </dd>
                   </div>
                 )}
                 {arena.amenities.length > 0 && (
                   <div className="arena-detail__fact">
-                    <Text color="secondary">Удобства</Text>
-                    <Text data-testid={testId('arenas', 'detail', 'text', 'amenities', arena.id)}>
+                    <dt>Удобства</dt>
+                    <dd data-testid={testId('arenas', 'detail', 'text', 'amenities', arena.id)}>
                       {formatArenaAmenities(arena.amenities)}
-                    </Text>
+                    </dd>
                   </div>
                 )}
-                {arena.bookingMode === 'slot_calendar' && (
+                {isSlots && (
                   <div className="arena-detail__fact">
-                    <Text color="secondary">Слоты</Text>
-                    <Text data-testid={testId('arenas', 'detail', 'text', 'free-slots', arena.id)}>
+                    <dt>Слоты</dt>
+                    <dd
+                      className={`arena-detail__free${freeCount > 0 ? '' : ' arena-detail__free--none'}`}
+                      data-testid={testId('arenas', 'detail', 'text', 'free-slots', arena.id)}
+                    >
+                      <span className="rink-slot-lamp__dot" aria-hidden />
                       Свободных: {freeCount}
                       {hasFreeSlot === false ? ' · сейчас всё занято' : ''}
-                    </Text>
+                    </dd>
                   </div>
                 )}
-              </div>
-            </div>
+              </dl>
+            </IceCard>
+          </section>
 
-            <ArenaListingsPanel arenaId={arena.id} embedded />
-          </div>
-        </IceCard>
+          <ArenaListingsPanel arenaId={arena.id} />
+        </div>
 
-        <IceCard padding="m" data-testid={testId('arenas', 'detail', 'panel', 'booking', arena.id)}>
-          <ArenaBookingPanel arena={arena} slots={slots} />
-        </IceCard>
+        <ArenaBookingPanel
+          arena={arena}
+          slots={slots}
+          data-testid={testId('arenas', 'detail', 'panel', 'booking', arena.id)}
+        />
       </div>
     </div>
   )

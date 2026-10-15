@@ -15,7 +15,6 @@ import {leagueDetailsPath} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
-import {ScoreboardText} from '@/shared/ui/ScoreboardText'
 
 /**
  * Компактная карточка «Моя лига»: показывается, только если у игрока есть команда,
@@ -73,71 +72,76 @@ export function MyLeagueWidget() {
   return (
     <div data-testid={testId('leagues', 'my-league', 'card', league.id)}>
       <IceCard padding="m" className="my-league-widget">
-        <div className="hockey-row hockey-row--between hockey-row--align-start hockey-row--wrap hockey-row--gap-12">
-          <div className="hockey-stack hockey-stack--gap-4">
+        <div className="my-league-widget__top">
+          <div className="my-league-widget__copy">
             <Text
               color="secondary"
-              variant="caption-1"
+              className="my-league-widget__eyebrow"
               data-testid={testId('leagues', 'my-league', 'text', 'eyebrow', league.id)}
             >
               Моя лига · {myTeam.name}
             </Text>
             <Text
-              variant="subheader-2"
+              variant="header-2"
+              className="my-league-widget__name"
               data-testid={testId('leagues', 'my-league', 'text', 'name', league.id)}
             >
               {league.name}
             </Text>
             {myStanding ? (
-              <ScoreboardText
-                tone="accent"
+              <Text
+                className="my-league-widget__rank"
                 data-testid={testId('leagues', 'my-league', 'text', 'rank', league.id)}
               >
                 {rankIndex + 1}-е место из {ranked.length} · {myStanding.points} очк.
-              </ScoreboardText>
+              </Text>
             ) : (
               <Text
                 color="secondary"
+                className="my-league-widget__eyebrow"
                 data-testid={testId('leagues', 'my-league', 'text', 'rank-empty', league.id)}
               >
                 Таблица пока не сформирована
               </Text>
             )}
-            {nextMatch ? (
-              <Text
-                color="secondary"
-                data-testid={testId('leagues', 'my-league', 'text', 'next-match', league.id)}
-              >
-                Следующая игра: {nextMatch.homeTeam} — {nextMatch.awayTeam},{' '}
-                {new Date(nextMatch.startsAt).toLocaleString('ru-RU', {
-                  day: 'numeric',
-                  month: 'long',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Text>
-            ) : (
-              <Text
-                color="secondary"
-                data-testid={testId('leagues', 'my-league', 'text', 'next-match-empty', league.id)}
-              >
-                Ближайшая игра пока не назначена
-              </Text>
-            )}
           </div>
           <Link
             to={leagueDetailsPath(league.id)}
+            className="my-league-widget__open"
             data-testid={testId('leagues', 'my-league', 'link', 'open', league.id)}
           >
             <HockeyButton
               view="outlined"
-              size="s"
+              size="l"
               data-testid={testId('leagues', 'my-league', 'btn', 'open', league.id)}
             >
               Открыть лигу
             </HockeyButton>
           </Link>
         </div>
+        {nextMatch ? (
+          <Text
+            color="secondary"
+            className="my-league-widget__next"
+            data-testid={testId('leagues', 'my-league', 'text', 'next-match', league.id)}
+          >
+            Следующая игра: {nextMatch.homeTeam} — {nextMatch.awayTeam},{' '}
+            {new Date(nextMatch.startsAt).toLocaleString('ru-RU', {
+              day: 'numeric',
+              month: 'long',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </Text>
+        ) : (
+          <Text
+            color="secondary"
+            className="my-league-widget__next"
+            data-testid={testId('leagues', 'my-league', 'text', 'next-match-empty', league.id)}
+          >
+            Ближайшая игра пока не назначена
+          </Text>
+        )}
       </IceCard>
     </div>
   )

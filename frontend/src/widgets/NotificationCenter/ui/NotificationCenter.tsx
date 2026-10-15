@@ -2,13 +2,10 @@
  * SPEC-FR-10.1.1, SPEC-FR-10.1.2
  */
 
-import {Label, Text} from '@gravity-ui/uikit'
-
 import type {Notification} from '@/entities/notification'
 import {MarkNotificationReadButton} from '@/features/notifications'
 import {testId} from '@/shared/testing/testId'
 import {EmptyNetState} from '@/shared/ui/EmptyNetState'
-import {IceCard} from '@/shared/ui/IceCard'
 
 /** @spec SPEC-FR-10.1.1 - Props центра уведомлений */
 export interface NotificationCenterProps {
@@ -22,6 +19,16 @@ const TYPE_LABELS: Record<Notification['type'], string> = {
   response: 'Отклик',
   event_reminder: 'Событие',
   goalie_request: 'Вратарь',
+}
+
+function formatNotificationTime(iso: string): string {
+  return new Date(iso).toLocaleString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 /**
@@ -41,52 +48,58 @@ export function NotificationCenter({notifications}: NotificationCenterProps) {
   }
 
   return (
-    <div
-      className="hockey-stack hockey-stack--gap-12"
-      data-testid={testId('notifications', 'center', 'list')}
-    >
-      {notifications.map((notification) => (
-        <IceCard
-          key={notification.id}
-          padding="m"
-          className={notification.readAt ? undefined : 'ice-card--selected'}
-          data-testid={testId('notifications', 'center', 'card', notification.id)}
-        >
-          <div className="hockey-row hockey-row--gap-12 hockey-row--between">
-            <div className="hockey-stack hockey-stack--gap-4">
-              <div className="hockey-row hockey-row--gap-8 hockey-row--center">
-                <Label
-                  size="s"
+    <div className="hockey-notifications" data-testid={testId('notifications', 'center', 'list')}>
+      {notifications.map((notification) => {
+        const unread = !notification.readAt
+        return (
+          <article
+            key={notification.id}
+            className={`hockey-notification${unread ? ' hockey-notification--unread' : ''}`}
+            data-testid={testId('notifications', 'center', 'card', notification.id)}
+          >
+            <div className="hockey-notification__head">
+              <div className="hockey-notification__heading">
+                <span
+                  className="hockey-notification__type"
                   data-testid={testId('notifications', 'center', 'badge', 'type', notification.id)}
                 >
                   {TYPE_LABELS[notification.type]}
-                </Label>
-                <Text
-                  variant="subheader-2"
+                </span>
+                <span
+                  className="hockey-notification__title"
                   data-testid={testId('notifications', 'center', 'text', 'title', notification.id)}
                 >
                   {notification.title}
-                </Text>
+                </span>
               </div>
-              <Text
-                data-testid={testId('notifications', 'center', 'text', 'body', notification.id)}
-              >
-                {notification.body}
-              </Text>
-              <Text
-                color="secondary"
-                variant="caption-2"
+              {unread && (
+                <span
+                  className="hockey-notification__new"
+                  data-testid={testId('notifications', 'center', 'text', 'new', notification.id)}
+                >
+                  Новое
+                </span>
+              )}
+            </div>
+            <p
+              className="hockey-notification__body"
+              data-testid={testId('notifications', 'center', 'text', 'body', notification.id)}
+            >
+              {notification.body}
+            </p>
+            <div className="hockey-notification__foot">
+              <time
+                className="hockey-notification__time"
+                dateTime={notification.createdAt}
                 data-testid={testId('notifications', 'center', 'text', 'time', notification.id)}
               >
-                {new Date(notification.createdAt).toLocaleString('ru-RU')}
-              </Text>
+                {formatNotificationTime(notification.createdAt)}
+              </time>
+              {unread && <MarkNotificationReadButton notificationId={notification.id} />}
             </div>
-            {!notification.readAt && (
-              <MarkNotificationReadButton notificationId={notification.id} />
-            )}
-          </div>
-        </IceCard>
-      ))}
+          </article>
+        )
+      })}
     </div>
   )
 }

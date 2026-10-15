@@ -1,14 +1,19 @@
 /**
  * SPEC-FR-2.1.1, SPEC-FR-25.1.1
- * Оболочка экранов входа и регистрации.
+ * Оболочка экранов входа, подтверждения почты и выбора роли.
  */
 
-import type {ReactNode} from 'react'
-import {NavLink} from 'react-router'
+import {SunOutlined} from '@ant-design/icons'
+import {Button} from 'antd'
+import {type CSSProperties, type ReactNode, useLayoutEffect, useRef, useState} from 'react'
+import {Link, NavLink} from 'react-router'
 
+import {AuthAntdProvider} from '@/features/auth/ui/AuthAntdProvider'
+import {AuthBrandLogo} from '@/features/auth/ui/AuthBrandLogo'
 import {testId} from '@/shared/testing/testId'
+import {useHockeyTheme} from '@/shared/theme/HockeyThemeProvider'
 
-export type AuthShellMode = 'login' | 'register' | 'personas'
+export type AuthShellMode = 'login' | 'register' | 'verify' | 'personas'
 
 export interface AuthShellProps {
   children: ReactNode
@@ -17,22 +22,69 @@ export interface AuthShellProps {
   wide?: boolean
 }
 
-const HERO_COPY: Record<
-  Exclude<AuthShellMode, 'personas'>,
-  {tagline: string; bullets: string[]}
-> = {
-  login: {
-    tagline: 'Войдите в хоккейное сообщество — команды, лёд и матчи в одном месте.',
-    bullets: ['Демо-вход за 10 секунд', 'Локальные аккаунты в браузере', 'Выбор роли после входа'],
-  },
-  register: {
-    tagline: 'Создайте профиль — данные сохранятся локально до подключения backend.',
-    bullets: [
-      'Имя и email для вашего аккаунта',
-      'Пароль хранится только в браузере',
-      'После регистрации — выбор демо-роли',
-    ],
-  },
+function AuthAnimatedPanel({children, flat}: {children: ReactNode; flat: boolean}) {
+  const innerRef = useRef<HTMLDivElement>(null)
+  const [height, setHeight] = useState<number>()
+  const [ready, setReady] = useState(false)
+
+  useLayoutEffect(() => {
+    if (flat) return
+    const node = innerRef.current
+    if (!node) return
+
+    const apply = () => {
+      setHeight(Math.round(node.getBoundingClientRect().height))
+    }
+
+    apply()
+    const frame = window.requestAnimationFrame(() => setReady(true))
+
+    if (typeof ResizeObserver === 'undefined') {
+      return () => window.cancelAnimationFrame(frame)
+    }
+
+    const observer = new ResizeObserver(apply)
+    observer.observe(node)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [children, flat])
+
+  if (flat) {
+    return (
+      <div
+        className="auth-shell__panel auth-shell__panel--flat"
+        data-testid={testId('auth', 'shell', 'panel', 'main')}
+      >
+        <div
+          className="auth-shell__content"
+          data-testid={testId('auth', 'shell', 'panel', 'content')}
+        >
+          {children}
+        </div>
+      </div>
+    )
+  }
+
+  const clipStyle: CSSProperties | undefined = height == null ? undefined : {height}
+
+  return (
+    <div className="auth-shell__panel" data-testid={testId('auth', 'shell', 'panel', 'main')}>
+      <div
+        className={`auth-shell__clip${ready ? ' auth-shell__clip--ready' : ''}`}
+        style={clipStyle}
+      >
+        <div
+          ref={innerRef}
+          className="auth-shell__content"
+          data-testid={testId('auth', 'shell', 'panel', 'content')}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function AuthShell({
@@ -41,115 +93,80 @@ export function AuthShell({
   showModeTabs = true,
   wide = false,
 }: AuthShellProps) {
-  const hero = mode !== 'personas' ? HERO_COPY[mode] : null
+  const {themeId, toggleTheme} = useHockeyTheme()
+  const isPersonas = mode === 'personas' || wide
 
   return (
-    <div
-      className={`auth-shell${wide ? ' auth-shell--wide' : ''}`}
-      data-testid={testId('auth', 'shell', 'page')}
-    >
-      <div className="auth-shell__glow" aria-hidden />
-      <div className="auth-shell__frame" data-testid={testId('auth', 'shell', 'panel', 'frame')}>
-        {!wide && hero && (
-          <aside
-            className="auth-shell__hero"
-            data-testid={testId('auth', 'shell', 'panel', 'hero')}
+    <AuthAntdProvider>
+      <div
+        className={`auth-shell${isPersonas ? ' auth-shell--wide' : ''}`}
+        data-testid={testId('auth', 'shell', 'page')}
+      >
+        <div className="auth-shell__glow" aria-hidden />
+
+        {isPersonas ? (
+          <header
+            className="auth-shell__topbar"
+            data-testid={testId('auth', 'shell', 'panel', 'topbar')}
           >
-            <span
-              className="auth-shell__hero-badge"
-              data-testid={testId('auth', 'shell', 'text', 'hero-badge')}
-            >
-              Phase 1 · Demo
-            </span>
-            <h1
-              className="auth-shell__hero-title"
-              data-testid={testId('auth', 'shell', 'text', 'hero-title')}
-            >
-              Hockey Nights
-            </h1>
-            <p
-              className="auth-shell__hero-tagline"
-              data-testid={testId('auth', 'shell', 'text', 'hero-tagline')}
-            >
-              {hero.tagline}
-            </p>
-            <ul
-              className="auth-shell__hero-list"
-              data-testid={testId('auth', 'shell', 'list', 'hero-features')}
-            >
-              {hero.bullets.map((item, index) => (
-                <li key={item} data-testid={testId('auth', 'shell', 'list-item', 'hero', index)}>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </aside>
+            <AuthBrandLogo size="sm" />
+            <Button
+              className="auth-shell__theme-btn"
+              shape="circle"
+              size="large"
+              aria-label={themeId === 'ice' ? 'Включить светлую тему' : 'Включить тёмную тему'}
+              icon={<SunOutlined />}
+              onClick={toggleTheme}
+              data-testid={testId('auth', 'shell', 'btn', 'theme')}
+            />
+          </header>
+        ) : (
+          <AuthBrandLogo size="lg" />
         )}
 
-        <div className="auth-shell__panel" data-testid={testId('auth', 'shell', 'panel', 'main')}>
-          {!wide && (
-            <h1
-              className="auth-shell__mobile-brand"
-              data-testid={testId('auth', 'shell', 'text', 'mobile-title')}
-            >
-              Hockey Nights
-            </h1>
-          )}
-
-          {!wide && (
-            <div
-              className="auth-shell__notice"
-              data-testid={testId('auth', 'shell', 'text', 'demo-banner')}
-            >
-              <span
-                className="auth-shell__notice-title"
-                data-testid={testId('auth', 'shell', 'text', 'notice-title')}
-              >
-                Локальная память
-              </span>
-              <span data-testid={testId('auth', 'shell', 'text', 'notice-body')}>
-                Аккаунты временно хранятся в браузере. После backend этот слой заменим настоящей
-                авторизацией.
-              </span>
-            </div>
-          )}
-
-          {showModeTabs && (
-            <nav
-              className="auth-tabs auth-tabs--pills"
-              aria-label="Вход или регистрация"
-              data-testid={testId('auth', 'shell', 'nav', 'mode-tabs')}
-            >
-              <NavLink
-                to="/"
-                end
-                className={({isActive}) =>
-                  `auth-tabs__tab${isActive ? ' auth-tabs__tab--active' : ''}`
-                }
-                data-testid={testId('auth', 'shell', 'tab', 'login')}
-              >
-                Вход
-              </NavLink>
-              <NavLink
-                to="/register"
-                className={({isActive}) =>
-                  `auth-tabs__tab${isActive ? ' auth-tabs__tab--active' : ''}`
-                }
-                data-testid={testId('auth', 'shell', 'tab', 'register')}
-              >
-                Регистрация
-              </NavLink>
-            </nav>
-          )}
-
-          <div
-            className="auth-shell__content"
-            data-testid={testId('auth', 'shell', 'panel', 'content')}
+        {showModeTabs && (
+          <nav
+            className={`auth-tabs${mode === 'register' ? ' auth-tabs--register' : ''}`}
+            aria-label="Вход или регистрация"
+            data-testid={testId('auth', 'shell', 'nav', 'mode-tabs')}
           >
-            {children}
-          </div>
-        </div>
+            <span className="auth-tabs__thumb" aria-hidden />
+            <NavLink
+              to="/"
+              end
+              className={({isActive}) =>
+                `auth-tabs__tab${isActive ? ' auth-tabs__tab--active' : ''}`
+              }
+              data-testid={testId('auth', 'shell', 'tab', 'login')}
+            >
+              Вход
+            </NavLink>
+            <NavLink
+              to="/register"
+              className={({isActive}) =>
+                `auth-tabs__tab${isActive ? ' auth-tabs__tab--active' : ''}`
+              }
+              data-testid={testId('auth', 'shell', 'tab', 'register')}
+            >
+              Регистрация
+            </NavLink>
+          </nav>
+        )}
+
+        <AuthAnimatedPanel flat={isPersonas}>{children}</AuthAnimatedPanel>
+
+        {!isPersonas && (
+          <p className="auth-shell__legal" data-testid={testId('auth', 'shell', 'panel', 'legal')}>
+            <Link
+              to="/terms"
+              className="auth-shell__legal-link"
+              data-testid={testId('auth', 'login', 'link', 'terms')}
+            >
+              Условия использования и конфиденциальность
+            </Link>
+          </p>
+        )}
       </div>
-    </div>
+    </AuthAntdProvider>
   )
 }

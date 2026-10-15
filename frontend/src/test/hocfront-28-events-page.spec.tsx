@@ -32,15 +32,16 @@ describe('HOCFRONT-28A EventsPage IA', () => {
       expect(screen.getByTestId('events-page-btn-type-training')).toBeInTheDocument()
       expect(screen.getByTestId('events-page-btn-type-game')).toBeInTheDocument()
       expect(screen.getByTestId('events-page-btn-type-my')).toBeInTheDocument()
-      expect(screen.getByTestId('events-page-text-details-title')).toHaveTextContent('Для меня')
+      expect(screen.getByTestId('events-page-text-details-title')).toHaveTextContent(
+        'Ближайшие события',
+      )
+      expect(screen.getAllByTestId(/events-card-card-/).length).toBeGreaterThan(1)
+      expect(screen.getByText('Товарищеская игра — Медведи САО')).toBeInTheDocument()
+      expect(screen.getByText('Публичная тренировка 2-сторонка')).toBeInTheDocument()
     })
 
     expect(screen.queryByTestId('events-create-form-panel')).not.toBeInTheDocument()
     expect(screen.queryByTestId('events-organizer-card')).not.toBeInTheDocument()
-
-    expect(screen.getAllByTestId(/events-card-card-/).length).toBeGreaterThan(1)
-    expect(screen.getByText('Товарищеская игра — Медведи САО')).toBeInTheDocument()
-    expect(screen.getByText('Публичная тренировка 2-сторонка')).toBeInTheDocument()
   })
 
   it('links organizer actions to create and organizer routes', async () => {
@@ -71,7 +72,9 @@ describe('HOCFRONT-28A EventsPage IA', () => {
     await waitFor(() => {
       expect(screen.queryByText('Товарищеская игра — Медведи САО')).not.toBeInTheDocument()
       expect(screen.getByText('Публичная тренировка 2-сторонка')).toBeInTheDocument()
-      expect(screen.getByTestId('events-page-text-details-title')).toHaveTextContent('Тренировки')
+      expect(screen.getByTestId('events-page-text-details-title')).toHaveTextContent(
+        'Ближайшие события',
+      )
     })
   })
 
@@ -79,8 +82,6 @@ describe('HOCFRONT-28A EventsPage IA', () => {
     const user = userEvent.setup()
     renderWithProviders(<EventsPage />)
 
-    await screen.findByTestId('events-page-btn-nearest-game-toggle')
-    await user.click(screen.getByTestId('events-page-btn-nearest-game-toggle'))
     await screen.findByTestId('radar-team-rsvp-response-btn-confirm-event-league-sat')
     await user.click(screen.getByTestId('radar-team-rsvp-response-btn-confirm-event-league-sat'))
 
@@ -93,7 +94,9 @@ describe('HOCFRONT-28A EventsPage IA', () => {
     await user.click(screen.getByTestId('events-page-btn-type-my'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('events-page-text-details-title')).toHaveTextContent('Мои записи')
+      expect(screen.getByTestId('events-page-text-details-title')).toHaveTextContent(
+        'Ближайшие события',
+      )
       expect(screen.getByText('Лига — Медведи САО vs Вымпел')).toBeInTheDocument()
       expect(screen.queryByText('Товарищеская игра — Медведи САО')).not.toBeInTheDocument()
     })

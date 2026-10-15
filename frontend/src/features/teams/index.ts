@@ -1,5 +1,6 @@
 export {STAFF_ROLE_LABELS, STAFF_ROLE_OPTIONS} from './lib/clubStaffLabels'
 export {ensureTeamStaffChat} from './lib/ensureTeamStaffChat'
+export {formatPlayersCount} from './lib/formatPlayersCount'
 export type {TeamLineupTemplate, TeamLineupTemplateAssignment} from './lib/lineupTemplates'
 export {
   createTeamLineupTemplate,
@@ -7,6 +8,7 @@ export {
   loadTeamLineupTemplates,
   saveTeamLineupTemplates,
 } from './lib/lineupTemplates'
+export {groupByPosition, POSITION_GROUP_LABELS, POSITION_SHORT_LABELS} from './lib/positionGroups'
 export {AddTeamMember} from './ui/AddTeamMember'
 export {ClubProfilePanel} from './ui/ClubProfilePanel'
 export {ContactStaffModal} from './ui/ContactStaffModal'
@@ -21,6 +23,7 @@ export {TeamCreateWizard} from './ui/TeamCreateWizard'
 export {TeamCrest} from './ui/TeamCrest'
 export {TeamFilters} from './ui/TeamFilters'
 export {TeamLineupStudio} from './ui/TeamLineupStudio'
+export {TeamPositionBadge} from './ui/TeamPositionBadge'
 export {TeamRolesPanel} from './ui/TeamRolesPanel'
 export {TeamRoster} from './ui/TeamRoster'
 export {TeamRosterPanel} from './ui/TeamRosterPanel'

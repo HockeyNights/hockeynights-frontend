@@ -54,7 +54,7 @@ export function OrganizerRegistrationsPanel({events}: OrganizerRegistrationsPane
 
   return (
     <IceCard padding="m" data-testid={testId('events', 'organizer-regs', 'panel')}>
-      <div className="hockey-stack hockey-stack--gap-12">
+      <div className="org-cab__regs hockey-stack hockey-stack--gap-12">
         <div>
           <Text
             variant="subheader-2"
@@ -75,19 +75,23 @@ export function OrganizerRegistrationsPanel({events}: OrganizerRegistrationsPane
         </div>
 
         <div
-          className="hockey-row hockey-row--gap-8 hockey-row--wrap"
+          className="hockey-segmented org-cab__filters"
+          role="tablist"
+          aria-label="Фильтр участников"
           data-testid={testId('events', 'organizer-regs', 'panel', 'filters')}
         >
           {(Object.keys(FILTER_LABELS) as RegFilter[]).map((item) => (
-            <HockeyButton
+            <button
               key={item}
-              view={filter === item ? 'action' : 'outlined'}
-              size="s"
+              type="button"
+              role="tab"
+              aria-selected={filter === item}
+              className={`hockey-segmented__item${filter === item ? ' is-active' : ''}`}
               onClick={() => setFilter(item)}
               data-testid={testId('events', 'organizer-regs', 'btn', 'filter', item)}
             >
               {FILTER_LABELS[item]} ({counts[item]})
-            </HockeyButton>
+            </button>
           ))}
         </div>
 
@@ -100,7 +104,7 @@ export function OrganizerRegistrationsPanel({events}: OrganizerRegistrationsPane
           />
         ) : (
           <div
-            className="hockey-stack hockey-stack--gap-8"
+            className="org-cab__regs-list"
             data-testid={testId('events', 'organizer-regs', 'list')}
           >
             {filtered.map((row) => {
@@ -113,13 +117,17 @@ export function OrganizerRegistrationsPanel({events}: OrganizerRegistrationsPane
                     minute: '2-digit',
                   })
                 : null
+              const initial = row.displayName.trim().charAt(0).toUpperCase() || '?'
               return (
                 <div
                   key={row.id}
-                  className="hockey-row hockey-row--between hockey-row--align-center hockey-row--wrap"
+                  className="org-cab__regs-row"
                   data-testid={testId('events', 'organizer-regs', 'row', row.id)}
                 >
-                  <div className="hockey-stack hockey-stack--gap-4">
+                  <span className="org-cab__regs-avatar" aria-hidden>
+                    {initial}
+                  </span>
+                  <div className="org-cab__regs-copy">
                     <Text data-testid={testId('events', 'organizer-regs', 'text', 'name', row.id)}>
                       {row.displayName}
                     </Text>
@@ -131,7 +139,7 @@ export function OrganizerRegistrationsPanel({events}: OrganizerRegistrationsPane
                       {when ? ` · ${when}` : ''} · {STATUS_LABELS[row.status]}
                     </Text>
                   </div>
-                  <div className="hockey-row hockey-row--gap-8 hockey-row--wrap">
+                  <div className="org-cab__regs-actions">
                     <Link
                       to={`/players/${row.userId}`}
                       data-testid={testId('events', 'organizer-regs', 'link', 'player', row.id)}

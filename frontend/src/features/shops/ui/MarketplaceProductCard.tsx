@@ -28,7 +28,7 @@ export function MarketplaceProductCard({
   highlighted = false,
   cardRef,
 }: MarketplaceProductCardProps) {
-  const {offer, shopName, shopAdTier, isPromoted, promoDiscount} = listing
+  const {offer, shopName, shopCity, shopAdTier, isPromoted, promoDiscount} = listing
   const [imgError, setImgError] = useState(false)
   const tierLabel = TIER_LABELS[shopAdTier]
   const showDiscount = promoDiscount && promoDiscount > 0
@@ -92,12 +92,14 @@ export function MarketplaceProductCard({
             </span>
           )}
         </div>
+        <div className="marketplace-card__favorite">
+          <FavoriteButton type="product" entityId={offer.id} title={offer.title} />
+        </div>
       </div>
 
       <div className="marketplace-card__body">
         <div className="marketplace-card__price-row">
           <Text
-            variant="subheader-2"
             className="marketplace-card__price"
             data-testid={testId('shops', 'marketplace-card', 'text', 'price', offer.id)}
           >
@@ -112,12 +114,6 @@ export function MarketplaceProductCard({
               {offer.price.toLocaleString('ru-RU')} ₽
             </Text>
           )}
-          <FavoriteButton
-            type="product"
-            entityId={offer.id}
-            title={offer.title}
-            className="marketplace-card__favorite"
-          />
         </div>
         <Text
           variant="header-2"
@@ -135,7 +131,18 @@ export function MarketplaceProductCard({
           {shopName} · {offer.category}
         </Text>
         <div className="marketplace-card__action">
-          <ExternalProductLink offer={offer} shopName={shopName} compact />
+          <ExternalProductLink
+            offer={offer}
+            shopName={shopName}
+            shopCity={shopCity}
+            shopCategories={[offer.category]}
+            shopAdTier={shopAdTier}
+            promoTitle={
+              isPromoted && promoDiscount ? `Скидка партнёра −${promoDiscount}%` : undefined
+            }
+            promoDiscount={promoDiscount}
+            compact
+          />
         </div>
       </div>
     </article>

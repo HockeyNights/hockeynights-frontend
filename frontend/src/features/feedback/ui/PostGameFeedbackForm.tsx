@@ -2,49 +2,140 @@
  * SPEC-FR-8.1.1, SPEC-FR-8.1.2
  */
 
-import {Select, Text, TextArea} from '@gravity-ui/uikit'
+import {Select, type SelectOption, Text, TextArea} from '@gravity-ui/uikit'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import {useState} from 'react'
 
 import type {CreateFeedbackPayload} from '@/entities/feedback'
 import {submitFeedback} from '@/entities/feedback'
-import {fetchPlayers} from '@/entities/profile'
+import {fetchPlayers, type PlayersFilterParams} from '@/entities/profile'
 import {useSessionAccess} from '@/features/access'
+import {POSITION_LABELS} from '@/features/events'
 import {useFeedbackEligibleEvents} from '@/features/feedback/lib/useFeedbackEligibility'
 import {testId} from '@/shared/testing/testId'
 import {EmptyNetState} from '@/shared/ui/EmptyNetState'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
 
-const ATTENDANCE_OPTIONS = [
-  {value: 'confirmed', content: 'Пришёл вовремя'},
-  {value: 'late', content: 'Опоздал'},
-  {value: 'no_show', content: 'Не пришёл'},
+type Tone = 'green' | 'gold' | 'red' | 'blue' | 'muted'
+
+interface ChoiceOption<T extends string> {
+  value: T
+  label: string
+  caption?: string
+  tone: Tone
+}
+
+const ATTENDANCE_OPTIONS: ChoiceOption<CreateFeedbackPayload['attendanceRating']>[] = [
+  {value: 'confirmed', label: 'Вовремя', caption: 'к началу игры', tone: 'green'},
+  {value: 'late', label: 'Опоздал', caption: 'после начала', tone: 'gold'},
+  {value: 'no_show', label: 'Не явился', caption: 'без предупреждения', tone: 'red'},
 ]
 
-const SKILL_OPTIONS = [
-  {value: 'too_low', content: 'Уровень ниже заявленного'},
-  {value: 'matched', content: 'Уровень совпал'},
-  {value: 'too_high', content: 'Уровень выше заявленного'},
+const SKILL_OPTIONS: ChoiceOption<CreateFeedbackPayload['skillMatchRating']>[] = [
+  {value: 'too_low', label: 'Ниже уровня', tone: 'muted'},
+  {value: 'matched', label: 'Совпал', tone: 'gold'},
+  {value: 'too_high', label: 'Выше уровня', tone: 'muted'},
 ]
 
-const BEHAVIOR_OPTIONS = [
-  {value: 'positive', content: 'Позитивное'},
-  {value: 'neutral', content: 'Нейтральное'},
-  {value: 'negative', content: 'Негативное'},
+const BEHAVIOR_OPTIONS: ChoiceOption<CreateFeedbackPayload['behaviorRating']>[] = [
+  {value: 'neutral', label: 'Нейтральное', tone: 'blue'},
+  {value: 'negative', label: 'Грубое', tone: 'red'},
+  {value: 'positive', label: 'Позитивное', tone: 'green'},
 ]
+
+interface OptionMeta {
+  meta?: string
+}
+
+export interface PostGameFeedbackFormProps {
+  /** Фильтры списка игроков из боковой панели страницы */
+  playerFilters?: PlayersFilterParams
+}
+
+function hasActiveFilters(filters: PlayersFilterParams): boolean {
+  return Object.values(filters).some(Boolean)
+}
+
+function formatEventMoment(startsAt: string): string {
+  return new Date(startsAt).toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function renderEntityOption(option: SelectOption<OptionMeta>) {
+  const title = String(option.content ?? option.value)
+  return (
+    <span className="hockey-feedback-entity">
+      <span className="hockey-feedback-entity__avatar" aria-hidden>
+        {title.charAt(0).toUpperCase()}
+      </span>
+      <span className="hockey-feedback-entity__copy">
+        <span className="hockey-feedback-entity__title">{title}</span>
+        {option.data?.meta && (
+          <span className="hockey-feedback-entity__meta">{option.data.meta}</span>
+        )}
+      </span>
+    </span>
+  )
+}
+
+function ChoiceGroup<T extends string>({
+  name,
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  name: string
+  label: string
+  options: ChoiceOption<T>[]
+  value: T
+  onChange: (value: T) => void
+}) {
+  return (
+    <div className="hockey-feedback-field" data-testid={testId('feedback', 'form', 'field', name)}>
+      <span className="hockey-feedback-field__label">{label}</span>
+      <div className="hockey-feedback-choices" role="radiogroup" aria-label={label}>
+        {options.map((option) => {
+          const active = option.value === value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              className={`hockey-feedback-choice hockey-feedback-choice--${option.tone}${active ? ' is-active' : ''}`}
+              onClick={() => onChange(option.value)}
+              data-testid={testId('feedback', 'form', 'btn', name, option.value)}
+            >
+              <span className="hockey-feedback-choice__label">{option.label}</span>
+              {option.caption && (
+                <span className="hockey-feedback-choice__caption">{option.caption}</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 /**
  * @spec SPEC-FR-8.1.1 - Форма post-game feedback
  * @spec SPEC-FR-8.1.2 - Только для участников события
  */
-export function PostGameFeedbackForm() {
+export function PostGameFeedbackForm({playerFilters = {}}: PostGameFeedbackFormProps) {
   const queryClient = useQueryClient()
   const {userId} = useSessionAccess()
   const {data: events = []} = useFeedbackEligibleEvents()
+  const filtersActive = hasActiveFilters(playerFilters)
   const {data: players = []} = useQuery({
-    queryKey: ['players'],
-    queryFn: () => fetchPlayers(),
+    queryKey: filtersActive ? ['players', playerFilters] : ['players'],
+    queryFn: () => fetchPlayers(playerFilters),
   })
 
   const [eventId, setEventId] = useState('')
@@ -70,14 +161,45 @@ export function PostGameFeedbackForm() {
   })
 
   const selectedEvent = events.find((e) => e.id === eventId)
-  const participantOptions = selectedEvent
+  const playersById = new Map(players.map((player) => [player.userId, player]))
+  const playerMeta = (id: string) => {
+    const player = playersById.get(id)
+    if (!player) return undefined
+    return [POSITION_LABELS[player.position], player.district ?? player.city]
+      .filter(Boolean)
+      .join(' · ')
+  }
+
+  const eventOptions: SelectOption<OptionMeta>[] = events.map((event) => ({
+    value: event.id,
+    content: event.title,
+    data: {
+      meta: [formatEventMoment(event.startsAt), event.arenaName].filter(Boolean).join(' · '),
+    },
+  }))
+
+  const participantOptions: SelectOption<OptionMeta>[] = selectedEvent
     ? selectedEvent.participation
         .filter((p) => p.userId !== userId)
-        .map((p) => ({value: p.userId, content: p.displayName}))
-    : players.map((p) => ({value: p.userId, content: p.displayName}))
+        .filter((p) => !filtersActive || playersById.has(p.userId))
+        .map((p) => ({value: p.userId, content: p.displayName, data: {meta: playerMeta(p.userId)}}))
+    : players.map((p) => ({
+        value: p.userId,
+        content: p.displayName,
+        data: {meta: playerMeta(p.userId)},
+      }))
+  const participantIds = participantOptions.map((option) => option.value).join('\0')
+  const [trackedParticipantIds, setTrackedParticipantIds] = useState(participantIds)
+  if (participantIds !== trackedParticipantIds) {
+    setTrackedParticipantIds(participantIds)
+    const allowed = new Set(participantIds ? participantIds.split('\0') : [])
+    if (toUserId && !allowed.has(toUserId)) setToUserId('')
+  }
 
   function handleSubmit() {
-    if (!eventId || !toUserId) {
+    const playerStillListed = participantOptions.some((option) => option.value === toUserId)
+    if (!eventId || !toUserId || !playerStillListed) {
+      setToUserId('')
       setError('Выберите событие и игрока')
       return
     }
@@ -104,81 +226,130 @@ export function PostGameFeedbackForm() {
 
   return (
     <IceCard
-      padding="m"
-      className="hockey-form-shell hockey-form-shell--560"
+      padding="l"
+      className="hockey-feedback-form"
       data-testid={testId('feedback', 'form', 'form')}
     >
-      <div className="hockey-stack hockey-stack--gap-12">
-        <Text variant="subheader-2" data-testid={testId('feedback', 'form', 'text', 'title')}>
-          Post-game feedback
+      <div className="hockey-feedback-form__head">
+        <span className="hockey-feedback-form__dot" aria-hidden />
+        <Text
+          className="hockey-feedback-form__title"
+          data-testid={testId('feedback', 'form', 'text', 'title')}
+        >
+          Post-game evaluation
         </Text>
+      </div>
 
-        <Select
-          label="Событие"
-          value={[eventId]}
-          onUpdate={(v) => setEventId(v[0] ?? '')}
-          options={events.map((e) => ({value: e.id, content: e.title}))}
-          data-testid={testId('feedback', 'form', 'select', 'event')}
-        />
-        <Select
-          label="Игрок"
-          value={[toUserId]}
-          onUpdate={(v) => setToUserId(v[0] ?? '')}
-          options={participantOptions}
-          data-testid={testId('feedback', 'form', 'select', 'player')}
-        />
-        <Select
-          label="Явка"
-          value={[attendanceRating]}
-          onUpdate={(v) => setAttendanceRating(v[0] as CreateFeedbackPayload['attendanceRating'])}
-          options={ATTENDANCE_OPTIONS}
-          data-testid={testId('feedback', 'form', 'select', 'attendance')}
-        />
-        <Select
-          label="Уровень"
-          value={[skillMatchRating]}
-          onUpdate={(v) => setSkillMatchRating(v[0] as CreateFeedbackPayload['skillMatchRating'])}
-          options={SKILL_OPTIONS}
-          data-testid={testId('feedback', 'form', 'select', 'skill')}
-        />
-        <Select
-          label="Поведение"
-          value={[behaviorRating]}
-          onUpdate={(v) => setBehaviorRating(v[0] as CreateFeedbackPayload['behaviorRating'])}
-          options={BEHAVIOR_OPTIONS}
-          data-testid={testId('feedback', 'form', 'select', 'behavior')}
-        />
-        <div data-testid={testId('feedback', 'form', 'field', 'comment')}>
-          <Text color="secondary" data-testid={testId('feedback', 'form', 'text', 'comment-label')}>
-            Комментарий
-          </Text>
-          <TextArea
-            value={comment}
-            onUpdate={setComment}
-            minRows={3}
-            data-testid={testId('feedback', 'form', 'field', 'comment-input')}
+      <div className="hockey-feedback-form__fields">
+        <div className="hockey-feedback-field">
+          <div className="hockey-feedback-field__label-row">
+            <span className="hockey-feedback-field__label">Событие матча</span>
+            {selectedEvent && (
+              <span
+                className="hockey-feedback-field__hint"
+                data-testid={testId('feedback', 'form', 'text', 'event-date')}
+              >
+                {formatEventMoment(selectedEvent.startsAt)}
+              </span>
+            )}
+          </div>
+          <Select
+            placeholder="Выберите событие"
+            value={eventId ? [eventId] : []}
+            onUpdate={(v) => {
+              setEventId(v[0] ?? '')
+              setToUserId('')
+            }}
+            options={eventOptions}
+            renderOption={renderEntityOption}
+            renderSelectedOption={renderEntityOption}
+            width="max"
+            size="xl"
+            className="hockey-feedback-entity-select"
+            data-testid={testId('feedback', 'form', 'select', 'event')}
           />
         </div>
 
-        {error && (
-          <Text color="danger" data-testid={testId('feedback', 'form', 'text', 'error')}>
-            {error}
-          </Text>
-        )}
-        {mutation.isSuccess && (
-          <Text color="positive" data-testid={testId('feedback', 'form', 'text', 'success')}>
-            Feedback отправлен
-          </Text>
-        )}
+        <div className="hockey-feedback-field">
+          <span className="hockey-feedback-field__label">Игрок для оценки</span>
+          <Select
+            placeholder={participantOptions.length ? 'Выберите игрока' : 'Нет игроков по фильтрам'}
+            value={toUserId ? [toUserId] : []}
+            onUpdate={(v) => setToUserId(v[0] ?? '')}
+            options={participantOptions}
+            renderOption={renderEntityOption}
+            renderSelectedOption={renderEntityOption}
+            width="max"
+            size="xl"
+            className="hockey-feedback-entity-select"
+            data-testid={testId('feedback', 'form', 'select', 'player')}
+          />
+        </div>
 
-        <HockeyButton
-          loading={mutation.isPending}
-          onClick={handleSubmit}
-          data-testid={testId('feedback', 'form', 'btn', 'submit')}
+        <ChoiceGroup
+          name="attendance"
+          label="Явка на игру"
+          options={ATTENDANCE_OPTIONS}
+          value={attendanceRating}
+          onChange={setAttendanceRating}
+        />
+        <ChoiceGroup
+          name="skill"
+          label="Соответствие уровню игры"
+          options={SKILL_OPTIONS}
+          value={skillMatchRating}
+          onChange={setSkillMatchRating}
+        />
+        <ChoiceGroup
+          name="behavior"
+          label="Поведение и атмосфера"
+          options={BEHAVIOR_OPTIONS}
+          value={behaviorRating}
+          onChange={setBehaviorRating}
+        />
+
+        <div
+          className="hockey-feedback-field"
+          data-testid={testId('feedback', 'form', 'field', 'comment')}
         >
-          Отправить feedback
-        </HockeyButton>
+          <span
+            className="hockey-feedback-field__label"
+            data-testid={testId('feedback', 'form', 'text', 'comment-label')}
+          >
+            Комментарий к оценке (опционально)
+          </span>
+          <TextArea
+            value={comment}
+            onUpdate={setComment}
+            minRows={2}
+            size="xl"
+            placeholder="Что стоит знать другим игрокам"
+            data-testid={testId('feedback', 'form', 'field', 'comment-input')}
+          />
+        </div>
       </div>
+
+      {error && (
+        <Text color="danger" data-testid={testId('feedback', 'form', 'text', 'error')}>
+          {error}
+        </Text>
+      )}
+      {mutation.isSuccess && (
+        <Text color="positive" data-testid={testId('feedback', 'form', 'text', 'success')}>
+          Feedback отправлен
+        </Text>
+      )}
+
+      <HockeyButton
+        size="xl"
+        width="max"
+        className="hockey-feedback-form__submit"
+        loading={mutation.isPending}
+        onClick={handleSubmit}
+        data-testid={testId('feedback', 'form', 'btn', 'submit')}
+      >
+        Отправить Feedback
+      </HockeyButton>
     </IceCard>
   )
 }

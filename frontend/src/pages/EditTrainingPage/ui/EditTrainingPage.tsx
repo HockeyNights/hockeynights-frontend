@@ -117,7 +117,7 @@ export function EditTrainingPage() {
   }
 
   return (
-    <PageHub data-testid={testId('events', 'edit-page', 'page', event.id)}>
+    <PageHub className="event-create" data-testid={testId('events', 'edit-page', 'page', event.id)}>
       <PageBackLink
         to={eventDetailsPath(event)}
         label="К карточке"
@@ -146,11 +146,13 @@ export function EditTrainingPage() {
         }
       />
 
-      <div className="page-hub__panel">
-        <IceCard padding="m" data-testid={testId('events', 'edit-page', 'card', 'form')}>
-          <EventCreateForm mode="edit" initialEvent={event} />
-        </IceCard>
-      </div>
+      <IceCard
+        padding="l"
+        className="event-create__form"
+        data-testid={testId('events', 'edit-page', 'card', 'form')}
+      >
+        <EventCreateForm mode="edit" initialEvent={event} />
+      </IceCard>
     </PageHub>
   )
 }

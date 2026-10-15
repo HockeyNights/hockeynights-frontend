@@ -52,7 +52,8 @@ function ParticipationHistoryItem({record}: {record: ParticipationRecord}) {
       >
         <span className="profile-hub__history-main">
           <Text
-            variant="subheader-2"
+            variant="body-2"
+            className="profile-hub__history-title"
             data-testid={testId(
               'profile',
               'participation-history',
@@ -65,6 +66,7 @@ function ParticipationHistoryItem({record}: {record: ParticipationRecord}) {
           </Text>
           <Text
             color="secondary"
+            className="profile-hub__history-date"
             data-testid={testId('profile', 'participation-history', 'text', 'date', record.eventId)}
           >
             {new Date(record.eventDate).toLocaleDateString('ru-RU')}

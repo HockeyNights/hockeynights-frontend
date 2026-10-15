@@ -6,8 +6,7 @@
  * HOCFRONT-23 — verified badge
  */
 
-import {MapPin, Shield} from '@gravity-ui/icons'
-import {Icon, Text} from '@gravity-ui/uikit'
+import {Text} from '@gravity-ui/uikit'
 import type {ReactNode} from 'react'
 import {Link} from 'react-router'
 
@@ -25,7 +24,6 @@ import {
 import {testId} from '@/shared/testing/testId'
 import {IceCard} from '@/shared/ui/IceCard'
 import {PositionLabel} from '@/shared/ui/PositionLabel'
-import {ScoreboardText} from '@/shared/ui/ScoreboardText'
 
 const STICK_HAND_LABELS: Record<NonNullable<PlayerListItem['stickHand']>, string> = {
   left: 'Левый',
@@ -98,6 +96,44 @@ function PlayerAvatar({player}: {player: PlayerListItem}) {
   )
 }
 
+function ReliabilityMeter({
+  player,
+  label,
+  value,
+}: {
+  player: PlayerListItem
+  label: string
+  value: number
+}) {
+  return (
+    <div className="hockey-player-card__stats">
+      <div className="hockey-player-card__stats-head">
+        <Text
+          className="hockey-player-card__stats-label"
+          data-testid={testId('players', 'player-card', 'text', 'reliability-label', player.userId)}
+        >
+          {label}
+        </Text>
+        <KarmaScore
+          score={player.karmaScore}
+          testIdPrefix="players"
+          data-testid={testId('players', 'player-card', 'badge', 'karma', player.userId)}
+        />
+      </div>
+      <div
+        className="hockey-player-card__reliability"
+        aria-hidden
+        data-testid={testId('players', 'player-card', 'cell', 'reliability', player.userId)}
+      >
+        <div
+          className="hockey-player-card__reliability-fill hockey-fill"
+          style={{['--hockey-fill-width' as string]: `${value}%`}}
+        />
+      </div>
+    </div>
+  )
+}
+
 /**
  * @spec SPEC-UI-2.1 - Hockey card с номером, амплуа, karma, надёжностью
  * @spec SPEC-FR-2.3.1 - Карточка игрока
@@ -136,229 +172,183 @@ export function PlayerCard({
         data-testid={testId('players', 'player-card', 'card', player.userId)}
       >
         <div className="hockey-player-card hockey-player-card--profile">
-          <div
-            className="hockey-player-card__portrait"
-            data-testid={testId('players', 'player-card', 'panel', 'portrait', player.userId)}
-          >
-            <PlayerAvatar player={player} />
-          </div>
+          <div className="hockey-player-card__head">
+            <div
+              className="hockey-player-card__portrait"
+              data-testid={testId('players', 'player-card', 'panel', 'portrait', player.userId)}
+            >
+              <PlayerAvatar player={player} />
+            </div>
 
-          <div className="hockey-player-card__passport">
-            <div className="hockey-player-card__passport-top">
-              <div className="hockey-player-card__badges">
-                {showField('position') && (
-                  <PositionLabel
-                    position={player.position}
-                    testIdPrefix="players"
+            <div className="hockey-player-card__passport">
+              <div className="hockey-player-card__passport-top">
+                <div className="hockey-player-card__badges">
+                  {showField('position') && (
+                    <PositionLabel
+                      position={player.position}
+                      testIdPrefix="players"
+                      data-testid={testId(
+                        'players',
+                        'player-card',
+                        'badge',
+                        'position',
+                        player.userId,
+                      )}
+                    />
+                  )}
+                  {isGoalie && (
+                    <span
+                      className="hockey-player-card__goalie-badge"
+                      data-testid={testId('players', 'player-card', 'badge', 'sos', player.userId)}
+                    >
+                      SOS
+                    </span>
+                  )}
+                  <VerifiedBadge
+                    verified={isVerified}
+                    entityId={player.userId}
+                    className="hockey-player-card__verified"
                     data-testid={testId(
                       'players',
                       'player-card',
                       'badge',
-                      'position',
+                      'verified',
                       player.userId,
                     )}
                   />
-                )}
-                {isGoalie && (
-                  <span
-                    className="hockey-player-card__goalie-badge"
-                    data-testid={testId('players', 'player-card', 'badge', 'sos', player.userId)}
-                  >
-                    SOS
-                  </span>
-                )}
-                <VerifiedBadge
-                  verified={isVerified}
-                  entityId={player.userId}
-                  className="hockey-player-card__verified"
-                  data-testid={testId('players', 'player-card', 'badge', 'verified', player.userId)}
-                />
-              </div>
-              <div className="hockey-player-card__top-right">
+                </div>
                 {showFavorite && (
-                  <FavoriteButton
-                    type="player"
-                    entityId={player.userId}
-                    title={player.displayName}
-                  />
+                  <div className="hockey-player-card__top-right">
+                    <FavoriteButton
+                      type="player"
+                      entityId={player.userId}
+                      title={player.displayName}
+                    />
+                  </div>
                 )}
               </div>
-            </div>
 
-            <Text
-              variant="header-1"
-              className="hockey-player-card__passport-name"
-              data-testid={testId('players', 'player-card', 'text', 'name', player.userId)}
-            >
-              {player.displayName}
-            </Text>
-
-            {birthMeta ? (
               <Text
-                className="hockey-player-card__passport-birth"
-                data-testid={testId('players', 'player-card', 'text', 'birth', player.userId)}
+                variant="header-2"
+                className="hockey-player-card__passport-name"
+                data-testid={testId('players', 'player-card', 'text', 'name', player.userId)}
               >
-                {birthMeta}
+                {player.displayName}
               </Text>
-            ) : (
-              <Text
-                color="secondary"
-                className="hockey-player-card__passport-subtitle"
-                data-testid={testId('players', 'player-card', 'text', 'skill', player.userId)}
-              >
-                {showField('position') ? positionLabel : 'Игрок'}
-                {showField('skillLevel') ? ` · ${skillLabel}` : ''}
-              </Text>
-            )}
 
-            <div
-              className="hockey-player-card__passport-cols"
-              data-testid={testId('players', 'player-card', 'panel', 'cols', player.userId)}
-            >
-              <div className="hockey-player-card__passport-col">
-                <p className="hockey-player-card__passport-col-title">Личные</p>
-                <dl className="hockey-player-card__passport-facts">
-                  {showField('city') && player.city.trim() !== '' && (
-                    <div>
-                      <dt>Город</dt>
-                      <dd
-                        data-testid={testId(
-                          'players',
-                          'player-card',
-                          'text',
-                          'city',
-                          player.userId,
-                        )}
-                      >
-                        {player.city}
-                      </dd>
-                    </div>
-                  )}
-                  {showField('heightWeight') && player.heightCm != null && (
-                    <div>
-                      <dt>Рост</dt>
-                      <dd
-                        data-testid={testId(
-                          'players',
-                          'player-card',
-                          'text',
-                          'height',
-                          player.userId,
-                        )}
-                      >
-                        {player.heightCm} см
-                      </dd>
-                    </div>
-                  )}
-                  {showField('heightWeight') && player.weightKg != null && (
-                    <div>
-                      <dt>Вес</dt>
-                      <dd
-                        data-testid={testId(
-                          'players',
-                          'player-card',
-                          'text',
-                          'weight',
-                          player.userId,
-                        )}
-                      >
-                        {player.weightKg} кг
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-
-              <div className="hockey-player-card__passport-col">
-                <p className="hockey-player-card__passport-col-title">Игровые</p>
-                <dl className="hockey-player-card__passport-facts">
-                  {showField('position') && (
-                    <div>
-                      <dt>Хват</dt>
-                      <dd>{STICK_HAND_LABELS[stickHand]}</dd>
-                    </div>
-                  )}
-                  {showField('position') && (
-                    <div>
-                      <dt>Позиция</dt>
-                      <dd>{positionLabel}</dd>
-                    </div>
-                  )}
-                  {showField('skillLevel') && (
-                    <div>
-                      <dt>Уровень</dt>
-                      <dd
-                        data-testid={testId(
-                          'players',
-                          'player-card',
-                          'text',
-                          'skill',
-                          player.userId,
-                        )}
-                      >
-                        {skillLabel}
-                      </dd>
-                    </div>
-                  )}
-                  {showField('skillLevel') && player.playerIndex != null && (
-                    <div>
-                      <dt>Индекс</dt>
-                      <dd
-                        data-testid={testId(
-                          'players',
-                          'player-card',
-                          'text',
-                          'index',
-                          player.userId,
-                        )}
-                      >
-                        {clampPlayerIndex(player.playerIndex)}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-            </div>
-
-            <div className="hockey-player-card__stats">
-              <div>
+              {birthMeta ? (
+                <Text
+                  className="hockey-player-card__passport-birth"
+                  data-testid={testId('players', 'player-card', 'text', 'birth', player.userId)}
+                >
+                  {birthMeta}
+                </Text>
+              ) : (
                 <Text
                   color="secondary"
-                  className="hockey-text-caption"
-                  data-testid={testId(
-                    'players',
-                    'player-card',
-                    'text',
-                    'reliability-label',
-                    player.userId,
-                  )}
+                  className="hockey-player-card__passport-subtitle"
+                  data-testid={testId('players', 'player-card', 'text', 'skill', player.userId)}
                 >
-                  {reliabilityLabel}
+                  {showField('position') ? positionLabel : 'Игрок'}
+                  {showField('skillLevel') ? ` · ${skillLabel}` : ''}
                 </Text>
-                <div
-                  className="hockey-player-card__reliability"
-                  aria-hidden
-                  data-testid={testId(
-                    'players',
-                    'player-card',
-                    'cell',
-                    'reliability',
-                    player.userId,
-                  )}
-                >
-                  <div
-                    className="hockey-player-card__reliability-fill hockey-fill"
-                    style={{['--hockey-fill-width' as string]: `${reliability}%`}}
-                  />
-                </div>
-              </div>
-              <KarmaScore
-                score={player.karmaScore}
-                testIdPrefix="players"
-                data-testid={testId('players', 'player-card', 'badge', 'karma', player.userId)}
-              />
+              )}
             </div>
           </div>
+
+          <div
+            className="hockey-player-card__passport-cols"
+            data-testid={testId('players', 'player-card', 'panel', 'cols', player.userId)}
+          >
+            <div className="hockey-player-card__passport-col hockey-player-card__passport-col--personal">
+              <p className="hockey-player-card__passport-col-title">Личные данные</p>
+              <dl className="hockey-player-card__passport-facts">
+                {showField('city') && player.city.trim() !== '' && (
+                  <div>
+                    <dt>Город:</dt>
+                    <dd
+                      data-testid={testId('players', 'player-card', 'text', 'city', player.userId)}
+                    >
+                      {player.city}
+                    </dd>
+                  </div>
+                )}
+                {showField('heightWeight') && player.heightCm != null && (
+                  <div>
+                    <dt>Рост:</dt>
+                    <dd
+                      data-testid={testId(
+                        'players',
+                        'player-card',
+                        'text',
+                        'height',
+                        player.userId,
+                      )}
+                    >
+                      {player.heightCm} см
+                    </dd>
+                  </div>
+                )}
+                {showField('heightWeight') && player.weightKg != null && (
+                  <div>
+                    <dt>Вес:</dt>
+                    <dd
+                      data-testid={testId(
+                        'players',
+                        'player-card',
+                        'text',
+                        'weight',
+                        player.userId,
+                      )}
+                    >
+                      {player.weightKg} кг
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+
+            <div className="hockey-player-card__passport-col hockey-player-card__passport-col--game">
+              <p className="hockey-player-card__passport-col-title">Игровые данные</p>
+              <dl className="hockey-player-card__passport-facts">
+                {showField('position') && (
+                  <div>
+                    <dt>Хват:</dt>
+                    <dd>{STICK_HAND_LABELS[stickHand]}</dd>
+                  </div>
+                )}
+                {showField('position') && (
+                  <div>
+                    <dt>Позиция:</dt>
+                    <dd>{positionLabel}</dd>
+                  </div>
+                )}
+                {showField('skillLevel') && (
+                  <div>
+                    <dt>Уровень:</dt>
+                    <dd
+                      data-testid={testId('players', 'player-card', 'text', 'skill', player.userId)}
+                    >
+                      {skillLabel}
+                    </dd>
+                  </div>
+                )}
+                {showField('skillLevel') && player.playerIndex != null && (
+                  <div>
+                    <dt>Индекс:</dt>
+                    <dd
+                      className="hockey-player-card__accent-value"
+                      data-testid={testId('players', 'player-card', 'text', 'index', player.userId)}
+                    >
+                      {clampPlayerIndex(player.playerIndex)}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          </div>
+
+          <ReliabilityMeter player={player} label={reliabilityLabel} value={reliability} />
         </div>
       </IceCard>
     )
@@ -380,92 +370,69 @@ export function PlayerCard({
         )}
       </div>
 
-      {showField('teams') && player.teamName && (
-        <div
-          className="hockey-player-card__field"
-          data-testid={testId('players', 'player-card', 'panel', 'team', player.userId)}
-        >
-          <Text
-            color="secondary"
-            className="hockey-text-caption hockey-player-card__field-label"
-            data-testid={testId('players', 'player-card', 'text', 'team-label', player.userId)}
+      <div className="hockey-player-card__fields">
+        {showField('teams') && player.teamName && (
+          <div
+            className="hockey-player-card__field"
+            data-testid={testId('players', 'player-card', 'panel', 'team', player.userId)}
           >
-            <Icon data={Shield} size={14} aria-hidden />
-            Команда
-          </Text>
-          <div className="hockey-player-card__team-value">
-            {player.teamLogoUrl ? (
-              <img
-                src={player.teamLogoUrl}
-                alt=""
-                className="hockey-player-card__team-logo"
-                data-testid={testId('players', 'player-card', 'img', 'team-logo', player.userId)}
-              />
-            ) : null}
-            <Text data-testid={testId('players', 'player-card', 'text', 'team', player.userId)}>
-              {player.teamName}
+            <Text
+              className="hockey-player-card__field-label"
+              data-testid={testId('players', 'player-card', 'text', 'team-label', player.userId)}
+            >
+              Команда
+            </Text>
+            <div className="hockey-player-card__team-value">
+              {player.teamLogoUrl ? (
+                <img
+                  src={player.teamLogoUrl}
+                  alt=""
+                  className="hockey-player-card__team-logo"
+                  data-testid={testId('players', 'player-card', 'img', 'team-logo', player.userId)}
+                />
+              ) : null}
+              <Text data-testid={testId('players', 'player-card', 'text', 'team', player.userId)}>
+                {player.teamName}
+              </Text>
+            </div>
+          </div>
+        )}
+
+        {showField('city') && player.city.trim() ? (
+          <div
+            className="hockey-player-card__field"
+            data-testid={testId('players', 'player-card', 'panel', 'city', player.userId)}
+          >
+            <Text
+              className="hockey-player-card__field-label"
+              data-testid={testId('players', 'player-card', 'text', 'city-label', player.userId)}
+            >
+              Город
+            </Text>
+            <Text data-testid={testId('players', 'player-card', 'text', 'city', player.userId)}>
+              {player.city}
             </Text>
           </div>
-        </div>
-      )}
-
-      {showField('city') && player.city.trim() ? (
-        <div
-          className="hockey-player-card__field"
-          data-testid={testId('players', 'player-card', 'panel', 'city', player.userId)}
-        >
-          <Text
-            color="secondary"
-            className="hockey-text-caption hockey-player-card__field-label"
-            data-testid={testId('players', 'player-card', 'text', 'city-label', player.userId)}
-          >
-            <Icon data={MapPin} size={14} aria-hidden />
-            Город
-          </Text>
-          <Text data-testid={testId('players', 'player-card', 'text', 'city', player.userId)}>
-            {player.city}
-          </Text>
-        </div>
-      ) : null}
-
-      <div className="hockey-player-card__stats">
-        <div>
-          <Text
-            color="secondary"
-            className="hockey-text-caption"
-            data-testid={testId(
-              'players',
-              'player-card',
-              'text',
-              'reliability-label',
-              player.userId,
-            )}
-          >
-            {reliabilityLabel}
-          </Text>
-          <div
-            className="hockey-player-card__reliability"
-            aria-hidden
-            data-testid={testId('players', 'player-card', 'cell', 'reliability', player.userId)}
-          >
-            <div
-              className="hockey-player-card__reliability-fill hockey-fill"
-              style={{['--hockey-fill-width' as string]: `${reliability}%`}}
-            />
-          </div>
-        </div>
-
-        <KarmaScore
-          score={player.karmaScore}
-          testIdPrefix="players"
-          data-testid={testId('players', 'player-card', 'badge', 'karma', player.userId)}
-        />
+        ) : null}
       </div>
+
+      <ReliabilityMeter player={player} label={reliabilityLabel} value={reliability} />
     </div>
   )
 
   return (
-    <IceCard padding="m" data-testid={testId('players', 'player-card', 'card', player.userId)}>
+    <IceCard
+      padding="m"
+      className="hockey-player-card-shell--catalog"
+      data-testid={testId('players', 'player-card', 'card', player.userId)}
+    >
+      <span
+        className="hockey-player-card__number"
+        aria-hidden
+        data-testid={testId('players', 'player-card', 'text', 'number', player.userId)}
+      >
+        {jerseyNumber}
+      </span>
       <div className="hockey-player-card">
         <div className="hockey-player-card__top">
           <CardNav linkable={linkable} to={profilePath} userId={player.userId}>
@@ -496,7 +463,7 @@ export function PlayerCard({
               <div className="hockey-player-card__name-row">
                 <Text
                   variant="header-2"
-                  className="hockey-text-mt-6 hockey-entity-title--compact"
+                  className="hockey-entity-title--compact hockey-player-card__name"
                   data-testid={testId('players', 'player-card', 'text', 'name', player.userId)}
                 >
                   {player.displayName}
@@ -510,17 +477,11 @@ export function PlayerCard({
               </div>
             </div>
           </CardNav>
-          <div className="hockey-player-card__top-right">
-            {showFavorite && (
+          {showFavorite && (
+            <div className="hockey-player-card__top-right">
               <FavoriteButton type="player" entityId={player.userId} title={player.displayName} />
-            )}
-            <ScoreboardText
-              className="hockey-player-card__number"
-              data-testid={testId('players', 'player-card', 'text', 'number', player.userId)}
-            >
-              {jerseyNumber}
-            </ScoreboardText>
-          </div>
+            </div>
+          )}
         </div>
 
         {linkable ? (

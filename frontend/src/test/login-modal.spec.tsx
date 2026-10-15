@@ -2,8 +2,8 @@
  * Auth — вход, регистрация и выбор демо-роли.
  */
 
-import {screen, waitFor} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import {screen, waitFor, within} from '@testing-library/react'
+import userEvent, {type UserEvent} from '@testing-library/user-event'
 import {Route, Routes} from 'react-router'
 import {beforeEach, describe, expect, it} from 'vitest'
 
@@ -14,6 +14,16 @@ import {AuthPage} from '@/pages/auth'
 import {TermsOfUsePage} from '@/pages/TermsOfUsePage'
 import {clearTestStorage} from '@/test/clearTestStorage'
 import {renderWithProviders} from '@/test/render'
+
+async function confirmEmailCode(user: UserEvent) {
+  await waitFor(() => {
+    expect(screen.getByText('Код подтверждения')).toBeInTheDocument()
+  })
+  const otp = screen.getByTestId('auth-verify-panel-otp')
+  const boxes = within(otp).getAllByRole('textbox')
+  await user.type(boxes[0], '749222')
+  await user.click(screen.getByRole('button', {name: 'Подтвердить код'}))
+}
 
 describe('AuthPage login', () => {
   beforeEach(() => {
@@ -29,7 +39,7 @@ describe('AuthPage login', () => {
     await user.type(screen.getByLabelText('Email'), 'wrong@example.com')
     await user.clear(screen.getByLabelText('Пароль'))
     await user.type(screen.getByLabelText('Пароль'), 'bad-password')
-    await user.click(screen.getByRole('button', {name: 'Войти'}))
+    await user.click(screen.getByRole('button', {name: 'Войти в систему'}))
 
     await waitFor(() => {
       expect(screen.getByText(/Аккаунт не найден/i)).toBeInTheDocument()
@@ -41,8 +51,8 @@ describe('AuthPage login', () => {
     const user = userEvent.setup()
     renderWithProviders(<AuthPage />)
 
-    await user.click(screen.getByRole('button', {name: 'Подставить демо-данные'}))
-    await user.click(screen.getByRole('button', {name: 'Войти'}))
+    await user.click(screen.getByRole('button', {name: 'Быстрый доступ'}))
+    await user.click(screen.getByRole('button', {name: 'Войти в систему'}))
 
     await waitFor(() => {
       expect(screen.getByText('Выберите демо-роль')).toBeInTheDocument()
@@ -55,7 +65,7 @@ describe('AuthPage login', () => {
     const user = userEvent.setup()
     renderWithProviders(<AuthPage />)
 
-    await user.click(screen.getByRole('button', {name: 'Войти'}))
+    await user.click(screen.getByRole('button', {name: 'Войти в систему'}))
     await waitFor(() => {
       expect(screen.getByText('Выберите демо-роль')).toBeInTheDocument()
     })
@@ -80,6 +90,7 @@ describe('AuthPage login', () => {
     await user.type(screen.getByLabelText('Подтверждение пароля'), 'secret12')
     await user.click(screen.getByRole('checkbox'))
     await user.click(screen.getByRole('button', {name: 'Зарегистрироваться'}))
+    await confirmEmailCode(user)
 
     await waitFor(() => {
       expect(screen.getByText('Выберите демо-роль')).toBeInTheDocument()
@@ -95,7 +106,7 @@ describe('AuthPage login', () => {
     await user.type(screen.getByLabelText('Email'), 'local@hockey.local')
     await user.clear(screen.getByLabelText('Пароль'))
     await user.type(screen.getByLabelText('Пароль'), 'secret12')
-    await user.click(screen.getByRole('button', {name: 'Войти'}))
+    await user.click(screen.getByRole('button', {name: 'Войти в систему'}))
 
     await waitFor(() => {
       expect(screen.getByText('Выберите демо-роль')).toBeInTheDocument()
@@ -115,7 +126,7 @@ describe('AuthPage register', () => {
     expect(screen.getByText('Создать аккаунт')).toBeInTheDocument()
     expect(screen.getByLabelText('Имя')).toBeInTheDocument()
     expect(screen.getByLabelText('Подтверждение пароля')).toBeInTheDocument()
-    expect(screen.getByText(/localStorage/i)).toBeInTheDocument()
+    expect(screen.getByTestId('auth-register-text-local-memory')).toBeInTheDocument()
   })
 
   it('validates registration fields before submit', async () => {
@@ -139,6 +150,7 @@ describe('AuthPage register', () => {
     await user.type(screen.getByLabelText('Подтверждение пароля'), 'secret12')
     await user.click(screen.getByRole('checkbox'))
     await user.click(screen.getByRole('button', {name: 'Зарегистрироваться'}))
+    await confirmEmailCode(user)
 
     await waitFor(() => {
       expect(screen.getByText('Выберите демо-роль')).toBeInTheDocument()
@@ -162,6 +174,7 @@ describe('AuthPage register', () => {
 
     await user.click(screen.getByRole('checkbox'))
     await user.click(screen.getByRole('button', {name: 'Зарегистрироваться'}))
+    await confirmEmailCode(user)
     await waitFor(() => {
       expect(screen.getByText('Выберите демо-роль')).toBeInTheDocument()
     })
@@ -204,6 +217,30 @@ describe('AuthPage register', () => {
       expect(
         screen.getByText('Этот email уже зарегистрирован. Войдите в аккаунт.'),
       ).toBeInTheDocument()
+    })
+  })
+})
+
+describe('AuthPage email verification', () => {
+  beforeEach(() => {
+    resetMockSession()
+    clearTestStorage()
+  })
+
+  it('opens confirmation from forgot password and returns to login', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<AuthPage />)
+
+    await user.click(screen.getByTestId('auth-login-btn-forgot'))
+    await waitFor(() => {
+      expect(screen.getByText('Код подтверждения')).toBeInTheDocument()
+      expect(screen.getByText(DEMO_EMAIL)).toBeInTheDocument()
+    })
+
+    await confirmEmailCode(user)
+
+    await waitFor(() => {
+      expect(screen.getByText('Вход в аккаунт')).toBeInTheDocument()
     })
   })
 })

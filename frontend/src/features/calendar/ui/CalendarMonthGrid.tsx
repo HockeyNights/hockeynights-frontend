@@ -2,11 +2,10 @@
  * HOCFRONT-28CAL-B — сетка месяца
  */
 
-import {Text} from '@gravity-ui/uikit'
+import {ChevronLeft, ChevronRight} from '@gravity-ui/icons'
 
 import type {GameEvent} from '@/entities/event'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 
 import {
   buildMonthCells,
@@ -34,7 +33,11 @@ export function CalendarMonthGrid({
 }: CalendarMonthGridProps) {
   const monthCursor = monthCursorFromDateKey(selectedDate)
   const eventsByDay = groupEventsByDay(events)
-  const cells = buildMonthCells(monthCursor, eventsByDay)
+  const allCells = buildMonthCells(monthCursor, eventsByDay)
+  // Последняя неделя целиком из следующего месяца — не рисуем, как в макете (5 строк).
+  const cells = allCells.slice(35).some((cell) => cell.inCurrentMonth)
+    ? allCells
+    : allCells.slice(0, 35)
   const labels = weekdayLabels()
 
   function goMonth(delta: number) {
@@ -45,51 +48,58 @@ export function CalendarMonthGrid({
 
   return (
     <div className="hockey-calendar-month" data-testid={testId('calendar', 'month', 'panel')}>
-      <div className="hockey-row hockey-row--between hockey-row--align-center">
-        <HockeyButton
-          view="flat"
-          size="s"
+      <div className="hockey-calendar-month__nav">
+        <button
+          type="button"
+          className="hockey-calendar-month__nav-btn"
           onClick={() => goMonth(-1)}
+          aria-label="Предыдущий месяц"
           data-testid={testId('calendar', 'month', 'btn', 'prev')}
         >
-          ←
-        </HockeyButton>
-        <Text variant="subheader-2" data-testid={testId('calendar', 'month', 'text', 'title')}>
+          <ChevronLeft width={16} height={16} />
+        </button>
+        <span
+          className="hockey-calendar-month__title"
+          data-testid={testId('calendar', 'month', 'text', 'title')}
+        >
           {monthTitle(monthCursor)}
-        </Text>
-        <HockeyButton
-          view="flat"
-          size="s"
+        </span>
+        <button
+          type="button"
+          className="hockey-calendar-month__nav-btn"
           onClick={() => goMonth(1)}
+          aria-label="Следующий месяц"
           data-testid={testId('calendar', 'month', 'btn', 'next')}
         >
-          →
-        </HockeyButton>
+          <ChevronRight width={16} height={16} />
+        </button>
       </div>
 
-      <div
-        className="hockey-calendar-month__weekdays"
-        data-testid={testId('calendar', 'month', 'row', 'weekdays')}
-      >
-        {labels.map((label) => (
-          <span key={label} className="hockey-calendar-month__weekday">
-            {label}
-          </span>
-        ))}
-      </div>
+      <div className="hockey-calendar-month__board">
+        <div
+          className="hockey-calendar-month__weekdays"
+          data-testid={testId('calendar', 'month', 'row', 'weekdays')}
+        >
+          {labels.map((label) => (
+            <span key={label} className="hockey-calendar-month__weekday">
+              {label}
+            </span>
+          ))}
+        </div>
 
-      <div
-        className="hockey-calendar-month__grid"
-        data-testid={testId('calendar', 'month', 'grid')}
-      >
-        {cells.map((cell) => (
-          <MonthDayButton
-            key={cell.dateKey}
-            cell={cell}
-            selected={cell.dateKey === selectedDate}
-            onSelect={() => onSelectDate(cell.dateKey)}
-          />
-        ))}
+        <div
+          className="hockey-calendar-month__grid"
+          data-testid={testId('calendar', 'month', 'grid')}
+        >
+          {cells.map((cell) => (
+            <MonthDayButton
+              key={cell.dateKey}
+              cell={cell}
+              selected={cell.dateKey === selectedDate}
+              onSelect={() => onSelectDate(cell.dateKey)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )

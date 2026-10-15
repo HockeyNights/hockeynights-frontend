@@ -14,7 +14,6 @@ import {routes} from '@/shared/const/appRoutes'
 import {useDocumentTitle} from '@/shared/hooks/useDocumentTitle'
 import {testId} from '@/shared/testing/testId'
 import {PageBackLink} from '@/shared/ui/PageBackLink'
-import {PageHeader} from '@/shared/ui/PageHeader'
 import {PageHub} from '@/shared/ui/PageHub'
 import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
@@ -80,20 +79,14 @@ export function ArenaDetailsPage() {
     )
   }
 
-  const subtitleParts = [arena.city, arena.district].filter(Boolean)
-
   return (
-    <PageHub data-testid={testId('arenas', 'details', 'page', arena.id)}>
+    <PageHub
+      className="arena-details-page"
+      data-testid={testId('arenas', 'details', 'page', arena.id)}
+    >
       <PageBackLink
         to={routes.arenas}
         label="К каталогу арен"
-        testIdPrefix="arenas"
-        testIdSection="details"
-      />
-
-      <PageHeader
-        title={arena.name}
-        subtitle={subtitleParts.length > 0 ? subtitleParts.join(' · ') : undefined}
         testIdPrefix="arenas"
         testIdSection="details"
       />

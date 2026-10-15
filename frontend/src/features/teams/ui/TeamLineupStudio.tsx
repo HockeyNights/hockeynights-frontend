@@ -2,7 +2,7 @@
  * HOCFRONT-25 — студия постановок: разные схемы состава + сохранение в шаблоны
  */
 
-import {Select, Text} from '@gravity-ui/uikit'
+import {Select, Text, TextInput} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 import {useEffect, useMemo, useState} from 'react'
 
@@ -12,6 +12,7 @@ import {testId} from '@/shared/testing/testId'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 import {IceCard} from '@/shared/ui/IceCard'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 import {
   createTeamLineupTemplate,
@@ -193,69 +194,82 @@ export function TeamLineupStudio({teamId, canEdit}: TeamLineupStudioProps) {
   }
 
   return (
-    <IceCard padding="m" data-testid={testId('teams', 'lineup-studio', 'card', teamId)}>
-      <div className="hockey-stack hockey-stack--gap-16">
-        <div className="hockey-stack hockey-stack--gap-8">
-          <Text
-            variant="header-2"
-            className="variable-font-header"
-            data-testid={testId('teams', 'lineup-studio', 'text', 'title', teamId)}
-          >
+    <section
+      className="lineup-studio"
+      data-testid={testId('teams', 'lineup-studio', 'section', teamId)}
+    >
+      <SectionHeading
+        title={
+          <span data-testid={testId('teams', 'lineup-studio', 'text', 'title', teamId)}>
             Постановки и шаблоны
-          </Text>
-          <Text
-            color="secondary"
-            data-testid={testId('teams', 'lineup-studio', 'text', 'hint', teamId)}
-          >
-            Собирайте разные схемы (красные/белые/запас), сохраняйте шаблоны и подставляйте их при
-            создании тренировки
-          </Text>
-        </div>
-
+          </span>
+        }
+      />
+      <IceCard
+        padding="m"
+        className="lineup-studio__card"
+        data-testid={testId('teams', 'lineup-studio', 'card', teamId)}
+      >
         <div
-          className="lineup-board__presets"
+          className="lineup-studio__toolbar"
           data-testid={testId('teams', 'lineup-studio', 'panel', 'templates', teamId)}
         >
-          <input
-            className="lineup-board__preset-input"
-            value={templateName}
-            onChange={(event) => setTemplateName(event.target.value)}
-            placeholder="Название шаблона"
-            disabled={!canEdit}
-            data-testid={testId('teams', 'lineup-studio', 'field', 'template-name', teamId)}
-          />
-          <HockeyButton
-            size="s"
-            disabled={!canEdit || !templateName.trim()}
-            onClick={saveTemplate}
-            data-testid={testId('teams', 'lineup-studio', 'btn', 'save-template', teamId)}
+          <Text
+            color="secondary"
+            className="lineup-studio__hint"
+            data-testid={testId('teams', 'lineup-studio', 'text', 'hint', teamId)}
           >
-            Сохранить шаблон
-          </HockeyButton>
-          <Select
-            size="s"
-            value={[]}
-            placeholder="Загрузить шаблон"
-            options={templates.map((item) => ({
-              value: item.id,
-              content: `${item.name} · ${new Date(item.updatedAt).toLocaleDateString('ru-RU')}`,
-            }))}
-            onUpdate={(value) => {
-              if (value[0]) loadTemplate(String(value[0]))
-            }}
-            data-testid={testId('teams', 'lineup-studio', 'select', 'load-template', teamId)}
-          />
+            Собирайте постановки на льду и сохраняйте шаблоны — их можно подставить при создании
+            тренировки
+          </Text>
+          <div className="lineup-studio__controls">
+            <TextInput
+              size="l"
+              value={templateName}
+              onUpdate={setTemplateName}
+              placeholder="Название шаблона"
+              disabled={!canEdit}
+              className="lineup-studio__name"
+              controlProps={{'aria-label': 'Название шаблона'}}
+              data-testid={testId('teams', 'lineup-studio', 'field', 'template-name', teamId)}
+            />
+            <HockeyButton
+              view="action"
+              size="l"
+              disabled={!canEdit || !templateName.trim()}
+              onClick={saveTemplate}
+              data-testid={testId('teams', 'lineup-studio', 'btn', 'save-template', teamId)}
+            >
+              Сохранить
+            </HockeyButton>
+            <Select
+              size="l"
+              value={[]}
+              placeholder="Загрузить шаблон"
+              aria-label="Загрузить шаблон"
+              disabled={templates.length === 0}
+              className="lineup-studio__load"
+              options={templates.map((item) => ({
+                value: item.id,
+                content: `${item.name} · ${new Date(item.updatedAt).toLocaleDateString('ru-RU')}`,
+              }))}
+              onUpdate={(value) => {
+                if (value[0]) loadTemplate(String(value[0]))
+              }}
+              data-testid={testId('teams', 'lineup-studio', 'select', 'load-template', teamId)}
+            />
+          </div>
         </div>
 
         {templates.length > 0 && (
           <div
-            className="hockey-row hockey-row--gap-8 hockey-row--wrap"
+            className="lineup-studio__templates"
             data-testid={testId('teams', 'lineup-studio', 'list', 'templates', teamId)}
           >
             {templates.map((item) => (
               <div
                 key={item.id}
-                className="hockey-row hockey-row--gap-6"
+                className="lineup-studio__template"
                 data-testid={testId('teams', 'lineup-studio', 'row', 'template', item.id)}
               >
                 <HockeyButton
@@ -270,6 +284,7 @@ export function TeamLineupStudio({teamId, canEdit}: TeamLineupStudioProps) {
                   <HockeyButton
                     size="s"
                     view="flat"
+                    aria-label={`Удалить шаблон «${item.name}»`}
                     onClick={() => deleteTemplate(item.id)}
                     data-testid={testId('teams', 'lineup-studio', 'btn', 'delete', item.id)}
                   >
@@ -303,7 +318,7 @@ export function TeamLineupStudio({teamId, canEdit}: TeamLineupStudioProps) {
             {statusMessage}
           </Text>
         )}
-      </div>
-    </IceCard>
+      </IceCard>
+    </section>
   )
 }

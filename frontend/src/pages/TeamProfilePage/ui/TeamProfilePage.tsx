@@ -2,9 +2,10 @@
  * HOCFRONT-25 / TASK-04-03 — публичный профиль команды
  */
 
-import {Accordion, Label, Text} from '@gravity-ui/uikit'
+import {Person} from '@gravity-ui/icons'
+import {Icon, Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {useState} from 'react'
+import {type ReactNode, useState} from 'react'
 import {Link, useLocation, useNavigate, useParams} from 'react-router'
 
 import {
@@ -14,9 +15,15 @@ import {
   fetchTeamRoster,
 } from '@/entities/team'
 import {canManageClubEntity, useSessionAccess} from '@/features/access'
-import {POSITION_LABELS, SKILL_LEVEL_LABELS} from '@/features/events'
+import {SKILL_LEVEL_LABELS} from '@/features/events'
 import {FavoriteButton} from '@/features/favorites'
-import {ContactStaffModal, STAFF_ROLE_LABELS, TeamCalendarSection} from '@/features/teams'
+import {
+  ContactStaffModal,
+  groupByPosition,
+  STAFF_ROLE_LABELS,
+  TeamCalendarSection,
+  TeamPositionBadge,
+} from '@/features/teams'
 import {isNotFoundError} from '@/shared/api/client'
 import {routes} from '@/shared/const/appRoutes'
 import {testId} from '@/shared/testing/testId'
@@ -27,6 +34,52 @@ import {PageHub} from '@/shared/ui/PageHub'
 import {PageStatePanel} from '@/shared/ui/PageStatePanel'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
+
+/** Роли, которые в макете подсвечены зелёным. */
+const LEAD_TEAM_ROLES = new Set(['owner', 'captain'])
+
+function initialOf(name: string): string {
+  return name.trim().charAt(0).toUpperCase() || '?'
+}
+
+function CollapseToggle({
+  open,
+  onToggle,
+  'data-testid': dataTestId,
+}: {
+  open: boolean
+  onToggle: () => void
+  'data-testid'?: string
+}) {
+  return (
+    <button
+      type="button"
+      className="hockey-section-link team-profile__toggle"
+      aria-expanded={open}
+      onClick={onToggle}
+      data-testid={dataTestId}
+    >
+      {open ? 'Скрыть' : 'Показать'}
+    </button>
+  )
+}
+
+function InfoLine({
+  label,
+  children,
+  'data-testid': dataTestId,
+}: {
+  label: string
+  children: ReactNode
+  'data-testid'?: string
+}) {
+  return (
+    <p className="team-profile__info-line" data-testid={dataTestId}>
+      <span className="team-profile__info-label">{label}:</span> <strong>{children}</strong>
+    </p>
+  )
+}
 
 /** HOCFRONT-25 — публичная страница команды */
 export function TeamProfilePage() {
@@ -34,6 +87,8 @@ export function TeamProfilePage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [contactOpen, setContactOpen] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(true)
+  const [infoOpen, setInfoOpen] = useState(true)
 
   const {session} = useSessionAccess()
   const {
@@ -115,8 +170,10 @@ export function TeamProfilePage() {
   const canManageClub = canManageClubEntity(session, clubId)
 
   const activeRoster = roster.filter((member) => member.rosterStatus !== 'removed')
-  const initial = team.name.trim().charAt(0).toUpperCase() || '?'
+  const rosterGroups = groupByPosition(activeRoster)
+  const staff = club?.staff ?? []
   const description = team.description || team.shortDescription
+  const skillLabel = SKILL_LEVEL_LABELS[team.skillLevel] ?? team.skillLevel
 
   return (
     <PageHub className="team-profile" data-testid={testId('teams', 'profile', 'page', team.id)}>
@@ -131,104 +188,132 @@ export function TeamProfilePage() {
         className="team-profile__hero"
         data-testid={testId('teams', 'profile', 'panel', 'hero', team.id)}
       >
-        <div className="team-profile__hero-top">
-          {team.logoUrl ? (
-            <img
-              src={team.logoUrl}
-              alt=""
-              className="team-profile__logo"
-              data-testid={testId('teams', 'profile', 'img', 'logo', team.id)}
-            />
-          ) : (
-            <div
-              className="team-profile__crest"
+        <div className="team-profile__identity">
+          <div className="team-profile__hero-top">
+            <span
+              className="team-avatar-tile team-profile__avatar"
               aria-hidden
-              data-testid={testId('teams', 'profile', 'icon', 'crest', team.id)}
+              data-testid={
+                team.logoUrl ? undefined : testId('teams', 'profile', 'icon', 'crest', team.id)
+              }
             >
-              {initial}
-            </div>
-          )}
+              {team.logoUrl ? (
+                <img
+                  src={team.logoUrl}
+                  alt=""
+                  className="team-avatar-tile__img"
+                  data-testid={testId('teams', 'profile', 'img', 'logo', team.id)}
+                />
+              ) : (
+                <Icon data={Person} size={32} />
+              )}
+            </span>
 
-          <div className="team-profile__hero-copy">
-            <div className="hockey-row hockey-row--between">
+            <div className="team-profile__hero-copy">
               <Text
-                variant="header-1"
-                className="variable-font-header"
+                as="h1"
+                className="team-profile__title"
                 data-testid={testId('teams', 'profile', 'text', 'title', team.id)}
               >
                 {team.name}
               </Text>
-              <FavoriteButton type="team" entityId={team.id} title={team.name} size="m" />
-            </div>
-            <Text
-              color="secondary"
-              data-testid={testId('teams', 'profile', 'text', 'city', team.id)}
-            >
-              {team.city}
-              {club ? ` · ${club.name}` : ''}
-            </Text>
-            <div
-              className="team-profile__meta"
-              data-testid={testId('teams', 'profile', 'panel', 'meta', team.id)}
-            >
-              <Label size="s" data-testid={testId('teams', 'profile', 'badge', 'skill', team.id)}>
-                {SKILL_LEVEL_LABELS[team.skillLevel] ?? team.skillLevel}
-              </Label>
-              <Label size="s" data-testid={testId('teams', 'profile', 'badge', 'roster', team.id)}>
-                В составе: {activeRoster.length}
-              </Label>
-              {team.leagueId && (
-                <Label
-                  size="s"
-                  data-testid={testId('teams', 'profile', 'badge', 'league', team.id)}
+              <Text
+                color="secondary"
+                className="team-profile__subline"
+                data-testid={testId('teams', 'profile', 'text', 'city', team.id)}
+              >
+                {team.city}
+                {club ? ` · ${club.name}` : ''}
+              </Text>
+              {team.shortDescription && (
+                <Text
+                  color="secondary"
+                  className="team-profile__subline"
+                  data-testid={testId('teams', 'profile', 'text', 'short', team.id)}
                 >
-                  В лиге
-                </Label>
+                  {team.shortDescription}
+                </Text>
               )}
             </div>
-            {description && (
-              <Text
-                className="team-profile__lead"
-                data-testid={testId('teams', 'profile', 'text', 'description', team.id)}
+
+            <FavoriteButton
+              type="team"
+              entityId={team.id}
+              title={team.name}
+              size="m"
+              className="team-favorite team-favorite--s"
+            />
+          </div>
+
+          <div
+            className="team-profile__meta"
+            data-testid={testId('teams', 'profile', 'panel', 'meta', team.id)}
+          >
+            <span
+              className="team-profile__pill"
+              data-testid={testId('teams', 'profile', 'badge', 'skill', team.id)}
+            >
+              {skillLabel}
+            </span>
+            <span
+              className="team-profile__pill"
+              data-testid={testId('teams', 'profile', 'badge', 'roster', team.id)}
+            >
+              В составе: {activeRoster.length}
+            </span>
+            {team.leagueId && (
+              <span
+                className="team-profile__pill"
+                data-testid={testId('teams', 'profile', 'badge', 'league', team.id)}
               >
-                {description}
-              </Text>
+                В лиге
+              </span>
             )}
           </div>
         </div>
 
         <div
-          className="team-profile__actions"
+          className="team-profile__contact"
           data-testid={testId('teams', 'profile', 'panel', 'actions', team.id)}
         >
+          {description && (
+            <Text
+              color="secondary"
+              className="team-profile__lead"
+              data-testid={testId('teams', 'profile', 'text', 'description', team.id)}
+            >
+              {description}
+            </Text>
+          )}
           <HockeyButton
+            view="action"
             size="l"
+            width="max"
             onClick={() => setContactOpen(true)}
             data-testid={testId('teams', 'profile', 'btn', 'contact-staff', team.id)}
           >
             Связаться со штабом
           </HockeyButton>
           {canManageClub && clubId && (
-            <Link
+            <HockeyButton
+              view="outlined"
+              size="l"
+              width="max"
+              component={Link}
               to={`/partner/clubs/${clubId}`}
-              data-testid={testId('teams', 'profile', 'link', 'club-cabinet', team.id)}
+              data-testid={testId('teams', 'profile', 'btn', 'club-cabinet', team.id)}
             >
-              <HockeyButton
-                view="outlined"
-                size="l"
-                data-testid={testId('teams', 'profile', 'btn', 'club-cabinet', team.id)}
-              >
-                Кабинет клуба
-              </HockeyButton>
-            </Link>
+              Кабинет клуба
+            </HockeyButton>
           )}
+          <Text
+            color="secondary"
+            className="team-profile__hint"
+            data-testid={testId('teams', 'profile', 'text', 'contact-hint', team.id)}
+          >
+            Откроет форму заявки в штаб — без перехода в мессенджер.
+          </Text>
         </div>
-        <Text
-          color="secondary"
-          data-testid={testId('teams', 'profile', 'text', 'contact-hint', team.id)}
-        >
-          Откроет форму заявки в штаб — без перехода в мессенджер.
-        </Text>
       </section>
 
       <ContactStaffModal
@@ -243,19 +328,18 @@ export function TeamProfilePage() {
         className="team-profile__sections"
         data-testid={testId('teams', 'profile', 'panel', 'sections', team.id)}
       >
-        <IceCard padding="m" data-testid={testId('teams', 'profile', 'card', 'sections', team.id)}>
-          <Accordion
-            multiple
-            defaultValue={['roster', 'staff']}
-            ariaLabel="Секции профиля команды"
-            size="l"
+        <div className="team-profile__column">
+          <section
+            className="team-profile__section"
+            data-testid={testId('teams', 'profile', 'accordion', 'roster', team.id)}
           >
-            <Accordion.Item
-              value="roster"
-              summary={`Состав · ${activeRoster.length}`}
-              qa={testId('teams', 'profile', 'accordion', 'roster', team.id)}
+            <SectionHeading title="Состав" />
+            <IceCard
+              padding="m"
+              className="team-profile__card"
+              data-testid={testId('teams', 'profile', 'card', 'sections', team.id)}
             >
-              <ul
+              <div
                 className="team-profile__list"
                 data-testid={testId('teams', 'profile', 'list', 'roster', team.id)}
               >
@@ -267,84 +351,105 @@ export function TeamProfilePage() {
                     Состав пока пуст
                   </Text>
                 )}
-                {activeRoster.map((member) => (
-                  <li
-                    key={member.userId}
-                    className="team-profile__person"
-                    data-testid={testId('teams', 'profile', 'row', 'roster', member.userId)}
+                {rosterGroups.map((group) => (
+                  <div
+                    key={group.position}
+                    className="team-profile__group"
+                    data-testid={testId('teams', 'profile', 'group', group.position, team.id)}
                   >
-                    <div className="team-profile__person-avatar" aria-hidden>
-                      {member.displayName.trim().charAt(0).toUpperCase()}
-                    </div>
-                    <div className="team-profile__person-body">
-                      <Link
-                        to={`/players/${member.userId}`}
-                        data-testid={testId('teams', 'profile', 'link', 'player', member.userId)}
-                      >
-                        <Text
-                          variant="subheader-2"
-                          data-testid={testId(
-                            'teams',
-                            'profile',
-                            'text',
-                            'player-name',
-                            member.userId,
-                          )}
+                    <p className="team-group-label">{group.label}</p>
+                    <ul className="team-profile__rows">
+                      {group.members.map((member) => (
+                        <li
+                          key={member.userId}
+                          className="hockey-list-row team-person-row"
+                          data-testid={testId('teams', 'profile', 'row', 'roster', member.userId)}
                         >
-                          {member.displayName}
-                        </Text>
-                      </Link>
-                      <Text
-                        color="secondary"
-                        data-testid={testId(
-                          'teams',
-                          'profile',
-                          'text',
-                          'player-meta',
-                          member.userId,
-                        )}
-                      >
-                        {POSITION_LABELS[member.position] ?? member.position}
-                        {member.teamRole ? ` · ${member.teamRole}` : ''}
-                      </Text>
-                    </div>
-                  </li>
+                          <span className="team-person-row__avatar" aria-hidden>
+                            {initialOf(member.displayName)}
+                          </span>
+                          <span className="team-person-row__body">
+                            <Link
+                              to={`/players/${member.userId}`}
+                              className="team-person-row__name"
+                              data-testid={testId(
+                                'teams',
+                                'profile',
+                                'link',
+                                'player',
+                                member.userId,
+                              )}
+                            >
+                              <span
+                                data-testid={testId(
+                                  'teams',
+                                  'profile',
+                                  'text',
+                                  'player-name',
+                                  member.userId,
+                                )}
+                              >
+                                {member.displayName}
+                              </span>
+                            </Link>
+                            <TeamPositionBadge position={member.position} />
+                          </span>
+                          <span
+                            className={`team-person-row__role${
+                              member.teamRole && LEAD_TEAM_ROLES.has(member.teamRole)
+                                ? ' is-lead'
+                                : ''
+                            }`}
+                            data-testid={testId(
+                              'teams',
+                              'profile',
+                              'text',
+                              'player-meta',
+                              member.userId,
+                            )}
+                          >
+                            {member.teamRole ?? 'player'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
-            </Accordion.Item>
+              </div>
+            </IceCard>
+          </section>
 
-            <Accordion.Item
-              value="staff"
-              summary={`Штаб · ${club?.staff?.length ?? 0}`}
-              qa={testId('teams', 'profile', 'accordion', 'staff', team.id)}
-            >
+          <section
+            className="team-profile__section"
+            data-testid={testId('teams', 'profile', 'accordion', 'staff', team.id)}
+          >
+            <SectionHeading title="Штаб" />
+            <IceCard padding="m" className="team-profile__card">
               <ul
-                className="team-profile__list"
+                className="team-profile__rows"
                 data-testid={testId('teams', 'profile', 'list', 'staff', team.id)}
               >
-                {!club?.staff?.length && (
+                {staff.length === 0 && (
                   <Text
+                    as="p"
                     color="secondary"
                     data-testid={testId('teams', 'profile', 'empty', 'staff', team.id)}
                   >
                     Штаб не указан — можно оставить заявку через форму выше.
                   </Text>
                 )}
-                {club?.staff.map((member) => (
+                {staff.map((member) => (
                   <li
                     key={member.userId}
-                    className="team-profile__person"
+                    className="hockey-list-row team-person-row"
                     data-testid={testId('teams', 'profile', 'row', 'staff', member.userId)}
                   >
-                    <div
-                      className="team-profile__person-avatar team-profile__person-avatar--staff"
-                      aria-hidden
-                    >
-                      {member.displayName.trim().charAt(0).toUpperCase()}
-                    </div>
-                    <div className="team-profile__person-body">
-                      <Text
-                        variant="subheader-2"
+                    <span className="team-person-row__avatar" aria-hidden>
+                      {initialOf(member.displayName)}
+                    </span>
+                    <span className="team-person-row__body">
+                      <span
+                        className="team-person-row__name"
                         data-testid={testId(
                           'teams',
                           'profile',
@@ -354,81 +459,110 @@ export function TeamProfilePage() {
                         )}
                       >
                         {member.displayName}
-                      </Text>
-                      <Text
-                        color="secondary"
-                        data-testid={testId(
-                          'teams',
-                          'profile',
-                          'text',
-                          'staff-role',
-                          member.userId,
-                        )}
-                      >
-                        {STAFF_ROLE_LABELS[member.role]}
-                      </Text>
-                    </div>
+                      </span>
+                    </span>
+                    <span
+                      className={`team-person-row__role${
+                        member.role === 'head_coach' ? ' is-lead' : ''
+                      }`}
+                      data-testid={testId('teams', 'profile', 'text', 'staff-role', member.userId)}
+                    >
+                      {STAFF_ROLE_LABELS[member.role]}
+                    </span>
                   </li>
                 ))}
               </ul>
-            </Accordion.Item>
+            </IceCard>
+          </section>
+        </div>
 
-            <Accordion.Item
-              value="calendar"
-              summary={`Календарь · ${calendar.length}`}
-              qa={testId('teams', 'profile', 'accordion', 'calendar', team.id)}
-            >
-              <TeamCalendarSection
-                events={calendar}
-                emptyText="В календаре команды пока нет событий"
-                scope="team"
-                scopeId={team.id}
-              />
-            </Accordion.Item>
+        <div className="team-profile__column">
+          <section
+            className="team-profile__section"
+            data-testid={testId('teams', 'profile', 'accordion', 'calendar', team.id)}
+          >
+            <SectionHeading
+              title="Календарь"
+              extra={
+                <CollapseToggle
+                  open={calendarOpen}
+                  onToggle={() => setCalendarOpen((prev) => !prev)}
+                  data-testid={testId('teams', 'profile', 'btn', 'toggle-calendar', team.id)}
+                />
+              }
+            />
+            {calendarOpen && (
+              <IceCard padding="m" className="team-profile__card team-profile__calendar">
+                <TeamCalendarSection
+                  events={calendar}
+                  emptyText="В календаре команды пока нет событий"
+                  scope="team"
+                  scopeId={team.id}
+                />
+              </IceCard>
+            )}
+          </section>
 
-            <Accordion.Item
-              value="info"
-              summary="Информация о команде"
-              qa={testId('teams', 'profile', 'accordion', 'info', team.id)}
-            >
-              <div
-                className="hockey-stack hockey-stack--gap-8"
+          <section
+            className="team-profile__section"
+            data-testid={testId('teams', 'profile', 'accordion', 'info', team.id)}
+          >
+            <SectionHeading
+              title="Информация о команде"
+              extra={
+                <CollapseToggle
+                  open={infoOpen}
+                  onToggle={() => setInfoOpen((prev) => !prev)}
+                  data-testid={testId('teams', 'profile', 'btn', 'toggle-info', team.id)}
+                />
+              }
+            />
+            {infoOpen && (
+              <IceCard
+                padding="m"
+                className="team-profile__card team-profile__info"
                 data-testid={testId('teams', 'profile', 'panel', 'info', team.id)}
               >
-                <Text data-testid={testId('teams', 'profile', 'text', 'info-city', team.id)}>
-                  Город: {team.city}
-                </Text>
-                <Text data-testid={testId('teams', 'profile', 'text', 'info-level', team.id)}>
-                  Уровень: {SKILL_LEVEL_LABELS[team.skillLevel] ?? team.skillLevel}
-                </Text>
+                <InfoLine
+                  label="Город"
+                  data-testid={testId('teams', 'profile', 'text', 'info-city', team.id)}
+                >
+                  {team.city}
+                </InfoLine>
+                <InfoLine
+                  label="Уровень"
+                  data-testid={testId('teams', 'profile', 'text', 'info-level', team.id)}
+                >
+                  {skillLabel}
+                </InfoLine>
                 {team.shortDescription && (
-                  <Text
-                    color="secondary"
+                  <p
+                    className="team-profile__info-muted"
                     data-testid={testId('teams', 'profile', 'text', 'info-short', team.id)}
                   >
                     {team.shortDescription}
-                  </Text>
+                  </p>
                 )}
                 {team.description && (
-                  <Text
-                    color="secondary"
+                  <p
+                    className="team-profile__info-text"
                     data-testid={testId('teams', 'profile', 'text', 'info-description', team.id)}
                   >
                     {team.description}
-                  </Text>
+                  </p>
                 )}
                 {club && (
-                  <Text
-                    color="secondary"
+                  <InfoLine
+                    label="Клуб"
                     data-testid={testId('teams', 'profile', 'text', 'info-club', team.id)}
                   >
-                    Клуб: {club.name}
-                  </Text>
+                    {club.name}
+                  </InfoLine>
                 )}
-              </div>
-            </Accordion.Item>
-          </Accordion>
-        </IceCard>
+              </IceCard>
+            )}
+          </section>
+        </div>
       </div>
     </PageHub>
   )

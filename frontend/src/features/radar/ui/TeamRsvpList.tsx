@@ -12,6 +12,7 @@ import {fetchEventRsvp} from '@/entities/event'
 import {testId} from '@/shared/testing/testId'
 import {IceCard} from '@/shared/ui/IceCard'
 import {PositionLabel} from '@/shared/ui/PositionLabel'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 export interface TeamRsvpListProps {
   eventId: string
@@ -68,56 +69,56 @@ export function TeamRsvpList({eventId, canSeeDeclineDetails = false}: TeamRsvpLi
   if (!board) return null
 
   return (
-    <IceCard padding="m" data-testid={testId('radar', 'team-rsvp', 'card', eventId)}>
-      <div className="hockey-stack hockey-stack--gap-12">
-        <Text
-          variant="subheader-2"
-          data-testid={testId('radar', 'team-rsvp', 'text', 'title', eventId)}
-        >
-          Кто идёт из команды
-        </Text>
-
-        {grouped.map((group) => (
-          <section
-            key={group.position}
-            className="team-rsvp-list__group hockey-stack hockey-stack--gap-8"
-            data-testid={testId('radar', 'team-rsvp', 'panel', group.position, eventId)}
-          >
-            <Text
-              variant="body-2"
-              color="secondary"
-              data-testid={testId('radar', 'team-rsvp', 'text', 'group-title', group.position)}
+    <section className="team-rsvp-list hockey-stack hockey-stack--gap-12">
+      <SectionHeading
+        title={
+          <span data-testid={testId('radar', 'team-rsvp', 'text', 'title', eventId)}>
+            Кто идёт из команды
+          </span>
+        }
+      />
+      <IceCard padding="m" data-testid={testId('radar', 'team-rsvp', 'card', eventId)}>
+        <div className="team-rsvp-list__groups">
+          {grouped.map((group) => (
+            <section
+              key={group.position}
+              className="team-rsvp-list__group"
+              data-testid={testId('radar', 'team-rsvp', 'panel', group.position, eventId)}
             >
-              {group.label}
-            </Text>
-            <div
-              className="hockey-stack hockey-stack--gap-6"
-              data-testid={testId('radar', 'team-rsvp', 'list', group.position, eventId)}
-            >
-              {group.players.map((player) => (
-                <div
-                  key={player.userId}
-                  className="team-rsvp-list__row hockey-row hockey-row--between hockey-row--gap-12"
-                  data-testid={testId('radar', 'team-rsvp', 'item', player.userId, eventId)}
-                >
-                  <div className="hockey-row hockey-row--gap-8">
+              <Text
+                className="team-rsvp-list__group-title"
+                data-testid={testId('radar', 'team-rsvp', 'text', 'group-title', group.position)}
+              >
+                {group.label}
+              </Text>
+              <div data-testid={testId('radar', 'team-rsvp', 'list', group.position, eventId)}>
+                {group.players.map((player) => (
+                  <div
+                    key={player.userId}
+                    className="hockey-list-row team-rsvp-list__row"
+                    data-testid={testId('radar', 'team-rsvp', 'item', player.userId, eventId)}
+                  >
                     <PositionLabel position={player.position} testIdPrefix="radar" />
-                    <Text data-testid={testId('radar', 'team-rsvp', 'text', 'name', player.userId)}>
+                    <Text
+                      className="team-rsvp-list__name"
+                      data-testid={testId('radar', 'team-rsvp', 'text', 'name', player.userId)}
+                    >
                       {player.displayName}
                     </Text>
+                    <Text
+                      className="team-rsvp-list__status"
+                      color={STATUS_COLORS[player.status]}
+                      data-testid={testId('radar', 'team-rsvp', 'text', 'status', player.userId)}
+                    >
+                      {formatPlayerStatus(player, canSeeDeclineDetails)}
+                    </Text>
                   </div>
-                  <Text
-                    color={STATUS_COLORS[player.status]}
-                    data-testid={testId('radar', 'team-rsvp', 'text', 'status', player.userId)}
-                  >
-                    {formatPlayerStatus(player, canSeeDeclineDetails)}
-                  </Text>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    </IceCard>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </IceCard>
+    </section>
   )
 }

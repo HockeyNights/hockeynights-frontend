@@ -4,7 +4,7 @@
 
 import {Select, Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
-import {useMemo, useState} from 'react'
+import {useMemo} from 'react'
 import {useSearchParams} from 'react-router'
 
 import type {AttendanceStatus, EventType} from '@/entities/common'
@@ -13,9 +13,10 @@ import {useSessionAccess} from '@/features/access'
 import {agreementToCalendarEvent} from '@/features/events'
 import {testId} from '@/shared/testing/testId'
 import {EmptyNetState} from '@/shared/ui/EmptyNetState'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
+import {IceCard} from '@/shared/ui/IceCard'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 
+import {eventDateKey} from '../lib/calendarDays'
 import {
   type CalendarLens,
   calendarLensEmptyCopy,
@@ -31,6 +32,7 @@ import {
 import {filterCalendarEvents, loadCalendarEvents} from '../lib/loadCalendarEvents'
 import {AvailabilityWindowsPanel} from './AvailabilityWindowsPanel'
 import {CalendarAgenda} from './CalendarAgenda'
+import {CalendarFeaturedEvent} from './CalendarFeaturedEvent'
 import {CalendarFilters} from './CalendarFilters'
 import {CalendarMonthGrid} from './CalendarMonthGrid'
 import {CalendarQuickChips} from './CalendarQuickChips'
@@ -64,7 +66,6 @@ export function CalendarShell({
   const {userId, roles, session} = useSessionAccess()
   const fallbackLens = defaultLensFromRoles(roles, session?.personaId)
   const [searchParams, setSearchParams] = useSearchParams()
-  const [filtersOpen, setFiltersOpen] = useState(false)
   const state = useMemo(() => {
     const parsed = parseCalendarState(searchParams, fallbackLens)
     if (!forcedScope) return parsed
@@ -121,7 +122,13 @@ export function CalendarShell({
     })
   }
 
-  const heading = title ?? calendarScopeTitle(state)
+  const lensTitle =
+    state.lens === 'goalie'
+      ? 'Календарь вратаря'
+      : state.lens === 'organizer'
+        ? 'Календарь организатора'
+        : 'Календарь игрока'
+  const heading = title ?? (state.scope === 'me' ? lensTitle : calendarScopeTitle(state))
   const scopeDenied =
     (state.scope === 'team' || state.scope === 'club' || state.scope === 'player') && !state.scopeId
   const selectedDate = state.date || localDateKey()
@@ -129,12 +136,15 @@ export function CalendarShell({
   const showWindows = !compact && state.scope === 'me' && state.lens === 'goalie'
   const showGoalieInbox = !compact && state.scope === 'me' && state.lens === 'goalie'
   const activeFilterCount = countActiveCalendarFilters(state)
+  const ready = !isLoading && !isError && !scopeDenied
 
-  return (
-    <div
-      className={`hockey-calendar-shell${compact ? ' hockey-calendar-shell--compact' : ''}`}
-      data-testid={testId('calendar', 'shell', 'page')}
-    >
+  const dayEvents = events.filter((event) => eventDateKey(event.startsAt) === selectedDate)
+  const featuredEvent =
+    dayEvents[0] ?? events.find((event) => eventDateKey(event.startsAt) > selectedDate)
+  const featuredOnSelectedDay = Boolean(featuredEvent && dayEvents.includes(featuredEvent))
+
+  const widget = (
+    <>
       <header className="hockey-calendar-shell__header">
         <div className="hockey-calendar-shell__title-block">
           <Text
@@ -144,14 +154,14 @@ export function CalendarShell({
           >
             {heading}
           </Text>
-          <Text color="secondary" data-testid={testId('calendar', 'shell', 'text', 'summary')}>
+          <Text
+            color="secondary"
+            className="hockey-calendar-shell__summary"
+            data-testid={testId('calendar', 'shell', 'text', 'summary')}
+          >
             {events.length === 0
               ? 'Нет событий по текущим фильтрам'
-              : events.length === 1
-                ? '1 событие'
-                : events.length < 5
-                  ? `${events.length} события`
-                  : `${events.length} событий`}
+              : `${eventsCountLabel(events.length)} запланировано`}
             {activeFilterCount > 0 ? ` · фильтров: ${activeFilterCount}` : ''}
           </Text>
         </div>
@@ -167,6 +177,7 @@ export function CalendarShell({
               key={mode}
               type="button"
               className={`hockey-calendar-shell__view-btn${state.view === mode ? ' is-active' : ''}`}
+              aria-pressed={state.view === mode}
               onClick={() => patchState({view: mode})}
               data-testid={testId('calendar', 'shell', 'btn', 'view', mode)}
             >
@@ -175,128 +186,6 @@ export function CalendarShell({
           ))}
         </div>
       </header>
-
-      {!compact && (
-        <div className="hockey-calendar-shell__toolbar">
-          <div className="hockey-calendar-shell__lens-block">
-            <Text
-              color="secondary"
-              className="hockey-calendar-shell__lens-hint"
-              data-testid={testId('calendar', 'shell', 'text', 'lens-hint')}
-            >
-              Смотреть как
-            </Text>
-            <div
-              className="hockey-calendar-shell__lenses"
-              data-testid={testId('calendar', 'shell', 'panel', 'lenses')}
-              role="radiogroup"
-              aria-label="Смотреть календарь как"
-            >
-              {LENS_OPTIONS.map((lens) => (
-                <button
-                  key={lens.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={state.lens === lens.id}
-                  className={`hockey-calendar-shell__lens${state.lens === lens.id ? ' is-active' : ''}`}
-                  onClick={() => patchState({lens: lens.id})}
-                  data-testid={testId('calendar', 'shell', 'btn', 'lens', lens.id)}
-                >
-                  {lens.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <CalendarQuickChips state={state} onChange={patchState} onReset={resetFilters} />
-
-          <div className="hockey-calendar-shell__toolbar-actions">
-            <HockeyButton
-              view={filtersOpen ? 'action' : 'outlined'}
-              size="s"
-              onClick={() => setFiltersOpen((prev) => !prev)}
-              data-testid={testId('calendar', 'shell', 'btn', 'filters-toggle')}
-            >
-              {filtersOpen ? 'Скрыть фильтры' : 'Фильтры'}
-              {activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-            </HockeyButton>
-          </div>
-
-          {filtersOpen && (
-            <div
-              className="hockey-calendar-shell__filters"
-              data-testid={testId('calendar', 'shell', 'panel', 'filters')}
-            >
-              <CalendarFilters
-                filters={{
-                  type: (state.type || undefined) as EventType | undefined,
-                  attendanceStatus: (state.status || undefined) as AttendanceStatus | undefined,
-                }}
-                onChange={(filters) =>
-                  patchState({
-                    type: filters.type ?? '',
-                    status: filters.attendanceStatus ?? '',
-                  })
-                }
-              />
-              {!forcedScope && (
-                <div
-                  className="hockey-row hockey-row--gap-12 hockey-row--wrap"
-                  data-testid={testId('calendar', 'shell', 'panel', 'scope')}
-                >
-                  <Select
-                    label="Чей календарь"
-                    value={[state.scope]}
-                    onUpdate={(value) => {
-                      const scope = (value[0] as CalendarUiState['scope']) ?? 'me'
-                      patchState({
-                        scope,
-                        scopeId: scope === 'me' ? '' : state.scopeId,
-                      })
-                    }}
-                    options={[
-                      {value: 'me', content: 'Мой'},
-                      {value: 'player', content: 'Игрок'},
-                      {value: 'team', content: 'Команда'},
-                      {value: 'club', content: 'Клуб'},
-                    ]}
-                    width={160}
-                    data-testid={testId('calendar', 'shell', 'select', 'scope')}
-                  />
-                  {state.scope !== 'me' && (
-                    <Select
-                      label="Выбор"
-                      value={[state.scopeId || '']}
-                      onUpdate={(value) => patchState({scopeId: value[0] ?? ''})}
-                      options={
-                        state.scope === 'team'
-                          ? [
-                              {value: 'team-001', content: 'Медведи САО'},
-                              {value: 'team-002', content: 'Вымпел'},
-                            ]
-                          : state.scope === 'club'
-                            ? [{value: 'club-001', content: 'Клуб Медведи'}]
-                            : [
-                                {
-                                  value: userId,
-                                  content: session?.user.displayName ?? 'Я',
-                                },
-                                {value: 'user-003', content: 'Дмитрий Козлов'},
-                              ].filter((option) => Boolean(option.value))
-                      }
-                      width={200}
-                      data-testid={testId('calendar', 'shell', 'select', 'scope-id')}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {showGoalieInbox && <GoalieRequestsInbox userId={userId} />}
-          {showWindows && <AvailabilityWindowsPanel userId={userId} />}
-        </div>
-      )}
 
       {scopeDenied && (
         <div data-testid={testId('calendar', 'shell', 'empty', 'scope')}>
@@ -319,28 +208,25 @@ export function CalendarShell({
         </div>
       )}
 
-      {!isLoading && !isError && !scopeDenied && state.view === 'month' && (
-        <div
-          className="hockey-calendar-shell__layout"
-          data-testid={testId('calendar', 'shell', 'panel', 'month-layout')}
-        >
+      {ready && state.view === 'month' && (
+        <>
           <CalendarMonthGrid
             selectedDate={selectedDate}
             events={events}
             onSelectDate={(date) => patchState({date})}
             onNavigateMonth={(date) => patchState({date})}
           />
-          <CalendarAgenda
-            selectedDate={selectedDate}
-            events={events}
-            currentUserId={userId}
-            showActions={allowActions}
-            showOrganizerMeta={state.lens === 'organizer'}
-          />
-        </div>
+          {featuredEvent && (
+            <CalendarFeaturedEvent
+              event={featuredEvent}
+              currentUserId={userId}
+              showDate={!featuredOnSelectedDay}
+            />
+          )}
+        </>
       )}
 
-      {!isLoading && !isError && !scopeDenied && state.view === 'agenda' && (
+      {ready && state.view === 'agenda' && (
         <>
           {events.length === 0 ? (
             <div data-testid={testId('calendar', 'shell', 'empty')}>
@@ -357,6 +243,190 @@ export function CalendarShell({
           )}
         </>
       )}
+    </>
+  )
+
+  if (compact) {
+    return (
+      <div
+        className="hockey-calendar-shell hockey-calendar-shell--compact"
+        data-testid={testId('calendar', 'shell', 'page')}
+      >
+        {widget}
+        {ready && state.view === 'month' && (
+          <CalendarAgenda
+            selectedDate={selectedDate}
+            events={events}
+            currentUserId={userId}
+            showActions={allowActions}
+            showOrganizerMeta={state.lens === 'organizer'}
+          />
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="hockey-calendar-shell" data-testid={testId('calendar', 'shell', 'page')}>
+      <IceCard
+        padding="m"
+        className="hockey-calendar-shell__controls"
+        data-testid={testId('calendar', 'shell', 'card', 'controls')}
+      >
+        <Text
+          variant="header-1"
+          className="hockey-calendar-shell__page-title"
+          data-testid={testId('calendar', 'shell', 'text', 'page-title')}
+        >
+          Календарь
+        </Text>
+
+        <div className="hockey-calendar-shell__toolbar">
+          <div className="hockey-calendar-shell__toolbar-main">
+            <div className="hockey-calendar-shell__lens-block">
+              <span
+                className="hockey-calendar-shell__lens-hint"
+                data-testid={testId('calendar', 'shell', 'text', 'lens-hint')}
+              >
+                Смотреть как
+              </span>
+              <div
+                className="hockey-calendar-shell__lenses"
+                data-testid={testId('calendar', 'shell', 'panel', 'lenses')}
+                role="radiogroup"
+                aria-label="Смотреть календарь как"
+              >
+                {LENS_OPTIONS.map((lens) => (
+                  <button
+                    key={lens.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={state.lens === lens.id}
+                    className={`hockey-calendar-shell__lens${state.lens === lens.id ? ' is-active' : ''}`}
+                    onClick={() => patchState({lens: lens.id})}
+                    data-testid={testId('calendar', 'shell', 'btn', 'lens', lens.id)}
+                  >
+                    {lens.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <CalendarQuickChips state={state} onChange={patchState} onReset={resetFilters} />
+          </div>
+
+          <div
+            className="hockey-calendar-shell__filters"
+            data-testid={testId('calendar', 'shell', 'panel', 'filters')}
+          >
+            <CalendarFilters
+              stacked
+              filters={{
+                type: (state.type || undefined) as EventType | undefined,
+                attendanceStatus: (state.status || undefined) as AttendanceStatus | undefined,
+              }}
+              onChange={(filters) =>
+                patchState({
+                  type: filters.type ?? '',
+                  status: filters.attendanceStatus ?? '',
+                })
+              }
+            />
+            {!forcedScope && (
+              <div
+                className="hockey-calendar-shell__scope"
+                data-testid={testId('calendar', 'shell', 'panel', 'scope')}
+              >
+                <Select
+                  label="Чей календарь"
+                  value={[state.scope]}
+                  onUpdate={(value) => {
+                    const scope = (value[0] as CalendarUiState['scope']) ?? 'me'
+                    patchState({
+                      scope,
+                      scopeId: scope === 'me' ? '' : state.scopeId,
+                    })
+                  }}
+                  options={[
+                    {value: 'me', content: 'Мой'},
+                    {value: 'player', content: 'Игрок'},
+                    {value: 'team', content: 'Команда'},
+                    {value: 'club', content: 'Клуб'},
+                  ]}
+                  width="max"
+                  size="xl"
+                  data-testid={testId('calendar', 'shell', 'select', 'scope')}
+                />
+                {state.scope !== 'me' && (
+                  <Select
+                    label="Выбор"
+                    value={[state.scopeId || '']}
+                    onUpdate={(value) => patchState({scopeId: value[0] ?? ''})}
+                    options={
+                      state.scope === 'team'
+                        ? [
+                            {value: 'team-001', content: 'Медведи САО'},
+                            {value: 'team-002', content: 'Вымпел'},
+                          ]
+                        : state.scope === 'club'
+                          ? [{value: 'club-001', content: 'Клуб Медведи'}]
+                          : [
+                              {
+                                value: userId,
+                                content: session?.user.displayName ?? 'Я',
+                              },
+                              {value: 'user-003', content: 'Дмитрий Козлов'},
+                            ].filter((option) => Boolean(option.value))
+                    }
+                    width="max"
+                    size="xl"
+                    data-testid={testId('calendar', 'shell', 'select', 'scope-id')}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </IceCard>
+
+      {showGoalieInbox && <GoalieRequestsInbox userId={userId} />}
+      {showWindows && <AvailabilityWindowsPanel userId={userId} />}
+
+      <div
+        className={`hockey-calendar-shell__layout${state.view === 'month' && ready ? '' : ' hockey-calendar-shell__layout--single'}`}
+        data-testid={testId(
+          'calendar',
+          'shell',
+          'panel',
+          state.view === 'month' ? 'month-layout' : 'agenda-layout',
+        )}
+      >
+        <IceCard
+          padding="m"
+          className="hockey-calendar-shell__widget"
+          data-testid={testId('calendar', 'shell', 'card', 'widget')}
+        >
+          {widget}
+        </IceCard>
+
+        {ready && state.view === 'month' && (
+          <CalendarAgenda
+            selectedDate={selectedDate}
+            events={events}
+            currentUserId={userId}
+            showActions={allowActions}
+            showOrganizerMeta={state.lens === 'organizer'}
+          />
+        )}
+      </div>
     </div>
   )
+}
+
+function eventsCountLabel(count: number): string {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) return `${count} событие`
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${count} события`
+  return `${count} событий`
 }

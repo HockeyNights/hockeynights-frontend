@@ -4,7 +4,7 @@
  * HOCFRONT-23 — verified badge на странице игрока
  *
  * Композиция как у `/profile` → «О себе»:
- * паспорт + публичная инфа → календарь → история участия.
+ * слева паспорт, публичная инфа и история участия, справа календарь.
  */
 
 import {Text} from '@gravity-ui/uikit'
@@ -111,7 +111,7 @@ export function PublicPlayerProfilePage() {
 
   return (
     <PageHub
-      className="player-profile-layout public-player-profile"
+      className="public-player-profile"
       data-testid={testId('players', 'public-player-profile', 'page', player.userId)}
     >
       <PageBackLink
@@ -121,71 +121,74 @@ export function PublicPlayerProfilePage() {
         testIdSection="public-player-profile"
       />
 
-      <div
-        className="player-profile-layout__grid"
-        data-testid={testId('players', 'public-player-profile', 'panel', 'grid')}
-      >
-        <PlayerCard
-          player={player}
-          linkable={false}
-          variant="profile"
-          visibleFields={data.visibleFields}
-        />
-        <PlayerPublicInfoSection
-          player={player}
-          contactsVisible={data.contactsVisible}
-          visibleContacts={data.visibleContacts}
-          visibleFields={data.visibleFields}
-          participationHistoryVisible={data.participationHistoryVisible}
-          hideHistory
-        />
-      </div>
-
-      <section
-        id="calendar"
-        className="player-profile-layout__full"
-        data-testid={testId('players', 'public-player-profile', 'section', 'calendar')}
-      >
-        <IceCard
-          padding="m"
-          data-testid={testId('players', 'public-player-profile', 'card', 'calendar')}
+      <div className="player-profile-layout">
+        <div
+          className="player-profile-layout__col"
+          data-testid={testId('players', 'public-player-profile', 'panel', 'grid')}
         >
-          {data.calendarVisible ? (
-            <CalendarShell
-              title="Календарь игрока"
-              compact
-              titleVariant="header-1"
-              forcedScope={{scope: 'player', scopeId: userId}}
-              showActions={false}
-            />
-          ) : (
-            <div data-testid={testId('players', 'public-player-profile', 'empty', 'calendar')}>
-              <EmptyNetState
-                title="Календарь недоступен"
-                copy="Игрок скрыл календарь в настройках приватности."
+          <PlayerCard
+            player={player}
+            linkable={false}
+            variant="profile"
+            visibleFields={data.visibleFields}
+          />
+          <PlayerPublicInfoSection
+            player={player}
+            contactsVisible={data.contactsVisible}
+            visibleContacts={data.visibleContacts}
+            visibleFields={data.visibleFields}
+            participationHistoryVisible={data.participationHistoryVisible}
+            hideHistory
+          />
+          <IceCard
+            padding="m"
+            data-testid={testId('players', 'public-player-profile', 'card', 'history')}
+          >
+            <div className="hockey-stack hockey-stack--gap-12">
+              <Text
+                variant="subheader-2"
+                data-testid={testId('players', 'public-player-profile', 'text', 'history-title')}
+              >
+                История участия
+              </Text>
+              <ParticipationHistorySection
+                records={data.participationHistory}
+                showHistory={data.participationHistoryVisible}
               />
             </div>
-          )}
-        </IceCard>
-      </section>
-
-      <IceCard
-        padding="m"
-        data-testid={testId('players', 'public-player-profile', 'card', 'history')}
-      >
-        <div className="hockey-stack hockey-stack--gap-16">
-          <Text
-            variant="header-1"
-            data-testid={testId('players', 'public-player-profile', 'text', 'history-title')}
-          >
-            История участия
-          </Text>
-          <ParticipationHistorySection
-            records={data.participationHistory}
-            showHistory={data.participationHistoryVisible}
-          />
+          </IceCard>
         </div>
-      </IceCard>
+
+        <div className="player-profile-layout__col">
+          <section
+            id="calendar"
+            className="player-profile-layout__full"
+            data-testid={testId('players', 'public-player-profile', 'section', 'calendar')}
+          >
+            <IceCard
+              padding="m"
+              data-testid={testId('players', 'public-player-profile', 'card', 'calendar')}
+            >
+              {data.calendarVisible ? (
+                <CalendarShell
+                  title="Календарь игрока"
+                  compact
+                  titleVariant="header-1"
+                  forcedScope={{scope: 'player', scopeId: userId}}
+                  showActions={false}
+                />
+              ) : (
+                <div data-testid={testId('players', 'public-player-profile', 'empty', 'calendar')}>
+                  <EmptyNetState
+                    title="Календарь недоступен"
+                    copy="Игрок скрыл календарь в настройках приватности."
+                  />
+                </div>
+              )}
+            </IceCard>
+          </section>
+        </div>
+      </div>
     </PageHub>
   )
 }

@@ -20,6 +20,7 @@ export interface ExternalBookingButtonProps {
   label?: string
   /** @spec SPEC-FR-6.2.2 */
   size?: 's' | 'm' | 'l' | 'xl'
+  view?: 'outlined' | 'action'
 }
 
 /**
@@ -31,6 +32,7 @@ export function ExternalBookingButton({
   slot,
   label = 'Записаться на лёд',
   size = 'm',
+  view = 'outlined',
 }: ExternalBookingButtonProps) {
   const [open, setOpen] = useState(false)
   const canBook = slot ? slot.status === 'free' : Boolean(arena.bookingUrl ?? arena.websiteUrl)
@@ -44,8 +46,9 @@ export function ExternalBookingButton({
   return (
     <>
       <HockeyButton
-        view="outlined"
+        view={view}
         size={size}
+        className="arena-book-btn"
         onClick={() => setOpen(true)}
         data-testid={btnTestId}
       >

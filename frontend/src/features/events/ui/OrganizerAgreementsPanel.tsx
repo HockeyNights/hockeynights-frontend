@@ -120,21 +120,25 @@ export function OrganizerAgreementsPanel() {
       </div>
 
       <div
-        className="hockey-row hockey-row--gap-8 hockey-row--wrap"
+        className="hockey-segmented org-cab__filters"
+        role="tablist"
+        aria-label="Фильтр заявок на лёд"
         data-testid={testId('events', 'agreements', 'panel', 'filters')}
       >
         {BUCKET_FILTERS.map((key) => (
-          <HockeyButton
+          <button
             key={key}
-            view={bucket === key ? 'action' : 'outlined'}
-            size="s"
+            type="button"
+            role="tab"
+            aria-selected={bucket === key}
+            className={`hockey-segmented__item${bucket === key ? ' is-active' : ''}`}
             onClick={() => setBucket(key)}
             data-testid={testId('events', 'agreements', 'btn', 'filter', key)}
           >
             {key === 'all'
               ? `Все (${agreements.length})`
               : `${ICE_BOOKING_BUCKET_LABELS[key]} (${counts[key]})`}
-          </HockeyButton>
+          </button>
         ))}
       </div>
 

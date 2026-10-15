@@ -2,10 +2,10 @@ import type {PlayerPosition, SkillLevel} from '@/entities/common'
 import type {GameEvent} from '@/entities/event'
 
 export const ACCESS_LABELS: Record<NonNullable<GameEvent['accessScope']>, string> = {
-  club_only: 'Только для клуба',
+  club_only: 'Для клуба',
   limited: 'По приглашению',
   public: 'Публичная',
-  private_club: 'Только для клуба',
+  private_club: 'Для клуба',
   public_open: 'Публичная',
 }
 

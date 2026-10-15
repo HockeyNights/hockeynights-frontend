@@ -4,7 +4,6 @@
  * HOCFRONT-32 — каталог; карточка арены → /arenas/:arenaId
  */
 
-import {Text} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 import {useEffect, useMemo, useRef, useState} from 'react'
 import {useNavigate, useSearchParams} from 'react-router'
@@ -34,11 +33,23 @@ import {PageHub} from '@/shared/ui/PageHub'
 import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 import {ScrollReveal} from '@/shared/ui/ScrollStory'
+import {SectionHeading} from '@/shared/ui/SectionHeading'
 
 const EMPTY_FILTERS: ArenaFiltersType = {}
 
+const VIEW_OPTIONS: Array<{id: ArenaCatalogView; label: string}> = [
+  {id: 'list', label: 'Список'},
+  {id: 'map', label: 'Карта'},
+]
+
 function hasActiveFilters(filters: ArenaFiltersType): boolean {
   return Object.values(filters).some((v) => v !== undefined && v !== '' && v !== false)
+}
+
+function uniqueSorted(values: Array<string | undefined>): string[] {
+  return [...new Set(values.filter((v): v is string => Boolean(v)))].sort((a, b) =>
+    a.localeCompare(b, 'ru'),
+  )
 }
 
 function viewFromSearchParams(params: URLSearchParams): ArenaCatalogView {
@@ -97,7 +108,7 @@ export function ArenasPage() {
   )
   const [view, setView] = useState<ArenaCatalogView>(() => viewFromSearchParams(searchParams))
   const [selectedArenaId, setSelectedArenaId] = useState<string | null>(null)
-  const mapSectionRef = useRef<HTMLDivElement | null>(null)
+  const mapSectionRef = useRef<HTMLElement | null>(null)
   const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
 
   // Старые ссылки ?arenaId= → полноценная страница арены
@@ -117,6 +128,20 @@ export function ArenasPage() {
     queryFn: () => fetchArenas(filters),
     placeholderData: (previous) => previous,
   })
+
+  // Опции «Район» / «Метро» берём из полного каталога, иначе фильтр сам себя сужает.
+  const {data: catalogArenas = []} = useQuery({
+    queryKey: ['arenas', EMPTY_FILTERS],
+    queryFn: () => fetchArenas(EMPTY_FILTERS),
+  })
+  const districtOptions = useMemo(
+    () => uniqueSorted(catalogArenas.map((a) => a.district)),
+    [catalogArenas],
+  )
+  const metroOptions = useMemo(
+    () => uniqueSorted(catalogArenas.map((a) => a.metro)),
+    [catalogArenas],
+  )
 
   const activeArenaId =
     selectedArenaId && arenas.some((a) => a.id === selectedArenaId)
@@ -194,24 +219,44 @@ export function ArenasPage() {
         data-testid={testId('arenas', 'page', 'progress')}
       />
       <ScrollReveal direction="down">
-        <div className="arenas-page__intro">
-          <PageHeader
-            title={ARENAS_PAGE_TITLE}
-            subtitle="Найдите площадку рядом: список, карта и свободные слоты."
-            testIdPrefix="arenas"
-          />
-        </div>
+        <ArenaFilters
+          filters={filters}
+          onChange={applyFilters}
+          onReset={handleResetFilters}
+          districtOptions={districtOptions}
+          metroOptions={metroOptions}
+          resultsCount={arenas.length}
+          resultsPending={isFetching}
+          header={
+            <PageHeader
+              title={ARENAS_PAGE_TITLE}
+              subtitle="Найдите площадку рядом: список, карта и свободные слоты"
+              testIdPrefix="arenas"
+              actions={
+                <div
+                  className="arenas-view-toggle"
+                  role="group"
+                  aria-label="Режим просмотра"
+                  data-testid={testId('arenas', 'filters', 'panel', 'view')}
+                >
+                  {VIEW_OPTIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={`arenas-view-toggle__btn${view === option.id ? ' is-active' : ''}`}
+                      aria-pressed={view === option.id}
+                      onClick={() => handleViewChange(option.id)}
+                      data-testid={testId('arenas', 'filters', 'btn', 'view', option.id)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              }
+            />
+          }
+        />
       </ScrollReveal>
-
-      <ArenaFilters
-        filters={filters}
-        onChange={applyFilters}
-        onReset={handleResetFilters}
-        view={view}
-        onViewChange={handleViewChange}
-        resultsCount={arenas.length}
-        resultsPending={isFetching}
-      />
 
       {isPending && (
         <div data-testid={testId('arenas', 'page', 'loader')}>
@@ -260,57 +305,51 @@ export function ArenasPage() {
           data-testid={testId('arenas', 'page', 'layout')}
         >
           {view === 'list' && (
-            <div
-              className={`arenas-page__list${showProgress ? ' arenas-page__list--refreshing' : ''}`}
-              role="list"
-              aria-label="Список ледовых арен"
-              data-testid={testId('arenas', 'page', 'list')}
-            >
-              {arenas.map((arena, index) => (
-                <ScrollReveal key={arena.id} direction={index % 2 === 0 ? 'left' : 'right'}>
-                  <RinkCard
-                    ref={(node) => {
-                      if (node) cardRefs.current.set(arena.id, node)
-                      else cardRefs.current.delete(arena.id)
-                    }}
-                    arena={arena}
-                    selected={arena.id === activeArenaId}
-                    onOpenDetails={openArena}
-                    hasFreeSlot={
-                      arena.bookingMode === 'slot_calendar'
-                        ? arenaHasFreeSlots(arena.id, allSlots)
-                        : undefined
-                    }
-                    publishedListingsCount={publishedListingsByArena.get(arena.id) ?? 0}
-                  />
-                </ScrollReveal>
-              ))}
-            </div>
+            <section className="arenas-page__catalog">
+              <SectionHeading
+                title="Поиск по списку"
+                data-testid={testId('arenas', 'page', 'text', 'list-title')}
+              />
+              <div
+                className={`arenas-page__list${showProgress ? ' arenas-page__list--refreshing' : ''}`}
+                role="list"
+                aria-label="Список ледовых арен"
+                data-testid={testId('arenas', 'page', 'list')}
+              >
+                {arenas.map((arena) => (
+                  <ScrollReveal key={arena.id} direction="up">
+                    <RinkCard
+                      ref={(node) => {
+                        if (node) cardRefs.current.set(arena.id, node)
+                        else cardRefs.current.delete(arena.id)
+                      }}
+                      arena={arena}
+                      selected={arena.id === activeArenaId}
+                      onOpenDetails={openArena}
+                      hasFreeSlot={
+                        arena.bookingMode === 'slot_calendar'
+                          ? arenaHasFreeSlots(arena.id, allSlots)
+                          : undefined
+                      }
+                      publishedListingsCount={publishedListingsByArena.get(arena.id) ?? 0}
+                    />
+                  </ScrollReveal>
+                ))}
+              </div>
+            </section>
           )}
 
           {view === 'map' && (
-            <div
+            <section
               ref={mapSectionRef}
               className="arenas-page__map"
               data-testid={testId('arenas', 'page', 'card', 'map')}
             >
-              <IceCard padding="m">
-                <div className="arenas-page__map-head hockey-row hockey-row--between hockey-row--align-center">
-                  <Text
-                    variant="subheader-2"
-                    data-testid={testId('arenas', 'page', 'text', 'map-title')}
-                  >
-                    Поиск на карте
-                  </Text>
-                  <HockeyButton
-                    view="flat"
-                    size="s"
-                    onClick={() => handleViewChange('list')}
-                    data-testid={testId('arenas', 'page', 'btn', 'to-list')}
-                  >
-                    К списку
-                  </HockeyButton>
-                </div>
+              <SectionHeading
+                title="Поиск по карте"
+                data-testid={testId('arenas', 'page', 'text', 'map-title')}
+              />
+              <IceCard padding="m" className="arenas-page__map-card">
                 <ArenaMap
                   arenas={arenas}
                   selectedArenaId={activeArenaId}
@@ -318,16 +357,7 @@ export function ArenasPage() {
                   freeSlotArenaIds={freeSlotArenaIds}
                 />
               </IceCard>
-              <Text
-                color="secondary"
-                className="arenas-page__map-results"
-                data-testid={testId('arenas', 'page', 'text', 'map-results')}
-              >
-                На карте: {arenas.length}{' '}
-                {arenas.length === 1 ? 'арена' : arenas.length < 5 ? 'арены' : 'арен'}. Нажмите пин
-                — откроется страница арены.
-              </Text>
-            </div>
+            </section>
           )}
         </div>
       )}

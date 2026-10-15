@@ -271,7 +271,7 @@ describe('TASK-QA-02 UI smoke', () => {
     renderWithProviders(<FeedbackPage />)
     await waitFor(() => {
       expect(screen.getByText('Feedback после игры')).toBeInTheDocument()
-      expect(screen.getByText('Post-game feedback')).toBeInTheDocument()
+      expect(screen.getByText('Post-game evaluation')).toBeInTheDocument()
     })
   })
 

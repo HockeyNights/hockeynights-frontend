@@ -5,9 +5,9 @@
 
 $line-red: #e10600;
 $line-blue: #0033a0;
-$ice-deep: #071525;
-$ice-mid: #143352;
-$ice-glow: #5ec8f2;
+$ice-deep: #080e1b;
+$ice-mid: #131b2d;
+$ice-glow: #ffb703;
 $locker-warm: #f0ebe3;
 $locker-concrete: #c8c2b8;
 $board-gold: #ffc72c;
@@ -20,7 +20,7 @@ $slot-green: #34d399;
   --hockey-ice-deep: #{$ice-deep};
   --hockey-ice-mid: #{$ice-mid};
   --hockey-ice-glow: #{$ice-glow};
-  --hockey-ice-surface: #0c2238;
+  --hockey-ice-surface: #131b2d;
   --hockey-line-red: #{$line-red};
   --hockey-line-blue: #{$line-blue};
   --hockey-locker-warm: #{$locker-warm};
@@ -47,7 +47,21 @@ $slot-green: #34d399;
   --hockey-motion-normal: 320ms;
   --hockey-motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --hockey-font-display: 'Bebas Neue', 'Impact', sans-serif;
-  --hockey-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --hockey-font-sans: -apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+
+  /* Figma «hockey»: общие для обеих тем акценты и бейджи */
+  --hockey-ui-accent: #ffb703;
+  --hockey-ui-accent-hover: #ffc533;
+  --hockey-ui-accent-ink: #0f172a;
+  --hockey-ui-card-radius: 30px;
+  --hockey-ui-control-radius: 15px;
+  --hockey-ui-button-radius: 9px;
+  --hockey-ui-badge-radius: 5px;
+  --hockey-ui-control-height: 44px;
+  --hockey-ui-blue: #1bb8ff;
+  --hockey-ui-green: #35d39a;
+  --hockey-ui-red: #f65c5f;
+  --hockey-ui-gold: #ffb703;
   --hockey-font-scoreboard: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
   /** Fallback до установки data-hockey-theme */
   --hockey-accent: #{$line-red};
@@ -70,58 +84,111 @@ $slot-green: #34d399;
   );
 }
 
-/* SPEC-UI-4.2 Locker Room (light) */
+/* SPEC-UI-4.2 — светлые экраны Figma: slate + gold */
 [data-hockey-theme='locker'] {
-  --hockey-surface: var(--hockey-locker-warm);
-  --hockey-card-bg: rgba(255, 255, 255, 0.92);
-  --hockey-card-bg-solid: #ffffff;
-  --hockey-card-border: var(--hockey-locker-concrete);
-  --hockey-accent: var(--hockey-line-red);
-  --hockey-text-muted: #6b6560;
-  --hockey-text-primary: #1a1714;
-  --hockey-nav-icon: #1a1714;
-  --hockey-header-bg: linear-gradient(180deg, #ffffff 0%, #f5f0e8 100%);
-  --hockey-header-border: var(--hockey-line-red);
-  --hockey-nav-active-bg: rgba(225, 6, 0, 0.1);
-  --hockey-status-online: #0f8a4b;
-  --hockey-status-typing: #0057b7;
-  --hockey-spotlight: radial-gradient(
-    ellipse 120% 80% at 50% -20%,
-    rgba(255, 199, 44, 0.14) 0%,
-    transparent 55%
-  );
-  --hockey-body-texture: linear-gradient(
-    135deg,
-    rgba(225, 6, 0, 0.03) 0%,
-    transparent 40%,
-    rgba(0, 51, 160, 0.03) 100%
-  );
+  --hockey-surface: #f8fafc;
+  --hockey-card-bg: #f8fafc;
+  --hockey-card-bg-solid: #f8fafc;
+  --hockey-card-border: #e2e8f0;
+  --hockey-accent: #ffb703;
+  --hockey-text-muted: #94a3b8;
+  --hockey-text-primary: #0f172a;
+  --hockey-nav-icon: #0f172a;
+  --hockey-header-bg: #f8fafc;
+  --hockey-header-border: #e2e8f0;
+  --hockey-nav-active-bg: rgba(255, 183, 3, 0.18);
+  --hockey-status-online: #10b981;
+  --hockey-status-typing: #0ea5e9;
+  --hockey-spotlight: none;
+  --hockey-body-texture: none;
+  --hockey-glass-bg: #f8fafc;
+  --hockey-glass-border: #e2e8f0;
+  --hockey-card-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.12);
+
+  --hockey-ui-surface: #f8fafc;
+  --hockey-ui-card: #f8fafc;
+  --hockey-ui-card-border: #e2e8f0;
+  --hockey-ui-card-shadow: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.1);
+  --hockey-ui-raised: #f8fafc;
+  --hockey-ui-raised-border: #e2e8f0;
+  --hockey-ui-row-border: #e2e8f0;
+  --hockey-ui-text: #0f172a;
+  --hockey-ui-muted: #94a3b8;
+  --hockey-ui-subtle: #8a9bb3;
+  --hockey-ui-icon-tile: #e2e8f0;
+
+  .g-root {
+    --g-color-base-background: #f8fafc;
+    --g-color-base-float: #ffffff;
+    --g-color-line-generic: #e2e8f0;
+    --g-color-base-brand: #ffb703;
+    --g-color-base-brand-hover: #ffc533;
+    --g-color-text-brand: #b77f00;
+    --g-color-text-link: #b77f00;
+    --g-color-text-link-hover: #8f6300;
+    --g-color-line-brand: #ffb703;
+    --g-color-text-primary: #0f172a;
+    --g-color-text-complementary: #334155;
+    --g-color-text-secondary: #64748b;
+    --g-color-text-brand-contrast: #0f172a;
+  }
 }
 
-/* SPEC-UI-4.1 Ice & Energy (dark) */
+/* SPEC-UI-4.1 — палитра экранов Figma: navy + gold */
 [data-hockey-theme='ice'] {
   --hockey-surface: var(--hockey-ice-deep);
-  --hockey-card-bg: rgba(18, 42, 69, 0.85);
-  --hockey-card-bg-solid: #122a45;
-  --hockey-card-border: rgba(94, 200, 242, 0.18);
-  --hockey-accent: var(--hockey-ice-glow);
-  --hockey-text-muted: var(--hockey-rink-mist);
-  --hockey-text-primary: #f4fcff;
-  --hockey-nav-icon: #ffffff;
-  --hockey-header-bg: linear-gradient(180deg, #0f2844 0%, var(--hockey-ice-deep) 100%);
-  --hockey-header-border: var(--hockey-ice-glow);
-  --hockey-nav-active-bg: rgba(94, 200, 242, 0.12);
+  --hockey-card-bg: #131b2d;
+  --hockey-card-bg-solid: #131b2d;
+  --hockey-card-border: #1e293b;
+  --hockey-accent: #ffb703;
+  --hockey-text-muted: #94a3b8;
+  --hockey-text-primary: #f5f7fb;
+  --hockey-nav-icon: #f5f7fb;
+  --hockey-header-bg: #080e1b;
+  --hockey-header-border: #1e293b;
+  --hockey-nav-active-bg: rgba(255, 183, 3, 0.16);
   --hockey-spotlight: radial-gradient(
-    ellipse 100% 60% at 50% 0%,
-    rgba(94, 200, 242, 0.15) 0%,
-    transparent 60%
+    ellipse 80% 50% at 0% 0%,
+    rgba(255, 183, 3, 0.12) 0%,
+    transparent 55%
   );
-  --hockey-body-texture: var(--hockey-rink-lines);
-  --hockey-glass-bg: rgba(255, 255, 255, 0.04);
-  --hockey-glass-border: rgba(94, 200, 242, 0.12);
-  --hockey-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
-  --hockey-status-online: #9dffc8;
-  --hockey-status-typing: #f4fcff;
+  --hockey-body-texture: none;
+  --hockey-glass-bg: rgba(19, 27, 45, 0.92);
+  --hockey-glass-border: #1e293b;
+  --hockey-card-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  --hockey-status-online: #10b981;
+  --hockey-status-typing: #f5f7fb;
+
+  --hockey-ui-surface: #080e1b;
+  --hockey-ui-card: #131b2d;
+  --hockey-ui-card-border: #1e293b;
+  --hockey-ui-card-shadow: none;
+  --hockey-ui-raised: #151e32;
+  --hockey-ui-raised-border: #1e293b;
+  --hockey-ui-row-border: #263652;
+  --hockey-ui-text: #f5f7fb;
+  --hockey-ui-muted: #94a3b8;
+  --hockey-ui-subtle: #8a9bb3;
+  --hockey-ui-icon-tile: #14233c;
+
+  .g-root {
+    --g-color-text-brand-contrast: #0f172a;
+    --g-color-base-background: #080e1b;
+    --g-color-base-float: #131b2d;
+    --g-color-base-float-hover: #1a2438;
+    --g-color-base-generic: rgba(148, 163, 184, 0.12);
+    --g-color-base-generic-hover: rgba(148, 163, 184, 0.2);
+    --g-color-line-generic: #1e293b;
+    --g-color-base-brand: #ffb703;
+    --g-color-base-brand-hover: #ffc533;
+    --g-color-text-brand: #ffb703;
+    --g-color-text-link: #ffb703;
+    --g-color-text-link-hover: #ffc533;
+    --g-color-line-brand: #ffb703;
+    --g-color-text-primary: #f5f7fb;
+    --g-color-text-complementary: #cbd5e1;
+    --g-color-text-secondary: #94a3b8;
+  }
 }
 
 body {

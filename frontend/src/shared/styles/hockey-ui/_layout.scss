@@ -20,27 +20,26 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    padding: 0 24px;
+    padding: 0 16px;
     min-height: 64px;
-    border-bottom: 2px solid var(--hockey-header-border);
+    border-bottom: 1px solid var(--hockey-header-border);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
     background: var(--hockey-header-bg);
-    @include glass-panel(16px);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  }
 
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      @include rink-line-gradient(0.7);
-    }
+  &__header--drawer {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    min-height: 64px;
   }
 
   /* Focus mode (обе панели скрыты): те же горизонтальные поля, что у контента */
@@ -53,41 +52,29 @@
   &__brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     min-width: 0;
+    flex: 1;
   }
 
   &__crest {
     flex-shrink: 0;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: linear-gradient(145deg, var(--hockey-line-red), #a00400);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #ffb703;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow:
-      0 4px 12px rgba(225, 6, 0, 0.35),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
     position: relative;
     overflow: hidden;
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 6px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #333 0%, #111 100%);
-      box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.5);
-    }
   }
 
-  &__crest-icon {
-    position: relative;
-    z-index: 1;
-    font-size: 20px;
-    line-height: 1;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+  &__crest-mark {
+    width: 24px;
+    height: 28px;
+    object-fit: contain;
+    filter: brightness(0);
   }
 
   &__brand-text {
@@ -98,26 +85,73 @@
   }
 
   &__title {
-    font-family: var(--hockey-font-display);
-    font-size: 1.65rem;
-    font-weight: 400;
-    letter-spacing: 0.06em;
+    font-family: var(--hockey-font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    line-height: 1;
+    line-height: 1.15;
     color: var(--g-color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__region {
-    @include scoreboard-caps(11px, 0.14em);
+    font-family: var(--hockey-font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #ffb703;
+    line-height: 1.2;
+  }
+
+  &__region-meta {
     color: var(--hockey-text-muted);
+    font-weight: 500;
   }
 
   &__header-actions {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  &__round-btn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--hockey-card-border);
+    background: transparent;
+    color: var(--g-color-text-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+    line-height: 0;
+
+    .g-icon,
+    svg {
+      display: block;
+      color: inherit;
+    }
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--hockey-ui-accent);
+      color: var(--g-color-text-brand);
+    }
+
+    &--accent {
+      border-color: var(--hockey-ui-accent);
+      color: var(--g-color-text-brand);
+    }
   }
 
   /* HOCFRONT-30 — профиль в правом углу top bar (вместо «⋯») */
@@ -287,7 +321,6 @@
     line-height: 0;
   }
 
-  /* HOCFRONT-17 — Lottie-колокольчик в top bar (icon-only, как Button size="s") */
   &__notify {
     position: relative;
     box-sizing: border-box;
@@ -295,64 +328,41 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     padding: 0;
-    border-radius: 8px;
-    border: 1px solid var(--hockey-card-border);
-    background: var(--hockey-glass-bg);
-    color: var(--g-color-text-primary);
+    border-radius: 50%;
+    border: none;
+    background: #ffb703;
+    color: #0f172a;
     text-decoration: none;
     line-height: 0;
-    vertical-align: middle;
-    transition:
-      background var(--hockey-motion-fast) var(--hockey-motion-ease),
-      border-color var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+    .g-icon,
+    svg {
+      display: block;
+      color: inherit;
+    }
 
     &:hover,
     &:focus-visible {
-      background: var(--hockey-nav-active-bg);
-      border-color: color-mix(in srgb, var(--hockey-line-red) 55%, var(--hockey-card-border));
+      background: #ffc533;
     }
 
     &--active {
-      background: var(--hockey-nav-active-bg);
-      border-color: var(--hockey-line-red);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hockey-line-red) 35%, transparent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, #ffb703 55%, transparent);
     }
-
-    &--unread {
-      border-color: color-mix(in srgb, var(--hockey-line-red) 45%, var(--hockey-card-border));
-    }
-  }
-
-  &__notify-lottie {
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    overflow: hidden;
-    pointer-events: none;
-    transform-origin: 50% 0%;
   }
 
   &__notify-badge {
     position: absolute;
-    top: -3px;
-    right: -3px;
-    min-width: 15px;
-    height: 15px;
-    padding: 0 3px;
-    border-radius: 999px;
-    background: var(--hockey-line-red);
-    color: #fff;
-    font-family: var(--hockey-font-scoreboard);
-    font-size: 9px;
-    font-weight: 700;
-    line-height: 15px;
-    text-align: center;
+    top: 1px;
+    right: 1px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #f65c5f;
     border: 1.5px solid var(--hockey-header-bg);
-    box-shadow: 0 1px 4px rgba(225, 6, 0, 0.35);
     pointer-events: none;
   }
 
@@ -368,7 +378,7 @@
     &--grid {
       @include breakpoint(1200px) {
         display: grid;
-        grid-template-columns: 220px minmax(0, 1fr) 280px;
+        grid-template-columns: 300px minmax(0, 1fr) 280px;
         gap: 0;
         min-height: 0;
         height: 100%;
@@ -384,7 +394,7 @@
 
     &--right-collapsed {
       @include breakpoint(1200px) {
-        grid-template-columns: 220px minmax(0, 1fr);
+        grid-template-columns: 300px minmax(0, 1fr);
       }
     }
 
@@ -443,16 +453,14 @@
     display: none;
 
     @include breakpoint(1200px) {
-      display: block;
+      display: flex;
+      flex-direction: column;
       grid-column: 1;
       border-right: 1px solid var(--hockey-card-border);
-      padding: 20px 12px;
-      background: var(--hockey-glass-bg);
-      @include glass-panel(8px);
+      padding: 16px 14px 14px;
+      background: var(--hockey-surface);
       min-height: 0;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      scrollbar-gutter: stable;
+      overflow: hidden;
     }
   }
 
@@ -494,55 +502,71 @@
   }
 }
 
-/* SPEC-UI-4.3 Nav puck indicator */
 .hockey-nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  position: relative;
-
-  &__puck {
-    position: absolute;
-    left: 2px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #444 0%, #111 70%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    pointer-events: none;
-    transition: top var(--hockey-motion-normal) var(--hockey-motion-ease);
-  }
+  gap: 4px;
 
   &__link {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 12px 10px 22px;
-    border-radius: 10px;
-    font-size: 13px;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 15px;
     font-weight: 500;
-    color: var(--hockey-text-muted);
+    color: var(--g-color-text-complementary);
     text-decoration: none;
     border: 1px solid transparent;
-    transition:
-      background var(--hockey-motion-fast) var(--hockey-motion-ease),
-      color var(--hockey-motion-fast) var(--hockey-motion-ease),
-      border-color var(--hockey-motion-fast) var(--hockey-motion-ease);
+
+    .g-icon,
+    svg {
+      flex-shrink: 0;
+      color: inherit;
+    }
 
     &:hover {
-      background: var(--hockey-glass-bg);
+      background: rgba(148, 163, 184, 0.08);
       color: var(--g-color-text-primary);
-      border-color: var(--hockey-card-border);
     }
 
     &--active {
-      background: var(--hockey-nav-active-bg);
-      color: var(--g-color-text-primary);
+      color: var(--g-color-text-brand);
       font-weight: 600;
-      border-color: var(--hockey-card-border);
-      box-shadow: inset 3px 0 0 var(--hockey-line-red);
+      border-color: var(--hockey-ui-accent);
+      background: transparent;
     }
+  }
+
+  &__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__count {
+    margin-left: auto;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ffb703;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: center;
+  }
+
+  &__dot {
+    margin-left: auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f65c5f;
+    flex-shrink: 0;
   }
 
   &__badge {
@@ -557,7 +581,7 @@
   }
 
   &__section-label {
-    margin: 12px 12px 4px 22px;
+    margin: 12px 12px 4px;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -1232,4 +1256,253 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.app-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+
+  &__profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--hockey-card-border);
+    border-radius: 16px;
+    text-decoration: none;
+    color: inherit;
+    background: transparent;
+
+    &:hover,
+    &--active {
+      border-color: var(--hockey-ui-accent);
+    }
+  }
+
+  &__avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    border: 1px solid var(--hockey-ui-accent);
+    color: var(--g-color-text-brand);
+    overflow: hidden;
+    background: transparent;
+
+    .g-icon,
+    svg {
+      color: inherit;
+    }
+  }
+
+  &__avatar-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__identity {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 4px;
+  }
+
+  &__name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--g-color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  &__team-badge {
+    flex-shrink: 0;
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: #ffb703;
+    color: #0f172a;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+  }
+
+  &__team {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--hockey-text-muted);
+  }
+
+  &__menu {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  &__foot {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  &__role {
+    padding: 12px 14px;
+    border: 1px solid var(--hockey-card-border);
+    border-radius: 16px;
+  }
+
+  &__role-kicker {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--hockey-text-muted);
+  }
+
+  &__role-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__role-name {
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--g-color-text-primary);
+  }
+
+  &__role-status {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+
+    &--ok {
+      color: var(--hockey-ui-green);
+      background: color-mix(in srgb, var(--hockey-ui-green) 18%, transparent);
+    }
+
+    &--wait {
+      color: var(--g-color-text-brand);
+      background: color-mix(in srgb, var(--hockey-ui-accent) 18%, transparent);
+    }
+
+    &--bad {
+      color: var(--hockey-ui-red);
+      background: color-mix(in srgb, var(--hockey-ui-red) 16%, transparent);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 0 4px;
+  }
+
+  &__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--hockey-text-muted);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+
+    .g-icon,
+    svg {
+      color: inherit;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: var(--g-color-text-primary);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+}
+
+.app-nav-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: flex;
+
+  @include breakpoint(1200px) {
+    display: none;
+  }
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    cursor: pointer;
+  }
+
+  &__panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 420px);
+    height: 100%;
+    background: var(--hockey-surface);
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.35);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: 8px 14px calc(16px + env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+
+  .app-shell__title {
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
 }

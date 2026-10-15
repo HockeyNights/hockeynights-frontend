@@ -4,6 +4,7 @@
  */
 
 import {useMutation} from '@tanstack/react-query'
+import {Alert, Button, Typography} from 'antd'
 import {type FormEvent, useState} from 'react'
 
 import {registerAccount} from '@/entities/auth'
@@ -14,10 +15,9 @@ import {
 import {AuthField} from '@/features/auth/ui/AuthField'
 import {TermsAcceptanceField} from '@/features/auth/ui/TermsAcceptanceField'
 import {testId} from '@/shared/testing/testId'
-import {HockeyButton} from '@/shared/ui/HockeyButton'
 
 export interface RegisterFormProps {
-  onSuccess: () => void
+  onSuccess: (email: string) => void
 }
 
 const INITIAL_VALUES: RegisterFormValues = {
@@ -36,7 +36,7 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
     mutationFn: registerAccount,
     onSuccess: () => {
       setError(null)
-      onSuccess()
+      onSuccess(values.email.trim())
     },
     onError: (err: Error) => {
       setError(err.message || 'Не удалось зарегистрироваться')
@@ -73,20 +73,30 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
         className="auth-form__header"
         data-testid={testId('auth', 'register', 'panel', 'header')}
       >
-        <h2 className="auth-form__title" data-testid={testId('auth', 'register', 'text', 'title')}>
+        <Typography.Title
+          level={3}
+          className="auth-form__title"
+          data-testid={testId('auth', 'register', 'text', 'title')}
+        >
           Создать аккаунт
-        </h2>
-        <p className="auth-form__subtitle" data-testid={testId('auth', 'register', 'text', 'hint')}>
-          Профиль сохранится в локальной памяти браузера — позже перенесём на backend без смены UX.
-        </p>
+        </Typography.Title>
+        <Typography.Paragraph
+          className="auth-form__subtitle"
+          data-testid={testId('auth', 'register', 'text', 'hint')}
+        >
+          Укажите имя, почту и пароль. Профиль сохранится на этом устройстве.
+        </Typography.Paragraph>
       </header>
 
-      <div
-        className="auth-alert auth-alert--info"
-        data-testid={testId('auth', 'register', 'text', 'local-memory')}
-      >
-        Данные хранятся в <strong>localStorage</strong> и доступны только на этом устройстве.
-      </div>
+      <Alert
+        type="info"
+        showIcon
+        message={
+          <span data-testid={testId('auth', 'register', 'text', 'local-memory')}>
+            Пока аккаунт остаётся только на этом компьютере и не уходит в облако.
+          </span>
+        }
+      />
 
       <div
         className="auth-form__fields"
@@ -96,6 +106,7 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
           label="Имя"
           fieldId="auth-register-display-name"
           autoComplete="name"
+          placeholder="Алексей Смирнов"
           value={values.displayName}
           onUpdate={(value) => updateField('displayName', value)}
           testIdScope="register"
@@ -106,6 +117,7 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
           fieldId="auth-register-email"
           type="email"
           autoComplete="email"
+          placeholder="ivanov@mail.ru"
           value={values.email}
           onUpdate={(value) => updateField('email', value)}
           testIdScope="register"
@@ -127,6 +139,7 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
           fieldId="auth-register-password-confirm"
           type="password"
           autoComplete="new-password"
+          placeholder="Повторите пароль"
           value={values.passwordConfirm}
           onUpdate={(value) => updateField('passwordConfirm', value)}
           testIdScope="register"
@@ -140,24 +153,25 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
       </div>
 
       {error && (
-        <div
-          className="auth-alert auth-alert--error"
+        <Alert
+          type="error"
+          showIcon
+          message={error}
           data-testid={testId('auth', 'register', 'text', 'error')}
-        >
-          {error}
-        </div>
+        />
       )}
 
-      <HockeyButton
-        view="action"
-        size="l"
-        type="submit"
+      <Button
+        type="primary"
+        htmlType="submit"
+        size="large"
+        block
         loading={registerMutation.isPending}
         disabled={registerMutation.isPending}
         data-testid={testId('auth', 'register', 'btn', 'submit')}
       >
         Зарегистрироваться
-      </HockeyButton>
+      </Button>
     </form>
   )
 }

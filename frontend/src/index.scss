@@ -3,7 +3,6 @@
 @use './shared/styles/motion';
 @use './shared/styles/utilities';
 @use './shared/styles/hockey-ui';
-@use './shared/styles/mixins' as *;
 
 body {
   margin: 0;
@@ -23,66 +22,10 @@ a {
   color: inherit;
 }
 
-.variable-font-header {
-  @include display-text-gradient;
-  overflow: visible;
-}
-
-.app-shell__main-col {
-  /*
-   * Typography scope (HOCFRONT-18 / TASK-02-03):
-   * - header-1: page titles — display metrics + gradient only in main column
-   * - header-2: entity names — solid color, same Bebas family/weight/tracking/uppercase
-   */
-  .g-text_variant_header-1 {
-    @include display-text-gradient;
-    overflow: visible;
-    font-family: var(--hockey-font-display);
-    font-size: clamp(2rem, 4vw, 2.75rem);
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    /* 1.15 — место под диакритику Bebas (Й), без смены font-size */
-    line-height: 1.15;
-    margin-bottom: 4px;
-    padding-block: 0.06em 0;
-  }
-
-  /* Эталон display: «Ледовый дворец на Ходынке» и названия сущностей */
-  .g-text_variant_header-2 {
-    font-family: var(--hockey-font-display);
-    font-size: clamp(1.25rem, 2.4vw, 1.75rem);
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    line-height: 1.15;
-    color: var(--g-color-text-primary);
-    overflow: visible;
-    padding-block: 0.04em 0;
-  }
-
-  /* List/cards density: same display face, smaller clamp than detail/hero */
-  .g-text_variant_header-2.hockey-entity-title--compact {
-    font-size: clamp(1.05rem, 2vw, 1.35rem);
-    line-height: 1.15;
-    margin-bottom: 0;
-  }
-
-  .g-text_variant_subheader-2 {
-    font-family: var(--hockey-font-scoreboard);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--hockey-text-muted);
-  }
-}
+/* Типографика основной колонки — shared/styles/hockey-ui/_figma-skin.scss */
 
 .page-header,
 .page-header__copy,
 .page-header__title {
   overflow: visible;
-}
-
-.page-header__copy {
-  padding-top: 2px;
 }

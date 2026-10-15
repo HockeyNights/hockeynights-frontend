@@ -4,7 +4,7 @@
 
 import {Select, Text, TextInput} from '@gravity-ui/uikit'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
-import {useMemo, useState} from 'react'
+import {type ReactNode, useMemo, useState} from 'react'
 import {Link} from 'react-router'
 
 import type {League} from '@/entities/league'
@@ -16,6 +16,7 @@ import {
 } from '@/entities/league'
 import {fetchTeams} from '@/entities/team'
 import {useSessionAccess} from '@/features/access'
+import {LeagueApplicationShell} from '@/features/leagues/ui/LeagueApplicationShell'
 import {testId} from '@/shared/testing/testId'
 import {HockeyButton} from '@/shared/ui/HockeyButton'
 
@@ -28,10 +29,12 @@ const STATUS_LABELS: Record<string, string> = {
 
 export interface LeagueTeamApplicationFormProps {
   league: League
+  /** Кнопки портала/сайта лиги — рендерятся внизу карточки заявки. */
+  actions?: ReactNode
 }
 
 /** @spec SPEC-FR-24.5.4 - Подача заявки капитаном команды */
-export function LeagueTeamApplicationForm({league}: LeagueTeamApplicationFormProps) {
+export function LeagueTeamApplicationForm({league, actions}: LeagueTeamApplicationFormProps) {
   const queryClient = useQueryClient()
   const [contactEmail, setContactEmail] = useState('captain@example.com')
   const [divisionId, setDivisionId] = useState<string | undefined>()
@@ -95,21 +98,26 @@ export function LeagueTeamApplicationForm({league}: LeagueTeamApplicationFormPro
     },
   })
 
+  const shellTitle = selectedTeam ? `Заявка команды ${selectedTeam.name}` : 'Заявка в лигу'
+
   if (league.recruitingStatus === 'closed') {
     return (
-      <Text
-        color="secondary"
-        data-testid={testId('leagues', 'application', 'text', 'closed', league.id)}
-      >
-        Набор команд в эту лигу закрыт.
-      </Text>
+      <LeagueApplicationShell title="Заявка в лигу" actions={actions}>
+        <Text
+          color="secondary"
+          data-testid={testId('leagues', 'application', 'text', 'closed', league.id)}
+        >
+          Набор команд в эту лигу закрыт.
+        </Text>
+      </LeagueApplicationShell>
     )
   }
 
   if (!isCaptain) {
     return (
-      <div
-        className="league-profile__application hockey-stack hockey-stack--gap-8"
+      <LeagueApplicationShell
+        title="Заявка в лигу"
+        actions={actions}
         data-testid={testId('leagues', 'application', 'panel', 'login-hint', league.id)}
       >
         <Text
@@ -118,71 +126,75 @@ export function LeagueTeamApplicationForm({league}: LeagueTeamApplicationFormPro
         >
           Подать заявку может капитан или владелец команды.
         </Text>
-        <Link to="/" data-testid={testId('leagues', 'application', 'link', 'login', league.id)}>
+        <Link
+          to="/"
+          className="league-application__login"
+          data-testid={testId('leagues', 'application', 'link', 'login', league.id)}
+        >
           <HockeyButton
             view="outlined"
-            size="s"
+            size="l"
+            width="max"
             data-testid={testId('leagues', 'application', 'btn', 'login', league.id)}
           >
             Войти как капитан
           </HockeyButton>
         </Link>
-      </div>
+      </LeagueApplicationShell>
     )
   }
 
   if (!selectedTeam || !activeSeason) {
     return (
-      <Text
-        color="secondary"
-        data-testid={testId('leagues', 'application', 'text', 'no-team', league.id)}
-      >
-        Создайте команду, чтобы подать заявку в лигу.
-      </Text>
+      <LeagueApplicationShell title={shellTitle} actions={actions}>
+        <Text
+          color="secondary"
+          data-testid={testId('leagues', 'application', 'text', 'no-team', league.id)}
+        >
+          Создайте команду, чтобы подать заявку в лигу.
+        </Text>
+      </LeagueApplicationShell>
     )
   }
 
   if (existing && existing.status !== 'rejected') {
     return (
-      <div
-        className="league-profile__application hockey-stack hockey-stack--gap-8"
+      <LeagueApplicationShell
+        title={shellTitle}
+        titleTestId={testId('leagues', 'application', 'text', 'existing-title', league.id)}
+        actions={actions}
         data-testid={testId('leagues', 'application', 'panel', 'existing', league.id)}
       >
         <Text
-          variant="subheader-2"
-          data-testid={testId('leagues', 'application', 'text', 'existing-title', league.id)}
+          className="league-application__status"
+          data-testid={testId('leagues', 'application', 'text', 'existing-status', league.id)}
         >
-          Заявка команды {selectedTeam.name}
-        </Text>
-        <Text data-testid={testId('leagues', 'application', 'text', 'existing-status', league.id)}>
           Статус: {STATUS_LABELS[existing.status] ?? existing.status}
           {existing.reviewComment ? ` · ${existing.reviewComment}` : ''}
         </Text>
         <Text
           color="secondary"
+          className="league-application__meta"
           data-testid={testId('leagues', 'application', 'text', 'existing-meta', league.id)}
         >
           Сезон {activeSeason.name} · подана {new Date(existing.createdAt).toLocaleString('ru-RU')}
         </Text>
-      </div>
+      </LeagueApplicationShell>
     )
   }
 
   const divisionOptions = divisions.map((d) => ({value: d.id, content: d.name}))
 
   return (
-    <div
-      className="league-profile__application partner-dashboard__form hockey-stack hockey-stack--gap-10"
+    <LeagueApplicationShell
+      title="Подать заявку в лигу"
+      titleTestId={testId('leagues', 'application', 'text', 'form-title', league.id)}
+      actions={actions}
       data-testid={testId('leagues', 'application', 'panel', 'form', league.id)}
     >
       <Text
-        variant="subheader-2"
-        data-testid={testId('leagues', 'application', 'text', 'form-title', league.id)}
-      >
-        Подать заявку в лигу
-      </Text>
-      <Text
         color="secondary"
+        className="league-application__meta"
         data-testid={testId('leagues', 'application', 'text', 'form-subtitle', league.id)}
       >
         Команда: {selectedTeam.name} · сезон: {activeSeason.name}
@@ -191,6 +203,7 @@ export function LeagueTeamApplicationForm({league}: LeagueTeamApplicationFormPro
       {captainTeams.length > 1 && (
         <Select
           label="Команда"
+          size="l"
           value={[selectedTeam.id]}
           options={captainTeams.map((team) => ({value: team.id, content: team.name}))}
           onUpdate={(value) => setTeamId(value[0])}
@@ -201,6 +214,7 @@ export function LeagueTeamApplicationForm({league}: LeagueTeamApplicationFormPro
       {divisionOptions.length > 0 && (
         <Select
           label="Дивизион"
+          size="l"
           value={divisionId ? [divisionId] : []}
           options={divisionOptions}
           onUpdate={(value) => setDivisionId(value[0])}
@@ -210,6 +224,7 @@ export function LeagueTeamApplicationForm({league}: LeagueTeamApplicationFormPro
 
       <TextInput
         label="Email для связи"
+        size="l"
         value={contactEmail}
         onUpdate={setContactEmail}
         data-testid={testId('leagues', 'application', 'field', 'email', league.id)}
@@ -217,7 +232,8 @@ export function LeagueTeamApplicationForm({league}: LeagueTeamApplicationFormPro
 
       <HockeyButton
         view="action"
-        size="s"
+        size="l"
+        width="max"
         disabled={!contactEmail.trim()}
         loading={submitMutation.isPending}
         onClick={() => submitMutation.mutate()}
@@ -229,11 +245,12 @@ export function LeagueTeamApplicationForm({league}: LeagueTeamApplicationFormPro
       {statusMessage && (
         <Text
           color="secondary"
+          className="league-application__meta"
           data-testid={testId('leagues', 'application', 'text', 'status', league.id)}
         >
           {statusMessage}
         </Text>
       )}
-    </div>
+    </LeagueApplicationShell>
   )
 }

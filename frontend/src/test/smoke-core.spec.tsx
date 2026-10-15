@@ -357,7 +357,7 @@ describe('TASK-QA-01 UI smoke', () => {
       expect(screen.getByTestId('auth-shell-page')).toBeInTheDocument()
     })
     expect(screen.getByText('Вход в аккаунт')).toBeInTheDocument()
-    expect(screen.getByText(/Локальная память/i)).toBeInTheDocument()
+    expect(screen.getByText('Быстрый доступ')).toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toHaveValue('demo@hockey.local')
   })
 

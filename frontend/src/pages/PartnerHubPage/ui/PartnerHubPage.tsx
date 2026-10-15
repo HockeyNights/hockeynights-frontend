@@ -2,7 +2,6 @@
  * SPEC-FR-24.5.3, SPEC-FR-24.7.3
  */
 
-import {Text} from '@gravity-ui/uikit'
 import {Link} from 'react-router'
 
 import {useSessionAccess} from '@/features/access'
@@ -16,7 +15,13 @@ import {QueryErrorState} from '@/shared/ui/QueryErrorState'
 const CABINET_FEATURES: Record<string, string[]> = {
   league: ['Профиль лиги', 'Заявки команд', 'Расписание и таблица', 'Публикации', 'Аналитика'],
   shop: ['Профиль магазина', 'Товары', 'Импорт каталога', 'Промо', 'Аналитика и лиды'],
-  club: ['Профиль клуба', 'Состав', 'Штаб', 'Календарь', 'Приватные тренировки'],
+  club: [
+    'Профиль клуба и контакты',
+    'Состав и управление звеньями',
+    'Тренерский и административный штаб',
+    'Клубный календарь матчей',
+    'Приватные тренировки для своих игроков',
+  ],
   arena: [
     'Профиль арены',
     'Объявления льда',
@@ -24,6 +29,13 @@ const CABINET_FEATURES: Record<string, string[]> = {
     'Публичность в каталоге',
     'Заявки на лёд',
   ],
+}
+
+const CABINET_TAGLINES: Record<string, string> = {
+  league: 'расписание, заявки и публикации',
+  shop: 'каталог, промо и лиды',
+  club: 'управление составом и тренировками',
+  arena: 'лёд, слоты и заявки',
 }
 
 /** @spec SPEC-FR-24.5.3 - Хаб партнёрских кабинетов */
@@ -68,7 +80,7 @@ export function PartnerHubPage() {
 
   return (
     <div
-      className="partner-hub hockey-stack hockey-stack--gap-16"
+      className="partner-hub fin-pc hockey-stack hockey-stack--gap-16"
       data-testid={testId('partners', 'hub', 'page')}
     >
       <PageHeader
@@ -78,43 +90,64 @@ export function PartnerHubPage() {
         testIdSection="hub"
       />
 
-      <div
-        className="hockey-grid hockey-grid--cards-300"
-        data-testid={testId('partners', 'hub', 'list')}
-      >
+      <div className="partner-hub__grid" data-testid={testId('partners', 'hub', 'list')}>
         {memberships.map((membership) => (
-          <IceCard key={`${membership.kind}-${membership.entityId}`} padding="m">
+          <IceCard
+            key={`${membership.kind}-${membership.entityId}`}
+            padding="m"
+            className="partner-hub__card-shell"
+          >
             <div
-              className="partner-hub__card hockey-stack hockey-stack--gap-12"
+              className="partner-hub__card"
               data-testid={testId('partners', 'hub', 'card', membership.kind, membership.entityId)}
             >
-              <div>
-                <Text
-                  variant="subheader-2"
-                  data-testid={testId(
-                    'partners',
-                    'hub',
-                    'text',
-                    'cabinet-label',
-                    membership.kind,
-                    membership.entityId,
-                  )}
-                >
-                  {partnerCabinetLabel(membership)}
-                </Text>
-                <Text
-                  color="secondary"
-                  data-testid={testId(
-                    'partners',
-                    'hub',
-                    'text',
-                    'entity-name',
-                    membership.kind,
-                    membership.entityId,
-                  )}
-                >
-                  {membership.entityName}
-                </Text>
+              <div className="partner-hub__card-head">
+                <div className="partner-hub__card-copy">
+                  <h2
+                    className="partner-hub__card-title"
+                    data-testid={testId(
+                      'partners',
+                      'hub',
+                      'text',
+                      'cabinet-label',
+                      membership.kind,
+                      membership.entityId,
+                    )}
+                  >
+                    {partnerCabinetLabel(membership)}
+                  </h2>
+                  <p
+                    className="partner-hub__card-subtitle"
+                    data-testid={testId(
+                      'partners',
+                      'hub',
+                      'text',
+                      'entity-name',
+                      membership.kind,
+                      membership.entityId,
+                    )}
+                  >
+                    {membership.entityName}
+                    {CABINET_TAGLINES[membership.kind]
+                      ? ` · ${CABINET_TAGLINES[membership.kind]}`
+                      : ''}
+                  </p>
+                </div>
+                {membership.isPrimary ? (
+                  <span
+                    className="partner-hub__primary-badge"
+                    data-testid={testId(
+                      'partners',
+                      'hub',
+                      'badge',
+                      'primary',
+                      membership.kind,
+                      membership.entityId,
+                    )}
+                  >
+                    Основной
+                  </span>
+                ) : null}
               </div>
               <ul
                 className="partner-hub__features"
@@ -130,6 +163,7 @@ export function PartnerHubPage() {
                 {CABINET_FEATURES[membership.kind].map((feature) => (
                   <li
                     key={feature}
+                    className="partner-hub__feature"
                     data-testid={testId(
                       'partners',
                       'hub',
@@ -140,12 +174,13 @@ export function PartnerHubPage() {
                       feature,
                     )}
                   >
-                    <Text color="secondary">{feature}</Text>
+                    {feature}
                   </li>
                 ))}
               </ul>
               <Link
                 to={partnerCabinetPath(membership)}
+                className="partner-hub__open"
                 data-testid={testId(
                   'partners',
                   'hub',
@@ -157,7 +192,8 @@ export function PartnerHubPage() {
               >
                 <HockeyButton
                   view="action"
-                  size="s"
+                  size="l"
+                  width="max"
                   data-testid={testId(
                     'partners',
                     'hub',

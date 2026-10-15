@@ -1,269 +1,359 @@
 .login-layout {
-  min-height: 100vh;
+  --auth-bg: #0a0f1c;
+  --auth-card: #131b2d;
+  --auth-border: #1e293b;
+  --auth-gold: #ffb703;
+  --auth-ink: #0f172a;
+  --auth-muted: #94a3b8;
+  --auth-text: #f3f3f3;
+
+  min-height: 100dvh;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 16px 16px 24px;
   box-sizing: border-box;
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: var(--auth-bg);
+  color: var(--auth-text);
+  transition:
+    background-color 0.28s ease,
+    color 0.28s ease;
 
   > * {
     width: 100%;
     display: flex;
     justify-content: center;
+    align-items: flex-start;
+  }
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    border-radius: 50%;
+    filter: blur(137.5px);
   }
 
   &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 70% 50% at 15% 20%, rgba(94, 200, 242, 0.14), transparent 55%),
-      radial-gradient(ellipse 60% 45% at 85% 80%, rgba(225, 6, 0, 0.08), transparent 50%);
-    pointer-events: none;
+    width: min(650px, 70vw);
+    height: min(805px, 80vh);
+    left: -261px;
+    top: -265px;
+    background: rgba(255, 183, 3, 0.1);
+  }
+
+  &::after {
+    width: min(650px, 70vw);
+    height: min(605px, 65vh);
+    right: -136px;
+    bottom: -128px;
+    background: rgba(14, 165, 233, 0.1);
+  }
+}
+
+[data-hockey-theme='locker'] .login-layout {
+  --auth-bg: #efe8dc;
+  --auth-card: #ffffff;
+  --auth-border: rgba(26, 23, 20, 0.08);
+  --auth-ink: #f4f0e8;
+  --auth-muted: #6b6560;
+  --auth-text: #1a1714;
+  background: var(--auth-bg);
+
+  &::before {
+    background: rgba(255, 183, 3, 0.18);
+  }
+
+  &::after {
+    background: rgba(14, 165, 233, 0.08);
   }
 }
 
 .auth-shell {
   position: relative;
-  width: min(100%, 920px);
+  width: min(100%, 770px);
   margin-inline: auto;
-  margin-block: auto;
+  margin-block: 74px 0;
   flex-shrink: 0;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 32px;
 
   &--wide {
-    width: min(100%, 720px);
+    width: min(100%, 880px);
+    margin-block: 12px 24px;
+    gap: 28px;
   }
 
   &__glow {
-    position: absolute;
-    inset: -40px -20px auto;
-    height: 180px;
-    background: radial-gradient(
-      ellipse 80% 100% at 50% 0%,
-      rgba(94, 200, 242, 0.2),
-      transparent 70%
-    );
-    pointer-events: none;
-    z-index: 0;
+    display: none;
   }
 
-  &__frame {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.15fr);
-    border-radius: 20px;
-    border: 1px solid var(--hockey-card-border);
-    background: var(--hockey-card-bg);
-    box-shadow: var(--hockey-card-shadow);
-    overflow: hidden;
-    backdrop-filter: blur(12px);
-
-    .auth-shell--wide & {
-      grid-template-columns: 1fr;
-    }
-
-    @media (max-width: 768px) {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  &__hero {
-    position: relative;
-    padding: 32px 28px;
+  &__topbar {
     display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
     gap: 16px;
-    background:
-      linear-gradient(165deg, rgba(94, 200, 242, 0.18) 0%, transparent 45%),
-      linear-gradient(220deg, rgba(225, 6, 0, 0.12) 0%, transparent 40%),
-      var(--hockey-ice-surface, #0c2238);
-    border-right: 1px solid var(--hockey-card-border);
-
-    &::after {
-      content: '';
-      position: absolute;
-      inset: auto 0 0;
-      height: 3px;
-      background: linear-gradient(
-        90deg,
-        var(--hockey-line-red) 0%,
-        var(--hockey-board-gold) 50%,
-        var(--hockey-line-blue) 100%
-      );
-    }
-
-    @media (max-width: 768px) {
-      display: none;
-    }
   }
 
-  &__hero-badge {
-    display: inline-flex;
-    align-self: flex-start;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-family: var(--hockey-font-scoreboard);
-    color: var(--hockey-ice-glow);
-    border: 1px solid color-mix(in srgb, var(--hockey-ice-glow) 40%, transparent);
-    background: color-mix(in srgb, var(--hockey-ice-glow) 10%, transparent);
-  }
-
-  &__hero-title {
-    margin: 0;
-    font-family: var(--hockey-font-display);
-    font-size: clamp(2.4rem, 5vw, 3.4rem);
-    line-height: 1.12;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    overflow: visible;
-    padding-block: 0.06em 0;
-    background-image: var(--hockey-hero-text-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: #fff;
-  }
-
-  &__hero-tagline {
-    margin: 0;
-    font-size: 15px;
-    line-height: 1.45;
-    color: var(--hockey-rink-mist, var(--hockey-text-muted));
-    max-width: 28ch;
-  }
-
-  &__hero-list {
-    margin: 8px 0 0;
+  &__theme-btn.ant-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
     padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--auth-text);
+    background: color-mix(in srgb, var(--auth-text) 8%, transparent) !important;
+    border: 1px solid var(--auth-border) !important;
+    box-shadow: none !important;
 
-    li {
-      position: relative;
-      padding-left: 18px;
-      font-size: 13px;
-      color: var(--hockey-text-muted);
-      line-height: 1.35;
-
-      &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0.55em;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--hockey-ice-glow);
-        box-shadow: 0 0 8px rgba(94, 200, 242, 0.6);
-      }
+    &:hover,
+    &:focus-visible {
+      color: var(--auth-text) !important;
+      background: color-mix(in srgb, var(--auth-text) 14%, transparent) !important;
+      border-color: color-mix(in srgb, var(--auth-gold) 45%, var(--auth-border)) !important;
     }
   }
 
   &__panel {
-    padding: 28px 28px 32px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
     min-width: 0;
+    border-radius: 44px;
+    background: var(--auth-card);
+    border: 1px solid var(--auth-border);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 
     @media (max-width: 480px) {
-      padding: 22px 18px 26px;
+      padding: 24px 20px 22px;
+      border-radius: 36px;
+    }
+
+    &--flat {
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
   }
 
-  &__mobile-brand {
-    display: none;
-    font-family: var(--hockey-font-display);
-    font-size: 2rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    line-height: 1;
+  &__clip {
+    overflow: hidden;
+
+    &--ready {
+      transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+
+  &__legal {
     margin: 0;
+    text-align: center;
+    font-size: 14px;
+    line-height: 22px;
+  }
 
-    @media (max-width: 768px) {
-      display: block;
+  &__legal-link {
+    color: var(--auth-muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover {
+      color: var(--auth-gold);
     }
-  }
-
-  &__notice {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    border: 1px dashed var(--hockey-card-border);
-    background: color-mix(in srgb, var(--hockey-ice-glow) 6%, transparent);
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  &__notice-title {
-    font-family: var(--hockey-font-scoreboard);
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--hockey-ice-glow);
   }
 }
 
-.auth-tabs--pills {
+@media (prefers-reduced-transparency: reduce) {
+  .auth-shell__panel:not(.auth-shell__panel--flat),
+  .auth-tabs {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-layout,
+  .auth-tabs__thumb,
+  .auth-tabs__tab,
+  .auth-shell__clip--ready,
+  .persona-card {
+    transition: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-shell:not(.auth-shell--wide) {
+    margin-block: 0;
+  }
+}
+
+@media (max-height: 820px) and (min-width: 481px) {
+  .auth-shell:not(.auth-shell--wide) {
+    margin-block: 24px 0;
+  }
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &__lockup {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  &--lg {
+    min-height: 96px;
+  }
+
+  @media (max-width: 480px) {
+    &--lg {
+      position: relative;
+      height: 120px;
+      min-height: 120px;
+
+      .auth-brand__lockup {
+        position: absolute;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%) scale(0.7529);
+        transform-origin: top center;
+      }
+    }
+  }
+
+  &--sm {
+    position: relative;
+    justify-content: flex-start;
+    width: 134px;
+    height: 44px;
+
+    .auth-brand__lockup {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: scale(0.458);
+      transform-origin: top left;
+    }
+  }
+
+  &__mark,
+  &__wordmark {
+    display: block;
+    flex-shrink: 0;
+  }
+}
+
+[data-hockey-theme='locker'] .auth-brand__wordmark {
+  filter: brightness(0);
+}
+
+[data-hockey-theme='locker'] .auth-shell--wide .auth-brand__wordmark {
+  filter: none;
+}
+
+[data-hockey-theme='locker'] .auth-shell__theme-btn.ant-btn {
+  color: #0f172a;
+  background: var(--auth-gold) !important;
+  border-color: var(--auth-gold) !important;
+
+  &:hover,
+  &:focus-visible {
+    color: #0f172a !important;
+    background: #e6a502 !important;
+    border-color: #e6a502 !important;
+  }
+}
+
+.auth-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 4px;
-  border-radius: 12px;
-  border: 1px solid var(--hockey-card-border);
-  background: color-mix(
-    in srgb,
-    var(--hockey-card-bg-solid, var(--hockey-card-bg)) 70%,
-    transparent
-  );
+  isolation: isolate;
+  height: 54px;
+  padding: 7px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  background: var(--auth-card);
+  border: 1px solid var(--auth-border);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-.auth-tabs--pills .auth-tabs__tab {
-  padding: 10px 14px;
+.auth-tabs__thumb {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  z-index: 0;
+  width: calc((100% - 14px) / 2);
+  height: 40px;
   border-radius: 9px;
-  border: 1px solid transparent;
-  margin: 0;
-  font-size: 14px;
+  background: var(--auth-gold);
+  box-shadow: 0 2px 0 rgba(5, 145, 255, 0.1);
+  pointer-events: none;
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auth-tabs--register .auth-tabs__thumb {
+  transform: translateX(100%);
+}
+
+.auth-tabs__tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 9px;
   font-weight: 600;
-  text-align: center;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+  color: var(--auth-muted);
   text-decoration: none;
-  color: var(--hockey-text-muted);
-  transition:
-    background var(--hockey-motion-fast) var(--hockey-motion-ease),
-    color var(--hockey-motion-fast) var(--hockey-motion-ease),
-    border-color var(--hockey-motion-fast) var(--hockey-motion-ease);
+  background: transparent;
+  transition: color 0.28s ease;
 
   &:hover {
-    color: inherit;
-    background: color-mix(in srgb, var(--hockey-ice-glow) 8%, transparent);
+    color: var(--auth-text);
   }
 
   &--active {
-    color: inherit;
-    background: color-mix(in srgb, var(--hockey-ice-glow) 14%, transparent);
-    border-color: color-mix(in srgb, var(--hockey-ice-glow) 35%, transparent);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: var(--auth-ink);
+
+    &:hover {
+      color: var(--auth-ink);
+    }
   }
+}
+
+[data-hockey-theme='locker'] .auth-tabs__tab--active {
+  color: #0f172a;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 24px;
+  flex: 1;
 
   &__header {
     display: flex;
@@ -272,79 +362,48 @@
   }
 
   &__title {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    margin: 0 !important;
+    color: var(--auth-text) !important;
+    font-size: 30px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0;
+    line-height: 38px !important;
   }
 
   &__subtitle {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.45;
-    color: var(--hockey-text-muted);
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 22px !important;
+    color: var(--auth-muted) !important;
+  }
+
+  &--login {
+    gap: 28px;
+  }
+
+  &--login &__subtitle {
+    max-width: 316px;
   }
 
   &__fields {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-    border-radius: 14px;
-    border: 1px solid var(--hockey-card-border);
-    background: color-mix(
-      in srgb,
-      var(--hockey-card-bg-solid, var(--hockey-card-bg)) 55%,
-      transparent
-    );
-
-    .g-text-input {
-      width: 100%;
-    }
-
-    .g-text-input__control {
-      padding-inline: 12px;
-    }
-  }
-
-  &__footer {
-    margin: 4px 0 0;
-    text-align: center;
-    font-size: 14px;
-  }
-
-  &__footer-sep {
-    color: var(--hockey-text-muted);
-  }
-
-  &__switch-link {
-    color: var(--hockey-ice-glow);
-    font-weight: 600;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-
-    &[type='button'] {
-      padding: 0;
-      border: none;
-      background: none;
-      font: inherit;
-      cursor: pointer;
-    }
-  }
-
-  &__submit {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    gap: 20px;
   }
 
   &--personas {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
+
+    > .ant-btn {
+      height: 48px;
+      border-radius: 16px;
+      background: var(--auth-card) !important;
+      border-color: var(--auth-border) !important;
+      color: var(--auth-text) !important;
+      box-shadow: none !important;
+    }
   }
 }
 
@@ -354,16 +413,120 @@
   gap: 6px;
   width: 100%;
 
-  &__label {
-    padding-inline: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.3;
-    color: var(--hockey-text-muted);
+  &__label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 22px;
   }
 
-  .g-text-input__additional-content_placement_end {
-    padding-inline-end: 6px;
+  &__label {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    text-transform: uppercase;
+    line-height: 20px;
+    color: var(--auth-muted);
+  }
+
+  &__forgot.ant-btn-link {
+    padding: 0;
+    height: auto;
+    color: var(--auth-gold);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.15px;
+  }
+
+  .ant-input-affix-wrapper,
+  .ant-input-affix-wrapper-lg {
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    padding-block: 0;
+    padding-inline: 12px;
+    display: flex;
+    align-items: center;
+    background: var(--auth-ink) !important;
+    border-color: var(--auth-border) !important;
+    color: var(--auth-text);
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    font-size: 16px;
+  }
+
+  > .ant-input,
+  > .ant-input-lg {
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    padding-inline: 12px;
+    background: var(--auth-ink) !important;
+    border-color: var(--auth-border) !important;
+    color: var(--auth-text);
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .ant-input-affix-wrapper .ant-input {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding-block: 0;
+    line-height: 22px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .ant-input::placeholder,
+  .ant-input-affix-wrapper .ant-input::placeholder {
+    color: color-mix(in srgb, var(--auth-muted) 88%, transparent);
+  }
+}
+
+[data-hockey-theme='locker'] .auth-form-field {
+  .ant-input-affix-wrapper,
+  .ant-input {
+    background: #f4f0e8 !important;
+    color: #1a1714;
+  }
+}
+
+.auth-shell .ant-btn-primary {
+  background: var(--auth-gold);
+  color: #0f172a;
+  border: none;
+  height: 48px;
+  border-radius: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: none;
+
+  &:hover,
+  &:focus-visible {
+    background: #e6a502 !important;
+    color: #0f172a !important;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.auth-form--login .ant-btn-primary {
+  height: 51px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 28px;
+  box-shadow: 0 0 3.45px rgba(255, 183, 3, 0.82);
+
+  @media (max-width: 480px) {
+    font-size: 18px;
+    height: 48px;
   }
 }
 
@@ -387,116 +550,207 @@
   }
 }
 
-.auth-demo-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--hockey-ice-glow) 30%, transparent);
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--hockey-ice-glow) 10%, transparent),
-      transparent 60%
-    ),
-    color-mix(in srgb, var(--hockey-card-bg-solid, var(--hockey-card-bg)) 80%, transparent);
-}
-
-.auth-demo-card__header {
+.auth-demo-btn.ant-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
+  justify-content: flex-start;
+  gap: 8px;
+  height: 58px;
+  padding-inline: 12px 16px;
+  border: 1px solid rgba(255, 183, 3, 0.1);
+  border-radius: 15px;
+  background: linear-gradient(90deg, rgba(255, 183, 3, 0) 0%, rgba(255, 183, 3, 0.1) 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+  box-shadow: none;
 
-.auth-demo-card__badge {
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-family: var(--hockey-font-scoreboard);
-  color: var(--hockey-board-gold);
-  background: rgba(255, 199, 44, 0.12);
-  border: 1px solid rgba(255, 199, 44, 0.35);
-}
+  &:hover,
+  &:focus-visible {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 183, 3, 0.04) 0%,
+      rgba(255, 183, 3, 0.16) 100%
+    ) !important;
+    color: #fff !important;
+    border-color: rgba(255, 183, 3, 0.22) !important;
+  }
 
-.auth-demo-card__label {
-  font-size: 13px;
-}
-
-.auth-demo-card__credentials {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+  &:active {
+    transform: scale(0.98);
   }
 }
 
-.auth-demo-card__field {
+.auth-demo-btn__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #0a0f1c;
+  background: var(--auth-gold);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.1),
+    0 1px 1.5px rgba(0, 0, 0, 0.1);
+}
+
+.auth-demo-btn__label {
+  flex: 1;
+  text-align: left;
+}
+
+.auth-demo-btn__arrow {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+}
+
+[data-hockey-theme='locker'] .auth-demo-btn.ant-btn {
+  color: #0f172a;
+  background: linear-gradient(90deg, rgba(255, 183, 3, 0.1) 0%, rgba(255, 183, 3, 0.22) 100%);
+
+  &:hover,
+  &:focus-visible {
+    color: #0f172a !important;
+  }
+}
+
+[data-hockey-theme='locker'] .auth-demo-btn__arrow {
+  color: #0f172a;
+}
+
+.auth-otp {
+  display: flex;
+  justify-content: center;
+
+  .ant-otp {
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .ant-otp-input {
+    width: 52px;
+    height: 56px;
+    border-radius: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    background: var(--auth-ink);
+    border-color: var(--auth-border);
+    color: var(--auth-text);
+  }
+
+  .ant-otp-input:focus,
+  .ant-otp-input-active {
+    border-color: var(--auth-gold) !important;
+    box-shadow: 0 0 0 2px rgba(255, 183, 3, 0.25);
+  }
+}
+
+.auth-otp__resend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: -4px;
+
+  .ant-btn-link {
+    padding: 0;
+    height: auto;
+    color: var(--auth-gold);
+    font-weight: 700;
+  }
+}
+
+.auth-personas__header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
 }
 
-.auth-demo-card__field-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--hockey-text-muted);
-  font-family: var(--hockey-font-scoreboard);
+.auth-personas__title {
+  margin: 0 !important;
+  color: var(--auth-text) !important;
+  font-size: clamp(1.6rem, 3vw, 2rem) !important;
+  font-weight: 700 !important;
 }
 
-.auth-demo-card__value {
-  font-family: var(--hockey-font-scoreboard);
-  font-size: 12px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--hockey-card-border);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.auth-personas__hint {
+  margin: 0 !important;
+  max-width: 42ch;
+  color: var(--auth-muted) !important;
+  font-size: 14px !important;
+  line-height: 1.45;
 }
 
-.auth-demo-card__apply {
-  align-self: flex-start;
+.auth-switch-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.auth-switch-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .persona-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
   margin-top: 4px;
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .persona-card {
+  --persona-accent: #ffb703;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
-  padding: 14px;
-  border-radius: 12px;
-  border: 1px solid var(--hockey-card-border);
-  background: var(--hockey-card-bg);
-  color: inherit;
+  gap: 8px;
+  min-height: 148px;
+  padding: 22px 22px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--auth-border);
+  background:
+    radial-gradient(
+      ellipse 70% 80% at 100% 0%,
+      color-mix(in srgb, var(--persona-accent) 28%, transparent),
+      transparent 58%
+    ),
+    var(--auth-card);
+  color: var(--auth-text);
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
   transition:
-    border-color 0.15s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.28s ease,
+    color 0.28s ease;
 
   &:hover:not(:disabled) {
-    border-color: var(--hockey-ice-glow);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(94, 200, 242, 0.12);
+    border-color: color-mix(in srgb, var(--persona-accent) 45%, transparent);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
   }
 
   &:disabled {
@@ -505,71 +759,78 @@
   }
 
   &--current {
-    border-color: var(--hockey-ice-glow);
-    box-shadow: 0 0 0 1px rgba(94, 200, 242, 0.25);
+    border-color: color-mix(in srgb, var(--persona-accent) 55%, transparent);
   }
 
   &--pending {
-    border-color: var(--hockey-ice-glow);
     transform: translateY(-1px);
+  }
+}
+
+[data-hockey-theme='locker'] .persona-card {
+  background:
+    radial-gradient(
+      ellipse 70% 80% at 100% 0%,
+      color-mix(in srgb, var(--persona-accent) 20%, transparent),
+      transparent 62%
+    ),
+    #ffffff;
+  box-shadow: 0 10px 24px rgba(26, 23, 20, 0.06);
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 14px 28px rgba(26, 23, 20, 0.1);
   }
 }
 
 .persona-card__badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 16px;
+  right: 16px;
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--hockey-ice-glow);
-  background: rgba(94, 200, 242, 0.12);
-}
-
-.persona-card__icon {
-  font-size: 24px;
-  line-height: 1;
+  color: var(--persona-accent);
+  background: color-mix(in srgb, var(--persona-accent) 16%, transparent);
 }
 
 .persona-card__title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
+  padding-right: 72px;
 }
 
-.persona-card__description,
-.persona-card__destination {
+.persona-card__description {
   font-size: 13px;
-  color: var(--hockey-text-muted);
-  line-height: 1.35;
+  color: var(--auth-muted);
+  line-height: 1.4;
+  flex: 1;
 }
 
 .persona-card__destination {
-  font-weight: 600;
-  color: var(--hockey-ice-glow);
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--persona-accent);
+
+  &::after {
+    content: ' >';
+  }
+}
+
+.persona-card--pending .persona-card__destination::after {
+  content: none;
 }
 
 .auth-terms-field {
   padding: 2px 0;
 
-  .auth-terms-field__checkbox.g-control-label {
-    display: inline-flex;
-    align-items: center;
+  .auth-terms-field__checkbox {
+    align-items: flex-start;
   }
 
-  .auth-terms-field__checkbox .g-control-label__indicator {
-    align-self: center;
-    margin-top: 0;
-  }
-
-  .auth-terms-field__checkbox .g-control-label__text {
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap;
-    line-height: 1.45;
-    margin-inline-start: 8px;
+  .ant-checkbox + span {
+    padding-inline-start: 8px;
   }
 }
 
@@ -577,7 +838,7 @@
   display: inline;
   font-size: 13px;
   line-height: 1.45;
-  color: var(--hockey-text-muted);
+  color: #8b9bb4;
   vertical-align: middle;
 }
 
@@ -591,7 +852,7 @@
   padding: 0;
   border: none;
   background: none;
-  color: var(--hockey-ice-glow);
+  color: var(--auth-gold);
   font-weight: 600;
   font-size: inherit;
   font-family: inherit;

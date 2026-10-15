@@ -14,6 +14,8 @@ export interface CalendarFiltersProps {
   filters: CalendarFiltersType
   /** @spec SPEC-FR-4.2.2 */
   onChange: (filters: CalendarFiltersType) => void
+  /** Поля во всю ширину столбцом (карточка фильтров страницы календаря) */
+  stacked?: boolean
 }
 
 const TYPE_OPTIONS = [
@@ -33,10 +35,16 @@ const STATUS_OPTIONS = [
 /**
  * @spec SPEC-FR-4.2.2 - Фильтр календаря по типу и статусу участия
  */
-export function CalendarFilters({filters, onChange}: CalendarFiltersProps) {
+export function CalendarFilters({filters, onChange, stacked = false}: CalendarFiltersProps) {
+  const fieldWidth = stacked ? 'max' : 200
+  const fieldSize = stacked ? 'xl' : undefined
   return (
     <div
-      className="hockey-row hockey-row--gap-12 hockey-row--wrap"
+      className={
+        stacked
+          ? 'hockey-calendar-filters--stacked'
+          : 'hockey-row hockey-row--gap-12 hockey-row--wrap'
+      }
       data-testid={testId('calendar', 'filters', 'filter')}
     >
       <Select
@@ -44,7 +52,8 @@ export function CalendarFilters({filters, onChange}: CalendarFiltersProps) {
         value={[filters.type ?? '']}
         onUpdate={(v) => onChange({...filters, type: (v[0] || undefined) as EventType | undefined})}
         options={TYPE_OPTIONS}
-        width={200}
+        width={fieldWidth}
+        size={fieldSize}
         data-testid={testId('calendar', 'filters', 'select', 'type')}
       />
       <Select
@@ -57,7 +66,8 @@ export function CalendarFilters({filters, onChange}: CalendarFiltersProps) {
           })
         }
         options={STATUS_OPTIONS}
-        width={200}
+        width={fieldWidth}
+        size={fieldSize}
         data-testid={testId('calendar', 'filters', 'select', 'attendance')}
       />
     </div>

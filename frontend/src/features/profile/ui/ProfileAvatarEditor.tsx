@@ -273,7 +273,7 @@ export function ProfileAvatarEditor({
             {avatarUrl ? (
               <HockeyButton
                 view="outlined"
-                className="profile-avatar-editor__btn"
+                className="profile-avatar-editor__btn profile-avatar-editor__btn--danger"
                 onClick={() => onChange(undefined)}
                 data-testid={testId('profile', 'avatar-editor', 'btn', 'remove')}
               >

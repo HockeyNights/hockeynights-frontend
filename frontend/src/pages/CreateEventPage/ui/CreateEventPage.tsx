@@ -47,7 +47,7 @@ export function CreateEventPage() {
   }
 
   return (
-    <PageHub data-testid={testId('events', 'create-page', 'page')}>
+    <PageHub className="event-create" data-testid={testId('events', 'create-page', 'page')}>
       <PageBackLink
         to={routes.events}
         label="К каталогу"
@@ -76,11 +76,13 @@ export function CreateEventPage() {
         }
       />
 
-      <div className="page-hub__panel">
-        <IceCard padding="m" data-testid={testId('events', 'create-page', 'card', 'form')}>
-          <EventCreateForm />
-        </IceCard>
-      </div>
+      <IceCard
+        padding="l"
+        className="event-create__form"
+        data-testid={testId('events', 'create-page', 'card', 'form')}
+      >
+        <EventCreateForm />
+      </IceCard>
     </PageHub>
   )
 }

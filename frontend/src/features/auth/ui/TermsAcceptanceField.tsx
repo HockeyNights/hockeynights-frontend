@@ -3,7 +3,7 @@
  * Чекбокс принятия условий — компактная однострочная разметка.
  */
 
-import {Checkbox} from '@gravity-ui/uikit'
+import {Checkbox} from 'antd'
 import {Link} from 'react-router'
 
 import {testId} from '@/shared/testing/testId'
@@ -19,21 +19,20 @@ export function TermsAcceptanceField({checked, onUpdate}: TermsAcceptanceFieldPr
       <Checkbox
         className="auth-terms-field__checkbox"
         checked={checked}
-        onUpdate={onUpdate}
-        content={
-          <span className="auth-terms-field__label">
-            Я принимаю{' '}
-            <Link
-              to="/terms"
-              className="auth-terms-field__link"
-              data-testid={testId('auth', 'register', 'link', 'terms')}
-            >
-              условия использования
-            </Link>
-          </span>
-        }
+        onChange={(event) => onUpdate(event.target.checked)}
         data-testid={testId('auth', 'register', 'checkbox', 'terms')}
-      />
+      >
+        <span className="auth-terms-field__label">
+          Я принимаю{' '}
+          <Link
+            to="/terms"
+            className="auth-terms-field__link"
+            data-testid={testId('auth', 'register', 'link', 'terms')}
+          >
+            условия использования
+          </Link>
+        </span>
+      </Checkbox>
     </div>
   )
 }

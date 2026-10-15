@@ -4,8 +4,8 @@
  * HOCFRONT-42 — экран собран по компонентам профиля: PageHeader → табы → две ледовые карточки.
  */
 
-import {Plus} from '@gravity-ui/icons'
-import {Icon} from '@gravity-ui/uikit'
+import {Magnifier, Plus} from '@gravity-ui/icons'
+import {Icon, TextInput} from '@gravity-ui/uikit'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import {useEffect, useMemo, useState} from 'react'
 import {useSearchParams} from 'react-router'
@@ -191,7 +191,7 @@ export function MessengerPage() {
     <HockeyButton
       view="action"
       onClick={() => setDialog('new-chat')}
-      data-testid={testId('messenger', 'page', 'btn', 'new-chat')}
+      data-testid={testId('messenger', 'page', 'btn', 'new-chat-empty')}
     >
       <Icon data={Plus} size={16} />
       Новый чат
@@ -216,54 +216,86 @@ export function MessengerPage() {
 
   return (
     <div className={hubClass} data-testid={testId('messenger', 'page', 'page')}>
-      <PageHeader
-        title="Мессенджер"
-        subtitle={
-          unreadTotal > 0
-            ? `${chats.length} диалогов · ${unreadTotal} непрочитанных`
-            : `${chats.length} диалогов`
-        }
-        testIdPrefix="messenger"
-        actions={
-          <div
-            className="messenger-hub__actions"
-            data-testid={testId('messenger', 'page', 'nav', 'actions')}
-          >
-            {newChatButton}
-            <HockeyButton
-              view="outlined"
-              onClick={() => setDialog('new-channel')}
-              data-testid={testId('messenger', 'page', 'btn', 'new-channel')}
-            >
-              Новый канал
-            </HockeyButton>
-          </div>
-        }
-      />
-
-      <div
-        className="messenger-hub__toolbar"
-        data-testid={testId('messenger', 'page', 'nav', 'toolbar')}
+      <section
+        className="messenger-hero"
+        data-testid={testId('messenger', 'page', 'panel', 'hero')}
       >
-        <div
-          className="messenger-hub__tabs"
-          role="group"
-          aria-label="Фильтр чатов"
-          data-testid={testId('messenger', 'page', 'tab', 'list')}
-        >
-          {FILTER_TABS.map((tab) => (
-            <HockeyButton
-              key={tab.value}
-              view={filterMode === tab.value ? 'action' : 'outlined'}
-              aria-pressed={filterMode === tab.value}
-              onClick={() => setFilterMode(tab.value)}
-              data-testid={testId('messenger', 'page', 'btn', `filter-${tab.value}`)}
+        <PageHeader
+          title="Мессенджер"
+          subtitle={
+            unreadTotal > 0
+              ? `${chats.length} диалогов · ${unreadTotal} непрочитанных`
+              : `${chats.length} диалогов`
+          }
+          testIdPrefix="messenger"
+          actions={
+            <div
+              className="messenger-hub__toolbar"
+              data-testid={testId('messenger', 'page', 'nav', 'toolbar')}
             >
-              {tab.label}
-            </HockeyButton>
-          ))}
+              <div
+                className="messenger-hub__tabs hockey-segmented"
+                role="group"
+                aria-label="Фильтр чатов"
+                data-testid={testId('messenger', 'page', 'tab', 'list')}
+              >
+                {FILTER_TABS.map((tab) => (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    className={`hockey-segmented__item${filterMode === tab.value ? ' is-active' : ''}`}
+                    aria-pressed={filterMode === tab.value}
+                    onClick={() => setFilterMode(tab.value)}
+                    data-testid={testId('messenger', 'page', 'btn', `filter-${tab.value}`)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          }
+        />
+
+        <div
+          className="messenger-hero__row"
+          data-testid={testId('messenger', 'page', 'nav', 'actions')}
+        >
+          <TextInput
+            size="l"
+            value={searchQuery}
+            hasClear
+            onUpdate={setSearchQuery}
+            placeholder="Поиск.."
+            className="messenger-hero__search"
+            startContent={
+              <span className="messenger-hub__search-icon" aria-hidden>
+                <Icon data={Magnifier} size={16} />
+              </span>
+            }
+            controlProps={{'aria-label': 'Поиск по чатам'}}
+            data-testid={testId('messenger', 'page', 'field', 'chat-search')}
+          />
+          <HockeyButton
+            view="outlined"
+            size="l"
+            className="messenger-hero__btn"
+            onClick={() => setDialog('new-channel')}
+            data-testid={testId('messenger', 'page', 'btn', 'new-channel')}
+          >
+            Новый канал
+          </HockeyButton>
+          <HockeyButton
+            view="action"
+            size="l"
+            className="messenger-hero__btn"
+            onClick={() => setDialog('new-chat')}
+            data-testid={testId('messenger', 'page', 'btn', 'new-chat')}
+          >
+            <Icon data={Plus} size={16} />
+            Новый чат
+          </HockeyButton>
         </div>
-      </div>
+      </section>
 
       <div
         className="messenger-hub__grid"
@@ -277,6 +309,7 @@ export function MessengerPage() {
           onSelect={openChat}
           onTogglePin={(chatId) => pinChatMutation.mutate({chatId})}
           emptyAction={newChatButton}
+          withSearch={false}
         />
 
         {selectedChat ? (
