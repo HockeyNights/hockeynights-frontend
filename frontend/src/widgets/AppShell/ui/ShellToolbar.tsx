@@ -4,7 +4,7 @@
  */
 
 import {Bars, LayoutSideContentRight, Moon, Sun, Xmark} from '@gravity-ui/icons'
-import {Icon} from '@gravity-ui/uikit'
+import {type DropdownMenuItem, Icon} from '@gravity-ui/uikit'
 import {useQuery} from '@tanstack/react-query'
 import {useLocation} from 'react-router'
 
@@ -13,6 +13,7 @@ import hockeyMark from '@/shared/icons/MinusCircleOutlined.svg'
 import {testId} from '@/shared/testing/testId'
 import {useHockeyTheme} from '@/shared/theme/HockeyThemeProvider'
 import {NotificationsBellLink} from '@/shared/ui/NotificationsBellLink'
+import {HeaderProfile} from '@/widgets/HeaderProfile'
 
 interface ShellToolbarProps {
   menuExpanded: boolean
@@ -21,6 +22,7 @@ interface ShellToolbarProps {
   showBoardToggle?: boolean
   boardCollapsed?: boolean
   onToggleBoard?: () => void
+  sessionMenuItems?: (DropdownMenuItem | DropdownMenuItem[])[]
 }
 
 export function ShellToolbar({
@@ -30,6 +32,7 @@ export function ShellToolbar({
   showBoardToggle = false,
   boardCollapsed = false,
   onToggleBoard,
+  sessionMenuItems = [],
 }: ShellToolbarProps) {
   const location = useLocation()
   const {themeId, toggleTheme} = useHockeyTheme()
@@ -92,6 +95,7 @@ export function ShellToolbar({
           <Icon data={isLocker ? Moon : Sun} size={18} />
         </button>
         <NotificationsBellLink unreadCount={unreadCount} active={notificationsActive} />
+        <HeaderProfile sessionMenuItems={sessionMenuItems} />
         {showBoardToggle && onToggleBoard && (
           <div
             className="app-shell__panel-controls"

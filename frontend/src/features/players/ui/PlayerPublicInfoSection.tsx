@@ -159,11 +159,18 @@ export function PlayerPublicInfoSection({
   const displayTeams = teams.length > 0 ? teams : fallbackTeams
   const teamsLabel = displayTeams.length > 1 ? 'Команды' : 'Команда'
   const showPosition = isVisible(visibleFields, 'position')
-  const showSkill = isVisible(visibleFields, 'skillLevel')
+  const positionText = showPosition
+    ? (POSITION_LABELS[player.position] ?? player.position).trim()
+    : ''
+  const skillText = isVisible(visibleFields, 'skillLevel') ? getPlayerLevelLabel(player).trim() : ''
+  const showSkillText = Boolean(skillText && skillText !== '—')
   const showCity = isVisible(visibleFields, 'city') && player.city.trim() !== ''
-  const showBio = isVisible(visibleFields, 'bio')
-  const roleLabel = [showPosition && 'Амплуа', showSkill && 'Уровень'].filter(Boolean).join(' / ')
-  const cityLabel = [showCity && 'Город', showBio && 'О себе'].filter(Boolean).join(' / ')
+  const bioText = player.bio?.trim() ?? ''
+  const showBioText = isVisible(visibleFields, 'bio') && bioText !== ''
+  const roleLabel = [positionText && 'Амплуа', showSkillText && 'Уровень']
+    .filter(Boolean)
+    .join(' / ')
+  const cityLabel = [showCity && 'Город', showBioText && 'О себе'].filter(Boolean).join(' / ')
 
   return (
     <IceCard
@@ -293,19 +300,19 @@ export function PlayerPublicInfoSection({
             <div>
               <dt>{roleLabel}</dt>
               <dd>
-                {showPosition && (
+                {positionText && (
                   <span
                     data-testid={testId('players', 'public-info', 'text', 'role', player.userId)}
                   >
-                    {POSITION_LABELS[player.position] ?? player.position}
+                    {positionText}
                   </span>
                 )}
-                {showPosition && showSkill ? ' · ' : null}
-                {showSkill && (
+                {positionText && showSkillText ? ' · ' : null}
+                {showSkillText && (
                   <span
                     data-testid={testId('players', 'public-info', 'text', 'skill', player.userId)}
                   >
-                    {getPlayerLevelLabel(player)}
+                    {skillText}
                   </span>
                 )}
               </dd>
@@ -323,27 +330,13 @@ export function PlayerPublicInfoSection({
                     {player.city}
                   </span>
                 )}
-                {showCity && showBio && player.bio ? ' · ' : null}
-                {showBio && player.bio ? (
+                {showCity && showBioText ? ' · ' : null}
+                {showBioText ? (
                   <span
                     data-testid={testId('players', 'public-info', 'text', 'bio', player.userId)}
                   >
-                    {player.bio}
+                    {bioText}
                   </span>
-                ) : null}
-                {showBio && !player.bio && !showCity ? (
-                  <Text
-                    color="secondary"
-                    data-testid={testId(
-                      'players',
-                      'public-info',
-                      'text',
-                      'bio-empty',
-                      player.userId,
-                    )}
-                  >
-                    Описание не заполнено.
-                  </Text>
                 ) : null}
               </dd>
             </div>

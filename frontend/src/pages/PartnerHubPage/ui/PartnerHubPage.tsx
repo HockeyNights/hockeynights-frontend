@@ -91,7 +91,7 @@ export function PartnerHubPage() {
       />
 
       <div className="partner-hub__grid" data-testid={testId('partners', 'hub', 'list')}>
-        {memberships.map((membership, index) => (
+        {memberships.map((membership) => (
           <IceCard
             key={`${membership.kind}-${membership.entityId}`}
             padding="m"
@@ -133,7 +133,7 @@ export function PartnerHubPage() {
                       : ''}
                   </p>
                 </div>
-                {index === 0 ? (
+                {membership.isPrimary ? (
                   <span
                     className="partner-hub__primary-badge"
                     data-testid={testId(

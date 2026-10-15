@@ -84,6 +84,7 @@ const PLAYER_INDEX_OPTIONS = PLAYER_INDEX_LEVELS.map((item) => ({
 
 const STICK_HAND_CHOICES: Array<{value: NonNullable<HockeyProfile['stickHand']>; content: string}> =
   [
+    {value: 'unknown', content: 'Не указан'},
     {value: 'left', content: 'Левый'},
     {value: 'right', content: 'Правый'},
   ]
@@ -106,7 +107,6 @@ const SUBSCRIPTION_PLAN_OPTIONS = [
     id: 'free' as const,
     name: 'Free',
     description: 'Базовый профиль и доступ к командным чатам.',
-    listPrice: '0 ₽ / мес',
     monthPrice: 0,
     seasonDiscount: 0,
   },
@@ -114,7 +114,6 @@ const SUBSCRIPTION_PLAN_OPTIONS = [
     id: 'player_plus' as const,
     name: 'Player Plus',
     description: 'Приоритетные уведомления и расширенная статистика игрока.',
-    listPrice: '0 ₽ / мес',
     monthPrice: 990,
     seasonDiscount: 100,
   },
@@ -122,11 +121,14 @@ const SUBSCRIPTION_PLAN_OPTIONS = [
     id: 'team_pro' as const,
     name: 'Team Pro',
     description: 'Инструменты для капитана, тренера и админов команды.',
-    listPrice: '0 ₽ / мес',
     monthPrice: 1490,
     seasonDiscount: 100,
   },
 ]
+
+function formatPlanMonthPrice(monthPrice: number): string {
+  return `${monthPrice.toLocaleString('ru-RU')} ₽ / мес`
+}
 
 type SubscriptionView = 'plans' | 'checkout' | 'success'
 type PaymentMethodId = 'mir' | 'sbp' | 'new_card'
@@ -1450,7 +1452,7 @@ function ProfileSubscriptionSection({
                   'checkout-plan-price',
                 )}
               >
-                {selectedPlan.listPrice}
+                {formatPlanMonthPrice(selectedPlan.monthPrice)}
               </span>
             </span>
             <Text color="secondary" className="profile-hub__plan-description">
@@ -1605,7 +1607,7 @@ function ProfileSubscriptionSection({
                     plan.id,
                   )}
                 >
-                  {plan.listPrice}
+                  {formatPlanMonthPrice(plan.monthPrice)}
                 </span>
               </span>
               <Text

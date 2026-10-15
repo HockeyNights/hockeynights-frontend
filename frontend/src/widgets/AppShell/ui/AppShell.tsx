@@ -4,8 +4,10 @@
  * Тулбар и боковое меню по макету портала.
  */
 
+import {ArrowRightFromSquare, Persons} from '@gravity-ui/icons'
+import {type DropdownMenuItem, Icon} from '@gravity-ui/uikit'
 import {useMutation, useQueryClient} from '@tanstack/react-query'
-import {useEffect, useId, useState} from 'react'
+import {useEffect, useId, useMemo, useRef, useState} from 'react'
 import {Outlet, useLocation, useNavigate} from 'react-router'
 
 import {logoutSession} from '@/entities/auth'
@@ -49,6 +51,7 @@ export function AppShell() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const drawerTitleId = useId()
+  const drawerPanelRef = useRef<HTMLDivElement>(null)
   const isDesktop = useColumnLayout()
   const [isLeftCollapsed, setIsLeftCollapsed] = useState(false)
   const [isRightCollapsed, setIsRightCollapsed] = useState(false)
@@ -91,17 +94,84 @@ export function AppShell() {
 
   useEffect(() => {
     if (!isDrawerOpen) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsDrawerOpen(false)
-    }
-    window.addEventListener('keydown', onKeyDown)
+    const panel = drawerPanelRef.current
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+
+    const focusable = () => {
+      if (!panel) return []
+      return Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      )
+    }
+
+    const firstNavItem = panel?.querySelector<HTMLElement>(
+      '.app-nav-drawer__body a, .app-nav-drawer__body button',
+    )
+    ;(firstNavItem ?? focusable()[0])?.focus()
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDrawerOpen(false)
+        return
+      }
+      if (event.key !== 'Tab' || !panel) return
+      const items = focusable()
+      if (items.length === 0) return
+      const firstItem = items[0]
+      const lastItem = items[items.length - 1]
+      const active = document.activeElement
+      if (!(active instanceof Node) || !panel.contains(active)) {
+        event.preventDefault()
+        ;(event.shiftKey ? lastItem : firstItem).focus()
+        return
+      }
+      if (event.shiftKey && active === firstItem) {
+        event.preventDefault()
+        lastItem.focus()
+      } else if (!event.shiftKey && active === lastItem) {
+        event.preventDefault()
+        firstItem.focus()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = previousOverflow
+      if (previouslyFocused && document.contains(previouslyFocused)) previouslyFocused.focus()
     }
   }, [isDrawerOpen])
+
+  const sessionMenuItems = useMemo<(DropdownMenuItem | DropdownMenuItem[])[]>(
+    () => [
+      [
+        {
+          text: 'Сменить роль',
+          iconStart: <Icon data={Persons} size={16} />,
+          action: () => navigate('/'),
+          qa: testId('app', 'shell', 'btn', 'switch-role'),
+        },
+      ],
+      [
+        {
+          text: logoutMutation.isPending ? 'Выход…' : 'Выйти',
+          theme: 'danger' as const,
+          disabled: logoutMutation.isPending,
+          iconStart: <Icon data={ArrowRightFromSquare} size={16} />,
+          action: () => logoutMutation.mutate(),
+          qa: testId('app', 'shell', 'btn', 'logout'),
+        },
+      ],
+    ],
+    [logoutMutation, navigate],
+  )
+
+  const drawerInert = !isDesktop && isDrawerOpen
 
   const bodyClasses = [
     'app-shell__body',
@@ -131,6 +201,7 @@ export function AppShell() {
             showBoardToggle={isDesktop}
             boardCollapsed={isRightCollapsed}
             onToggleBoard={() => setIsRightCollapsed((prev) => !prev)}
+            sessionMenuItems={sessionMenuItems}
           />
         </header>
       )}
@@ -146,11 +217,19 @@ export function AppShell() {
           </nav>
         )}
 
-        <main className="app-shell__main-col" data-testid={testId('app', 'shell', 'main')}>
+        <main
+          className="app-shell__main-col"
+          data-testid={testId('app', 'shell', 'main')}
+          inert={drawerInert || undefined}
+        >
           <Outlet />
         </main>
 
-        <div className="app-shell__board-col" data-testid={testId('app', 'shell', 'board-col')}>
+        <div
+          className="app-shell__board-col"
+          data-testid={testId('app', 'shell', 'board-col')}
+          inert={drawerInert || undefined}
+        >
           {isDesktop && !isRightCollapsed && !partnerWorkspace && <SideBoard />}
         </div>
       </div>
@@ -165,6 +244,7 @@ export function AppShell() {
             data-testid={testId('app', 'nav', 'btn', 'drawer-backdrop')}
           />
           <div
+            ref={drawerPanelRef}
             className="app-nav-drawer__panel"
             role="dialog"
             aria-modal="true"
@@ -176,6 +256,7 @@ export function AppShell() {
                 menuExpanded
                 onMenuClick={() => setIsDrawerOpen(false)}
                 menuLabel={{open: 'Открыть меню', close: 'Закрыть меню'}}
+                sessionMenuItems={sessionMenuItems}
               />
             </header>
             <h2 id={drawerTitleId} className="hockey-sr-only">
@@ -192,7 +273,7 @@ export function AppShell() {
         </div>
       )}
 
-      <MobileNav />
+      <MobileNav inert={drawerInert} />
       {/* HOCFRONT-15/17: SosFab скрыт из MVP — маршрут /sos сохранён */}
     </div>
   )

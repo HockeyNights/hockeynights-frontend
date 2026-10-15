@@ -29,7 +29,7 @@ function formatUnreadBadge(count: number): string {
 /**
  * @spec SPEC-UI-5.2 - Bottom navigation для mobile
  */
-export function MobileNav() {
+export function MobileNav({inert = false}: {inert?: boolean}) {
   const location = useLocation()
   const moreTitleId = useId()
   const [isMoreOpen, setIsMoreOpen] = useState(false)
@@ -73,6 +73,7 @@ export function MobileNav() {
         className="mobile-nav"
         aria-label="Основная навигация"
         data-testid={testId('app', 'mobile-nav', 'nav')}
+        inert={inert || undefined}
       >
         {showLegacyPartnerLink && (
           <Link
@@ -172,6 +173,7 @@ export function MobileNav() {
           className="mobile-nav-more"
           role="presentation"
           data-testid={testId('app', 'mobile-nav', 'panel', 'more')}
+          inert={inert || undefined}
         >
           <button
             type="button"

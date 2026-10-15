@@ -7,6 +7,7 @@ import {Text} from '@gravity-ui/uikit'
 import type {Arena} from '@/entities/arena'
 import type {IceSlot} from '@/entities/arena'
 import {ArenaQuickRequestForm} from '@/features/arenas/ui/ArenaQuickRequestForm'
+import {ExternalBookingButton} from '@/features/arenas/ui/ExternalBookingButton'
 import {SlotCalendar} from '@/features/arenas/ui/SlotCalendar'
 import {testId} from '@/shared/testing/testId'
 import {IceCard} from '@/shared/ui/IceCard'
@@ -91,6 +92,7 @@ export function ArenaBookingPanel({
               </Text>
             )}
             <ArenaQuickRequestForm arena={arena} />
+            <ExternalBookingButton arena={arena} label="Записаться на сайте площадки" />
           </>
         )}
       </IceCard>

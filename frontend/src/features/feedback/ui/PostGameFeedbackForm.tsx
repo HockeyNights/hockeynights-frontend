@@ -188,9 +188,18 @@ export function PostGameFeedbackForm({playerFilters = {}}: PostGameFeedbackFormP
         content: p.displayName,
         data: {meta: playerMeta(p.userId)},
       }))
+  const participantIds = participantOptions.map((option) => option.value).join('\0')
+  const [trackedParticipantIds, setTrackedParticipantIds] = useState(participantIds)
+  if (participantIds !== trackedParticipantIds) {
+    setTrackedParticipantIds(participantIds)
+    const allowed = new Set(participantIds ? participantIds.split('\0') : [])
+    if (toUserId && !allowed.has(toUserId)) setToUserId('')
+  }
 
   function handleSubmit() {
-    if (!eventId || !toUserId) {
+    const playerStillListed = participantOptions.some((option) => option.value === toUserId)
+    if (!eventId || !toUserId || !playerStillListed) {
+      setToUserId('')
       setError('Выберите событие и игрока')
       return
     }

@@ -25,7 +25,7 @@ function ChatAvatarIcon({chat}: {chat: Chat}) {
 export function MessengerChatRow({chat, isActive, onSelect, onTogglePin}: MessengerChatRowProps) {
   const typeLabel = getChatTypeLabel(chat)
   const timeLabel = formatChatTimestamp(chat.lastMessage?.timestamp)
-  const lastLine = chat.isTyping ? chat.lastMessage?.content : getChatSubtitle(chat)
+  const lastLine = chat.isTyping ? '' : getChatSubtitle(chat)
 
   return (
     <div
@@ -103,14 +103,16 @@ export function MessengerChatRow({chat, isActive, onSelect, onTogglePin}: Messen
           )}
           {(lastLine || chat.unreadCount > 0) && (
             <span className="chat-item__last-row">
-              <Text
-                variant="caption-1"
-                className="chat-item__last-msg"
-                color="secondary"
-                data-testid={testId('messenger', 'page', 'text', 'chat-subtitle', chat.id)}
-              >
-                {lastLine}
-              </Text>
+              {lastLine ? (
+                <Text
+                  variant="caption-1"
+                  className="chat-item__last-msg"
+                  color="secondary"
+                  data-testid={testId('messenger', 'page', 'text', 'chat-subtitle', chat.id)}
+                >
+                  {lastLine}
+                </Text>
+              ) : null}
               {chat.unreadCount > 0 && (
                 <span
                   className="chat-item__unread"

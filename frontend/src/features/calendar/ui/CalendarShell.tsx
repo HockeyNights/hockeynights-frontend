@@ -253,6 +253,15 @@ export function CalendarShell({
         data-testid={testId('calendar', 'shell', 'page')}
       >
         {widget}
+        {ready && state.view === 'month' && (
+          <CalendarAgenda
+            selectedDate={selectedDate}
+            events={events}
+            currentUserId={userId}
+            showActions={allowActions}
+            showOrganizerMeta={state.lens === 'organizer'}
+          />
+        )}
       </div>
     )
   }

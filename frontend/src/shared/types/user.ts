@@ -9,6 +9,7 @@ export interface PartnerMembership {
   kind: 'league' | 'shop' | 'club' | 'arena'
   entityId: string
   entityName: string
+  isPrimary?: boolean
 }
 
 /** @spec SPEC-FR-2.1.1 - Пользователь mock-сессии */
