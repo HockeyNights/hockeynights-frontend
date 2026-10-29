@@ -17,7 +17,7 @@ import {renderWithProviders} from '@/test/render'
 
 async function confirmEmailCode(user: UserEvent) {
   await waitFor(() => {
-    expect(screen.getByText('Код подтверждения')).toBeInTheDocument()
+    expect(screen.getByTestId('auth-verify-panel-form')).toBeInTheDocument()
   })
   const otp = screen.getByTestId('auth-verify-panel-otp')
   const boxes = within(otp).getAllByRole('textbox')
@@ -233,7 +233,7 @@ describe('AuthPage email verification', () => {
 
     await user.click(screen.getByTestId('auth-login-btn-forgot'))
     await waitFor(() => {
-      expect(screen.getByText('Код подтверждения')).toBeInTheDocument()
+      expect(screen.getByText('Код для сброса пароля')).toBeInTheDocument()
       expect(screen.getByText(DEMO_EMAIL)).toBeInTheDocument()
     })
 

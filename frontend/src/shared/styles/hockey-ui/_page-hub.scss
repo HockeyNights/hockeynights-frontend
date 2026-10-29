@@ -7,9 +7,15 @@
 .page-hub {
   --page-hub-radius: 16px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   min-width: 0;
   width: 100%;
+
+  > * {
+    min-width: 0;
+    max-width: 100%;
+  }
 
   @include hub-surface-radius(var(--page-hub-radius));
   @include hub-hockey-button(var(--page-hub-radius));

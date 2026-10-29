@@ -90,7 +90,7 @@ export function TeamCard({team}: TeamCardProps) {
           >
             {team.shortDescription && (
               <span
-                className="team-chip"
+                className="team-chip team-chip--wrap"
                 data-testid={testId('teams', 'card', 'text', 'description', team.id)}
               >
                 {team.shortDescription}

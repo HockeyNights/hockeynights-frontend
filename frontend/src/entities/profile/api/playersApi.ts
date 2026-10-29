@@ -3,8 +3,13 @@
  */
 
 import type {PlayerPosition, SkillLevel} from '@/entities/common'
+import {backendFetchMyProfile} from '@/entities/profile/api/backendProfileApi'
+import {fetchProfileSettings} from '@/entities/profile/api/profileApi'
+import {buildPublicPlayerViewFromProfile} from '@/entities/profile/lib/buildPublicPlayerView'
 import type {PlayerListItem, PublicPlayerView} from '@/entities/profile/model'
-import {apiRequest} from '@/shared/api/client'
+import {ApiError, apiRequest, isNotFoundError} from '@/shared/api/client'
+import {hasAuthTokens} from '@/shared/api/tokenStorage'
+import {usesBackendAuth} from '@/shared/config/apiMode'
 
 /** @spec SPEC-FR-2.3.2, HOCFRONT-20 - Параметры фильтра игроков */
 export interface PlayersFilterParams {
@@ -45,7 +50,39 @@ export function fetchPlayers(filters: PlayersFilterParams = {}): Promise<PlayerL
   return apiRequest<PlayerListItem[]>(`/players${query ? `?${query}` : ''}`)
 }
 
+/**
+ * «Как видят другие» для текущего аккаунта: Public API ещё без GET /players/:id,
+ * собираем вид из своего /profile + privacy.
+ */
+async function fetchOwnBackendPublicView(userId: string): Promise<PublicPlayerView | null> {
+  if (!hasAuthTokens()) return null
+  try {
+    const profile = await backendFetchMyProfile()
+    if (profile.userId !== userId) return null
+    const settings = await fetchProfileSettings()
+    return buildPublicPlayerViewFromProfile(profile, settings.privacy, 'public', false)
+  } catch (error) {
+    if (error instanceof Error && error.message === 'PROFILE_NOT_FOUND') return null
+    if (isNotFoundError(error)) return null
+    throw error
+  }
+}
+
 /** @spec SPEC-FR-24.1.3 - Публичный профиль игрока */
-export function fetchPublicPlayer(userId: string): Promise<PublicPlayerView> {
+export async function fetchPublicPlayer(userId: string): Promise<PublicPlayerView> {
+  if (usesBackendAuth()) {
+    const ownView = await fetchOwnBackendPublicView(userId)
+    if (ownView) return ownView
+
+    try {
+      return await apiRequest<PublicPlayerView>(`/players/${userId}`)
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        throw new ApiError('GET', `/players/${userId}`, 404, 'Player not found')
+      }
+      throw error
+    }
+  }
+
   return apiRequest<PublicPlayerView>(`/players/${userId}`)
 }

@@ -96,16 +96,17 @@ export function HeaderProfile({sessionMenuItems = []}: HeaderProfileProps) {
       ? `${POSITION_LABELS[profile.position]} · ${getPlayerLevelLabel(profile)}`
       : (session?.user.city ?? '')
 
-  const sessionUserId = session?.user.id
+  /** Предпочитаем id из Hockey ID — он совпадает с /players/:userId */
+  const publicUserId = profile?.userId || session?.user.id
   const menuItems = useMemo(() => {
     const openProfile = () => {
       setMenuOpen(false)
       navigate(profileHref)
     }
     const openPublicView = () => {
-      if (!sessionUserId) return
+      if (!publicUserId) return
       setMenuOpen(false)
-      navigate(`${routes.players}/${sessionUserId}`)
+      navigate(`${routes.players}/${encodeURIComponent(publicUserId)}`)
     }
 
     const profileGroup: DropdownMenuItem[] = [
@@ -116,7 +117,7 @@ export function HeaderProfile({sessionMenuItems = []}: HeaderProfileProps) {
         qa: testId('app', 'header-profile', 'btn', 'open'),
       },
     ]
-    if (!partnerWorkspace && sessionUserId) {
+    if (!partnerWorkspace && publicUserId) {
       profileGroup.push({
         text: 'Как видят другие',
         iconStart: <Icon data={Eye} size={16} />,
@@ -125,7 +126,7 @@ export function HeaderProfile({sessionMenuItems = []}: HeaderProfileProps) {
       })
     }
     return [profileGroup, ...sessionMenuItems]
-  }, [navigate, partnerWorkspace, profileHref, sessionUserId, sessionMenuItems])
+  }, [navigate, partnerWorkspace, profileHref, publicUserId, sessionMenuItems])
 
   if (!session) return null
 

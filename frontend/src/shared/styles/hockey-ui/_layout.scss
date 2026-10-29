@@ -972,6 +972,33 @@
     }
   }
 
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--hockey-card-border);
+
+    .side-board__title {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 0;
+      margin: 0;
+      border: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .g-button {
+      flex: 0 0 auto;
+      max-width: 46%;
+    }
+  }
+
   &__title {
     @include scoreboard-caps(10px, 0.14em);
     color: var(--hockey-accent);

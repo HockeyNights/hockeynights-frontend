@@ -2,8 +2,21 @@
  * SPEC-FR-1.2.3, SPEC-FR-12.1.1, SPEC-FR-12.1.2, SPEC-FR-12.1.3
  */
 
+import {bypassMsw} from '@/shared/api/bypassMsw'
 import {extractApiErrorMessage} from '@/shared/api/parseApiError'
-import {getApiBaseUrl, getApiMode} from '@/shared/config/apiMode'
+import {
+  clearAuthTokens,
+  getAccessToken,
+  getRefreshToken,
+  isAccessTokenExpired,
+  saveTokenPair,
+} from '@/shared/api/tokenStorage'
+import {
+  getApiBaseUrl,
+  getApiMode,
+  getAuthApiBaseUrl,
+  usesBackendAuth,
+} from '@/shared/config/apiMode'
 
 /** @spec SPEC-FR-12.1.1 - Опции HTTP-запроса */
 export interface RequestOptions {
@@ -13,6 +26,12 @@ export interface RequestOptions {
   body?: unknown
   /** @spec SPEC-FR-12.1.1 */
   headers?: Record<string, string>
+  /** Не добавлять Authorization (login/register/refresh) */
+  skipAuth?: boolean
+  /** База: mock/общий или auth/profile backend */
+  baseUrl?: string
+  /** Не пытаться обновить токен при 401 */
+  skipRefresh?: boolean
 }
 
 /**
@@ -72,22 +91,105 @@ function isNonJsonResponse(response: Response): boolean {
   return contentType !== '' && !contentType.includes('json')
 }
 
+/** Реальный Public API не должен проходить через MSW SW */
+function resolveFetchInput(url: string, baseUrl: string): RequestInfo {
+  if (usesBackendAuth() && baseUrl === getAuthApiBaseUrl()) {
+    return bypassMsw(url)
+  }
+  return url
+}
+
+let refreshInFlight: Promise<boolean> | null = null
+
+async function refreshAccessToken(): Promise<boolean> {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) return false
+
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const url = `${getAuthApiBaseUrl()}/auth/refresh`
+        const response = await fetch(resolveFetchInput(url, getAuthApiBaseUrl()), {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({refreshToken}),
+        })
+        if (!response.ok) {
+          clearAuthTokens()
+          return false
+        }
+        const data = (await response.json()) as {
+          tokens?: {accessToken: string; refreshToken: string; expiresIn?: string}
+        }
+        if (!data.tokens?.accessToken || !data.tokens.refreshToken) {
+          clearAuthTokens()
+          return false
+        }
+        saveTokenPair(data.tokens)
+        return true
+      } catch {
+        clearAuthTokens()
+        return false
+      } finally {
+        refreshInFlight = null
+      }
+    })()
+  }
+
+  return refreshInFlight
+}
+
+async function ensureFreshAccessToken(): Promise<string | null> {
+  const access = getAccessToken()
+  if (access && !isAccessTokenExpired()) return access
+  if (!getRefreshToken()) return access
+  const refreshed = await refreshAccessToken()
+  return refreshed ? getAccessToken() : null
+}
+
 /**
  * @spec SPEC-FR-12.1.1 - Единый API client для mock и backend
  * @spec SPEC-FR-12.1.3 - Не меняет контракт при переключении режима
  */
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const {method = 'GET', body, headers = {}} = options
-  const url = `${getApiBaseUrl()}${path}`
+  const {
+    method = 'GET',
+    body,
+    headers = {},
+    skipAuth = false,
+    baseUrl = getApiBaseUrl(),
+    skipRefresh = false,
+  } = options
+  const url = `${baseUrl}${path}`
 
-  const response = await fetch(url, {
+  const requestHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...headers,
+  }
+
+  if (!skipAuth) {
+    const token = await ensureFreshAccessToken()
+    if (token) requestHeaders.Authorization = `Bearer ${token}`
+  }
+
+  const response = await fetch(resolveFetchInput(url, baseUrl), {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    headers: requestHeaders,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
+
+  if (
+    response.status === 401 &&
+    !skipAuth &&
+    !skipRefresh &&
+    getRefreshToken() &&
+    !path.includes('/auth/refresh')
+  ) {
+    const refreshed = await refreshAccessToken()
+    if (refreshed) {
+      return apiRequest<T>(path, {...options, skipRefresh: true})
+    }
+  }
 
   if (!response.ok) {
     const errorText = await response.text()
@@ -105,4 +207,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   return response.json() as Promise<T>
+}
+
+/** Запрос к Auth/Profile Public API (учитывает backend base URL). */
+export function authApiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  return apiRequest<T>(path, {...options, baseUrl: getAuthApiBaseUrl()})
 }

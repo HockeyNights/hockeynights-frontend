@@ -17,7 +17,9 @@ import {getApiMode} from '@/shared/config/apiMode'
  * @spec SPEC-NFR-2 - Bootstrap с MSW в mock-режиме
  */
 async function bootstrap() {
-  if (getApiMode() === 'mock') {
+  // В backend-режиме auth/profile идут на VITE_BACKEND_URL, остальные домены —
+  // через MSW (/mock-api/v1), пока для них нет Public API.
+  if (getApiMode() === 'mock' || getApiMode() === 'backend') {
     try {
       await startMockApi()
     } catch (error) {

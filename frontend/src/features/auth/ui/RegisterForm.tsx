@@ -1,6 +1,6 @@
 /**
  * SPEC-FR-2.1.1, SPEC-FR-25.1.1
- * Форма регистрации (mock Phase 1 + localAuthMemory).
+ * Форма регистрации (mock Phase 1 + backend Public API).
  */
 
 import {useMutation} from '@tanstack/react-query'
@@ -14,10 +14,11 @@ import {
 } from '@/features/auth/lib/registrationValidation'
 import {AuthField} from '@/features/auth/ui/AuthField'
 import {TermsAcceptanceField} from '@/features/auth/ui/TermsAcceptanceField'
+import {usesBackendAuth} from '@/shared/config/apiMode'
 import {testId} from '@/shared/testing/testId'
 
 export interface RegisterFormProps {
-  onSuccess: (email: string) => void
+  onSuccess: (email: string, meta?: {displayName?: string}) => void
 }
 
 const INITIAL_VALUES: RegisterFormValues = {
@@ -29,6 +30,7 @@ const INITIAL_VALUES: RegisterFormValues = {
 }
 
 export function RegisterForm({onSuccess}: RegisterFormProps) {
+  const backend = usesBackendAuth()
   const [values, setValues] = useState<RegisterFormValues>(INITIAL_VALUES)
   const [error, setError] = useState<string | null>(null)
 
@@ -36,7 +38,7 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
     mutationFn: registerAccount,
     onSuccess: () => {
       setError(null)
-      onSuccess(values.email.trim())
+      onSuccess(values.email.trim(), {displayName: values.displayName.trim()})
     },
     onError: (err: Error) => {
       setError(err.message || 'Не удалось зарегистрироваться')
@@ -49,14 +51,17 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
 
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault()
-    const validationError = validateRegisterForm(values)
+    const validationError = validateRegisterForm(values, {
+      minPasswordLength: backend ? 8 : 6,
+      requireDisplayName: !backend,
+    })
     if (validationError) {
       setError(validationError)
       return
     }
     setError(null)
     registerMutation.mutate({
-      displayName: values.displayName.trim(),
+      displayName: values.displayName.trim() || values.email.trim().split('@')[0] || 'Игрок',
       email: values.email.trim(),
       password: values.password,
     })
@@ -84,19 +89,23 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
           className="auth-form__subtitle"
           data-testid={testId('auth', 'register', 'text', 'hint')}
         >
-          Укажите имя, почту и пароль. Профиль сохранится на этом устройстве.
+          {backend
+            ? 'Укажите почту и пароль — мы отправим код подтверждения.'
+            : 'Укажите имя, почту и пароль. Профиль сохранится на этом устройстве.'}
         </Typography.Paragraph>
       </header>
 
-      <Alert
-        type="info"
-        showIcon
-        message={
-          <span data-testid={testId('auth', 'register', 'text', 'local-memory')}>
-            Пока аккаунт остаётся только на этом компьютере и не уходит в облако.
-          </span>
-        }
-      />
+      {!backend && (
+        <Alert
+          type="info"
+          showIcon
+          message={
+            <span data-testid={testId('auth', 'register', 'text', 'local-memory')}>
+              Пока аккаунт остаётся только на этом компьютере и не уходит в облако.
+            </span>
+          }
+        />
+      )}
 
       <div
         className="auth-form__fields"
@@ -128,7 +137,7 @@ export function RegisterForm({onSuccess}: RegisterFormProps) {
           fieldId="auth-register-password"
           type="password"
           autoComplete="new-password"
-          placeholder="Не менее 6 символов"
+          placeholder={backend ? 'Не менее 8 символов' : 'Не менее 6 символов'}
           value={values.password}
           onUpdate={(value) => updateField('password', value)}
           testIdScope="register"

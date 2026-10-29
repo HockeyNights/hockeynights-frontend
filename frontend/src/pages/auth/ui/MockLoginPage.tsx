@@ -4,9 +4,11 @@
  */
 
 import {useQuery} from '@tanstack/react-query'
+import {Navigate} from 'react-router'
 
 import {fetchSession} from '@/entities/auth'
 import {AuthPage} from '@/pages/auth'
+import {usesBackendAuth} from '@/shared/config/apiMode'
 import {testId} from '@/shared/testing/testId'
 import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
 
@@ -15,6 +17,7 @@ import {ScoreboardLoader} from '@/shared/ui/ScoreboardLoader'
  * @spec SPEC-FR-2.1.2 - Выбор ролей через карточки персон
  */
 export function MockLoginPage() {
+  const backend = usesBackendAuth()
   const {data: session, isPending} = useQuery({queryKey: ['session'], queryFn: fetchSession})
 
   if (isPending) {
@@ -29,9 +32,13 @@ export function MockLoginPage() {
     )
   }
 
+  if (backend && session?.isOnboarded) {
+    return <Navigate to={session.homePath || '/events'} replace />
+  }
+
   return (
     <div data-testid={testId('auth', 'page', 'root')}>
-      <AuthPage isSwitching={Boolean(session?.isOnboarded)} />
+      <AuthPage isSwitching={!backend && Boolean(session?.isOnboarded)} />
     </div>
   )
 }

@@ -42,6 +42,11 @@ export interface Session {
   homePath?: string
   /** @spec SPEC-FR-25.1.2 - Разрешённые маршруты текущей роли */
   allowedPathPrefixes?: string[]
+  /**
+   * Backend: аккаунт есть, Hockey ID ещё не создан (POST /v1/profile).
+   * Auth-флоу показывает форму создания профиля.
+   */
+  needsProfile?: boolean
 }
 
 /** @spec SPEC-FR-2.1.2 - Payload onboarding */

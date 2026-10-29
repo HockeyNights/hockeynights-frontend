@@ -17,8 +17,9 @@ import {
 } from '@gravity-ui/uikit'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import {useId, useState} from 'react'
-import {Link, Navigate, useSearchParams} from 'react-router'
+import {Link, Navigate, useNavigate, useSearchParams} from 'react-router'
 
+import {logoutAllSessions} from '@/entities/auth'
 import type {PlayerPosition, SkillLevel, UserRole} from '@/entities/common'
 import type {
   HockeyProfile,
@@ -54,6 +55,7 @@ import {
   ProfileAvatarEditor,
 } from '@/features/profile'
 import {parseApiErrorMessage} from '@/shared/api/parseApiError'
+import {usesBackendAuth} from '@/shared/config/apiMode'
 import {
   clampPlayerIndex,
   PLAYER_INDEX_LEVELS,
@@ -1659,6 +1661,61 @@ function ProfileSubscriptionSection({
   )
 }
 
+function ProfileSecuritySection() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const logoutAllMutation = useMutation({
+    mutationFn: logoutAllSessions,
+    onSuccess: () => {
+      void queryClient.clear()
+      navigate('/', {replace: true})
+    },
+  })
+
+  if (!usesBackendAuth()) return null
+
+  return (
+    <IceCard
+      padding="m"
+      className="profile-settings__card"
+      data-testid={testId('profile', 'profile-security-section', 'card')}
+    >
+      <div className="hockey-stack hockey-stack--gap-16">
+        <Text
+          variant="header-1"
+          data-testid={testId('profile', 'profile-security-section', 'text', 'title')}
+        >
+          Безопасность
+        </Text>
+        <Text
+          color="secondary"
+          data-testid={testId('profile', 'profile-security-section', 'text', 'hint')}
+        >
+          Завершите все активные сессии на других устройствах. Текущий вход тоже будет сброшен.
+        </Text>
+        {logoutAllMutation.isError && (
+          <Text
+            color="danger"
+            data-testid={testId('profile', 'profile-security-section', 'text', 'error')}
+          >
+            {parseApiErrorMessage(logoutAllMutation.error, 'Не удалось выйти из всех сессий')}
+          </Text>
+        )}
+        <HockeyButton
+          view="outlined"
+          size="l"
+          width="max"
+          loading={logoutAllMutation.isPending}
+          onClick={() => logoutAllMutation.mutate()}
+          data-testid={testId('profile', 'profile-security-section', 'btn', 'logout-all')}
+        >
+          Выйти на всех устройствах
+        </HockeyButton>
+      </div>
+    </IceCard>
+  )
+}
+
 function HockeyProfileHub({
   profile,
   settings,
@@ -1762,6 +1819,7 @@ function HockeyProfileHub({
           isSaving={savePrivacyMutation.isPending}
           saveError={savePrivacyMutation.error}
         />
+        <ProfileSecuritySection />
       </div>
     ) : (
       <ProfileSubscriptionSection
@@ -1797,7 +1855,7 @@ function HockeyProfileHub({
             Редактировать
           </button>
           <Link
-            to={`/players/${profile.userId}`}
+            to={`/players/${encodeURIComponent(profile.userId)}`}
             className="hockey-segmented__item profile-hub__action"
             data-testid={testId('profile', 'profile-about-section', 'btn', 'public-view')}
           >

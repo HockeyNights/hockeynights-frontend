@@ -199,11 +199,20 @@ cd frontend && npm ci
 - `/shops` — магазины экипировки
 - `/admin` — админка справочников
 
-## Переключение на backend (Phase 2)
+## Переключение на backend (Public API)
 
 ```env
 VITE_API_MODE=backend
 VITE_BACKEND_URL=/api/v1
 ```
+
+В режиме `backend` на реальный API уходят только **Auth** и **Profile**.
+Обязательно `VITE_BACKEND_URL=/api/v1` (same-origin): Vite проксирует `/api` →
+`https://api.hockeynights.appard.tech`. Прямой абсолютный URL API в браузере
+ломает CORS (`OPTIONS` → 501) и даёт в MSW `FetchEvent.respondWith / Load failed`.
+Остальные домены (команды, события, …) пока обслуживает MSW.
+
+Поддержано: регистрация, вход (+ код), verify-email, refresh, logout / logout-all,
+сброс пароля, создание/обновление профиля, загрузка/удаление аватара.
 
 На dev/qa стендах те же переменные задаются при сборке Docker-образа (GitHub Environment variables).

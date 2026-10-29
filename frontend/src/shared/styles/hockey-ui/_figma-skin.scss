@@ -120,11 +120,20 @@
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
+  max-width: 100%;
   min-height: 20px;
+
+  .hockey-section-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .hockey-section-link {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   padding: 0;
   border: 0;
@@ -293,15 +302,16 @@
 }
 
 .catalog-filters__chip {
-  min-height: var(--hockey-ui-control-height);
-  padding: 0 15px;
+  box-sizing: border-box;
+  min-height: 36px;
+  padding: 0 11px;
   border: 1px solid var(--hockey-ui-raised-border);
-  border-radius: var(--hockey-ui-control-radius);
+  border-radius: 10px;
   background: var(--hockey-ui-raised);
   color: var(--hockey-ui-muted);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.15px;
+  letter-spacing: 0;
 
   &:hover {
     border-color: color-mix(in srgb, var(--hockey-ui-accent) 55%, transparent);
@@ -491,19 +501,21 @@
 }
 
 .hockey-segmented__item {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--hockey-ui-control-height);
-  padding: 0 15px;
+  min-height: 36px;
+  padding: 0 11px;
   border: 1px solid var(--hockey-ui-raised-border);
-  border-radius: var(--hockey-ui-control-radius);
+  border-radius: 10px;
   background: var(--hockey-ui-raised);
   color: var(--hockey-ui-muted);
   font: inherit;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.15px;
+  line-height: 1.2;
+  letter-spacing: 0;
   white-space: nowrap;
   cursor: pointer;
   text-decoration: none;

@@ -1,6 +1,7 @@
 export type {PlayersFilterParams} from './api/playersApi'
 export {fetchPlayers, fetchPublicPlayer} from './api/playersApi'
 export {
+  createMyProfile,
   fetchMyProfile,
   fetchProfileSettings,
   startVerificationRequest,
@@ -10,6 +11,8 @@ export {
   updateSubscription,
   updateVerificationRequest,
 } from './api/profileApi'
+export {buildPublicPlayerViewFromProfile} from './lib/buildPublicPlayerView'
+export {emptyHockeyProfile} from './lib/profileMappers'
 export {
   canViewProfileByVisibility,
   CONTACT_FIELD_PRIVACY_KEYS,

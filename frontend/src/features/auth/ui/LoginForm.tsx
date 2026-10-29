@@ -7,25 +7,32 @@ import {useMutation, useQueryClient} from '@tanstack/react-query'
 import {Alert, Button, Typography} from 'antd'
 import {type FormEvent, useState} from 'react'
 
-import {authLogin, loginWithCredentials} from '@/entities/auth'
+import {authLogin, loginWithBackend, loginWithCredentials} from '@/entities/auth'
+import type {Session} from '@/entities/user'
 import {DEMO_EMAIL, DEMO_PASSWORD, isDemoCredentials} from '@/features/auth/lib/demoCredentials'
 import {AuthDemoCard} from '@/features/auth/ui/AuthDemoCard'
 import {AuthField} from '@/features/auth/ui/AuthField'
+import {usesBackendAuth} from '@/shared/config/apiMode'
 import {testId} from '@/shared/testing/testId'
 
 export interface LoginFormProps {
-  onSuccess: () => void
+  onSuccess: (result?: {needsProfile?: boolean}) => void
   onForgotPassword?: (email: string) => void
+  onCodeRequired?: (email: string, meta?: {maskedEmail?: string}) => void
 }
 
-export function LoginForm({onSuccess, onForgotPassword}: LoginFormProps) {
+export function LoginForm({onSuccess, onForgotPassword, onCodeRequired}: LoginFormProps) {
   const queryClient = useQueryClient()
-  const [email, setEmail] = useState(DEMO_EMAIL)
-  const [password, setPassword] = useState(DEMO_PASSWORD)
+  const backend = usesBackendAuth()
+  const [email, setEmail] = useState(backend ? '' : DEMO_EMAIL)
+  const [password, setPassword] = useState(backend ? '' : DEMO_PASSWORD)
   const [error, setError] = useState<string | null>(null)
 
   const loginMutation = useMutation({
     mutationFn: async (payload: {email: string; password: string}) => {
+      if (backend) {
+        return {kind: 'backend' as const, data: await loginWithBackend(payload)}
+      }
       if (isDemoCredentials(payload.email, payload.password)) {
         return {kind: 'demo' as const, data: await authLogin(payload)}
       }
@@ -36,9 +43,20 @@ export function LoginForm({onSuccess, onForgotPassword}: LoginFormProps) {
       setError(null)
       if (result.kind === 'demo') {
         queryClient.setQueryData(['auth-login'], result.data)
-      } else {
-        queryClient.removeQueries({queryKey: ['auth-login']})
+        onSuccess()
+        return
       }
+      if (result.kind === 'backend') {
+        if (result.data.kind === 'code_required') {
+          onCodeRequired?.(result.data.email, {maskedEmail: result.data.maskedEmail})
+          return
+        }
+        queryClient.setQueryData(['session'], result.data.session as Session)
+        queryClient.removeQueries({queryKey: ['auth-login']})
+        onSuccess({needsProfile: result.data.session.needsProfile})
+        return
+      }
+      queryClient.removeQueries({queryKey: ['auth-login']})
       onSuccess()
     },
     onError: (err: Error) => {
@@ -90,11 +108,13 @@ export function LoginForm({onSuccess, onForgotPassword}: LoginFormProps) {
           className="auth-form__subtitle"
           data-testid={testId('auth', 'login', 'text', 'hint')}
         >
-          Войдите по почте или нажмите «Быстрый доступ», чтобы открыть демо.
+          {backend
+            ? 'Войдите по почте и паролю. При необходимости подтвердите код из письма.'
+            : 'Войдите по почте или нажмите «Быстрый доступ», чтобы открыть демо.'}
         </Typography.Paragraph>
       </header>
 
-      <AuthDemoCard onApply={applyDemoCredentials} />
+      {!backend && <AuthDemoCard onApply={applyDemoCredentials} />}
 
       <div className="auth-form__fields" data-testid={testId('auth', 'login', 'panel', 'fields')}>
         <AuthField

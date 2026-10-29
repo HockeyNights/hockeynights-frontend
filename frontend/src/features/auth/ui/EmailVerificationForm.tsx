@@ -1,32 +1,100 @@
 /**
  * SPEC-FR-2.1.1
- * Подтверждение почты 6-значным кодом (mock).
+ * Подтверждение почты / второго шага входа 6-значным кодом.
  */
 
-import {Button, Input, Typography} from 'antd'
+import {useMutation} from '@tanstack/react-query'
+import {Alert, Button, Input, Typography} from 'antd'
 import {type FormEvent, useState} from 'react'
 
+import {
+  backendResendCode,
+  backendVerifyEmail,
+  backendVerifyLoginCode,
+  CodePurpose,
+} from '@/entities/auth'
+import {usesBackendAuth} from '@/shared/config/apiMode'
 import {testId} from '@/shared/testing/testId'
 
-export type EmailVerificationPurpose = 'register' | 'reset'
+export type EmailVerificationPurpose = 'register' | 'login' | 'reset'
 
 export interface EmailVerificationFormProps {
   email: string
   purpose?: EmailVerificationPurpose
+  maskedEmail?: string
   onSuccess: () => void
+  /** Для reset в mock-режиме — сразу дальше; в backend ждём отдельную форму пароля */
+  onCodeAccepted?: (code: string) => void
 }
 
 const CODE_LENGTH = 6
 
+function purposeToApi(purpose: EmailVerificationPurpose) {
+  switch (purpose) {
+    case 'login':
+      return CodePurpose.LOGIN
+    case 'reset':
+      return CodePurpose.PASSWORD_RESET
+    default:
+      return CodePurpose.EMAIL_VERIFICATION
+  }
+}
+
 export function EmailVerificationForm({
   email,
   purpose = 'register',
+  maskedEmail,
   onSuccess,
+  onCodeAccepted,
 }: EmailVerificationFormProps) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [resent, setResent] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const backend = usesBackendAuth()
+
+  const verifyMutation = useMutation({
+    mutationFn: async (otp: string) => {
+      if (!backend) {
+        await new Promise((resolve) => window.setTimeout(resolve, 180))
+        return
+      }
+      if (purpose === 'reset') {
+        onCodeAccepted?.(otp)
+        return
+      }
+      if (purpose === 'login') {
+        await backendVerifyLoginCode({email, code: otp})
+        return
+      }
+      await backendVerifyEmail({email, code: otp})
+    },
+    onSuccess: () => {
+      setError(null)
+      if (backend && purpose === 'reset') return
+      onSuccess()
+    },
+    onError: (err: Error) => {
+      setError(err.message || 'Неверный код')
+    },
+  })
+
+  const resendMutation = useMutation({
+    mutationFn: async () => {
+      if (!backend) {
+        await new Promise((resolve) => window.setTimeout(resolve, 120))
+        return
+      }
+      await backendResendCode(email, purposeToApi(purpose))
+    },
+    onSuccess: () => {
+      setResent(true)
+      setError(null)
+      setCode('')
+    },
+    onError: (err: Error) => {
+      setError(err.message || 'Не удалось отправить код')
+    },
+  })
 
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault()
@@ -35,18 +103,17 @@ export function EmailVerificationForm({
       return
     }
     setError(null)
-    setSubmitting(true)
-    window.setTimeout(() => {
-      setSubmitting(false)
-      onSuccess()
-    }, 180)
+    verifyMutation.mutate(code.trim())
   }
 
-  function handleResend() {
-    setResent(true)
-    setError(null)
-    setCode('')
-  }
+  const title =
+    purpose === 'login'
+      ? 'Подтверждение входа'
+      : purpose === 'reset'
+        ? 'Код для сброса пароля'
+        : 'Код подтверждения'
+
+  const hintEmail = maskedEmail || email
 
   return (
     <form
@@ -65,14 +132,14 @@ export function EmailVerificationForm({
           className="auth-form__title"
           data-testid={testId('auth', 'verify', 'text', 'title')}
         >
-          Код подтверждения
+          {title}
         </Typography.Title>
         <Typography.Paragraph
           className="auth-form__subtitle"
           data-testid={testId('auth', 'verify', 'text', 'hint')}
         >
           Мы отправили 6-значный код на почту{' '}
-          <strong data-testid={testId('auth', 'verify', 'text', 'email')}>{email}</strong>
+          <strong data-testid={testId('auth', 'verify', 'text', 'email')}>{hintEmail}</strong>
         </Typography.Paragraph>
       </header>
 
@@ -90,21 +157,21 @@ export function EmailVerificationForm({
       </div>
 
       {error && (
-        <div
-          className="auth-alert auth-alert--error"
+        <Alert
+          type="error"
+          showIcon
+          message={error}
           data-testid={testId('auth', 'verify', 'text', 'error')}
-        >
-          {error}
-        </div>
+        />
       )}
 
       {resent && (
-        <div
-          className="auth-alert auth-alert--info"
+        <Alert
+          type="info"
+          showIcon
+          message="Новый код отправлен на почту."
           data-testid={testId('auth', 'verify', 'text', 'resent')}
-        >
-          Новый код отправлен на почту.
-        </div>
+        />
       )}
 
       <Button
@@ -112,8 +179,8 @@ export function EmailVerificationForm({
         htmlType="submit"
         size="large"
         block
-        loading={submitting}
-        disabled={submitting}
+        loading={verifyMutation.isPending}
+        disabled={verifyMutation.isPending}
         data-testid={testId('auth', 'verify', 'btn', 'submit')}
       >
         Подтвердить код
@@ -123,7 +190,8 @@ export function EmailVerificationForm({
         <Typography.Text type="secondary">Не пришел код?</Typography.Text>
         <Button
           type="link"
-          onClick={handleResend}
+          loading={resendMutation.isPending}
+          onClick={() => resendMutation.mutate()}
           data-testid={testId('auth', 'verify', 'btn', 'resend')}
         >
           Отправить повторно

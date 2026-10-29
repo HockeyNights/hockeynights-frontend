@@ -11,6 +11,10 @@ export interface RegisterFormValues {
 export interface ValidateRegisterFormOptions {
   /** Phase 1 mock API не принимает acceptTerms — проверка только на клиенте */
   requireTerms?: boolean
+  /** Backend Public API: минимум 8 символов */
+  minPasswordLength?: number
+  /** Backend: имя уходит в create-profile, на register необязательно */
+  requireDisplayName?: boolean
 }
 
 function validateRegisterCore(
@@ -22,15 +26,17 @@ function validateRegisterCore(
   options: ValidateRegisterFormOptions,
 ): string | null {
   const requireTerms = options.requireTerms ?? true
+  const minPasswordLength = options.minPasswordLength ?? 6
+  const requireDisplayName = options.requireDisplayName ?? true
 
-  if (displayName.length < 2) {
+  if (requireDisplayName && displayName.length < 2) {
     return 'Введите имя (не менее 2 символов)'
   }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return 'Введите корректный email'
   }
-  if (password.length < 6) {
-    return 'Пароль должен быть не короче 6 символов'
+  if (password.length < minPasswordLength) {
+    return `Пароль должен быть не короче ${minPasswordLength} символов`
   }
   if (passwordConfirm !== null && password !== passwordConfirm) {
     return 'Пароли не совпадают'

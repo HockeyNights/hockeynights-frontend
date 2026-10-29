@@ -214,6 +214,18 @@
     }
   }
 
+  @media (max-width: 720px) {
+    .teams-hero__filters-row {
+      flex-direction: column;
+    }
+
+    .team-filters__select {
+      flex: 1 1 auto;
+      width: 100%;
+      max-width: none;
+    }
+  }
+
   @include breakpoint(769px) {
     /* Выпадающие фильтры на desktop всегда раскрыты — кнопка-переключатель не нужна. */
     .catalog-filters__meta {
@@ -287,6 +299,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
   min-height: 24px;
 
   &__count {
@@ -305,6 +319,7 @@
   &__actions {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
     gap: 16px;
   }
 
@@ -355,6 +370,17 @@
   .team-card__feed-meta {
     gap: 8px;
     margin-top: 8px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .team-chip {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .team-chip--wrap {
+    white-space: normal;
   }
 
   @include breakpoint($max: 768px) {
@@ -716,7 +742,9 @@
   }
 
   .hockey-segmented__item {
-    min-height: 40px;
+    min-height: 36px;
+    padding: 0 11px;
+    font-size: 14px;
   }
 }
 
@@ -741,6 +769,13 @@
     flex: 0 1 299px;
     min-width: 150px;
     --g-button-border-radius: var(--hockey-ui-control-radius);
+  }
+
+  @media (max-width: 720px) {
+    .messenger-hero__btn {
+      flex: 1 1 calc(50% - 6px);
+      min-width: 0;
+    }
   }
 }
 

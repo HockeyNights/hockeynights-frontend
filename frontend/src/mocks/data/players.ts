@@ -4,7 +4,6 @@
  */
 
 import type {
-  HockeyProfile,
   ParticipationRecord,
   PlayerListItem,
   PrivacySettings,
@@ -12,13 +11,12 @@ import type {
   PublicPlayerView,
 } from '@/entities/profile'
 import {
+  buildPublicPlayerViewFromProfile,
   canViewProfileByVisibility,
   normalizePrivacySettings,
   redactPlayerForViewer,
   resolvePrivacyViewer,
-  resolveVisibleContacts,
   resolveVisibleFields,
-  toHiddenPlayerStub,
 } from '@/entities/profile'
 
 /** @spec SPEC-FR-24.1.3 - Mock приватность публичных профилей */
@@ -139,16 +137,6 @@ function privacyForUser(
   )
 }
 
-function hiddenView(player: PlayerListItem): PublicPlayerView {
-  return {
-    player: toHiddenPlayerStub(player),
-    visibility: 'hidden',
-    contactsVisible: false,
-    participationHistoryVisible: false,
-    calendarVisible: false,
-  }
-}
-
 function buildViewFromPlayer(
   player: PlayerListItem,
   privacyInput: Partial<PrivacySettings> & Pick<PrivacySettings, 'profileVisibility'>,
@@ -156,48 +144,16 @@ function buildViewFromPlayer(
   viewer: PrivacyViewerRelation = 'public',
   viewerVerified = false,
 ): PublicPlayerView {
-  const privacy = normalizePrivacySettings(privacyInput)
-
-  if (!canViewProfileByVisibility(privacy.profileVisibility, viewer, viewerVerified)) {
-    return hiddenView(player)
-  }
-
-  const fieldViewer = viewer === 'self' ? 'public' : viewer
-  const visibleFields = resolveVisibleFields(privacy.fields, fieldViewer)
-  const visibleContacts = resolveVisibleContacts(
-    player.contacts,
-    privacy.fields,
-    fieldViewer,
-    privacy.personalDataProcessingConsent,
+  return buildPublicPlayerViewFromProfile(
+    {...player, participationHistory},
+    privacyInput,
+    viewer,
+    viewerVerified,
   )
-  const visibility =
-    viewer === 'self' || privacy.profileVisibility === 'public' ? 'full' : 'limited'
-
-  return {
-    player: redactPlayerForViewer(player, visibleFields),
-    visibility,
-    contactsVisible: Boolean(visibleContacts),
-    visibleContacts,
-    visibleFields,
-    participationHistoryVisible: visibleFields.participationHistory,
-    participationHistory: visibleFields.participationHistory ? participationHistory : undefined,
-    calendarVisible: visibleFields.calendar,
-  }
 }
 
 /** @spec SPEC-FR-24.1.3 - Публичный вид текущего пользователя (Hockey ID /profile/me) */
-export function buildPublicPlayerViewFromProfile(
-  profile: HockeyProfile,
-  privacy: Partial<PrivacySettings> & Pick<PrivacySettings, 'profileVisibility'>,
-  viewer: PrivacyViewerRelation = 'public',
-  viewerVerified = false,
-): PublicPlayerView {
-  const player: PlayerListItem = {
-    ...profile,
-    displayName: profile.fullName,
-  }
-  return buildViewFromPlayer(player, privacy, profile.participationHistory, viewer, viewerVerified)
-}
+export {buildPublicPlayerViewFromProfile}
 
 /** @spec SPEC-FR-24.1.3 - Собрать публичное представление игрока */
 export function buildPublicPlayerView(

@@ -13,7 +13,7 @@ import {AuthBrandLogo} from '@/features/auth/ui/AuthBrandLogo'
 import {testId} from '@/shared/testing/testId'
 import {useHockeyTheme} from '@/shared/theme/HockeyThemeProvider'
 
-export type AuthShellMode = 'login' | 'register' | 'verify' | 'personas'
+export type AuthShellMode = 'login' | 'register' | 'verify' | 'create-profile' | 'personas'
 
 export interface AuthShellProps {
   children: ReactNode

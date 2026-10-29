@@ -14,19 +14,56 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
+  gap: 8px 6px;
 }
 
 .profile-hub__tabs,
 .profile-hub__toolbar .profile-hub__actions {
-  display: contents;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.profile-hub__toolbar .profile-hub__actions {
+  margin-left: 0;
 }
 
 .profile-hub__action {
-  min-width: 160px;
+  min-width: 0;
+}
 
-  @media (max-width: 768px) {
-    min-width: 0;
+@media (max-width: 720px) {
+  .profile-hub__toolbar.hockey-segmented {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .profile-hub__tabs {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    justify-content: start;
+    gap: 6px;
+    width: max-content;
+    max-width: 100%;
+    margin: 0;
+    overflow: visible;
+  }
+
+  .profile-hub__toolbar .profile-hub__actions {
+    flex-wrap: wrap;
+    width: auto;
+    max-width: 100%;
+    margin-left: 0;
+    overflow: visible;
+  }
+
+  .profile-hub__toolbar .hockey-segmented__item {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
   }
 }
 

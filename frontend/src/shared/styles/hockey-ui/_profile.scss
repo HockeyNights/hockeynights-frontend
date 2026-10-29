@@ -4,6 +4,7 @@
 .profile-hub {
   --profile-radius: var(--hockey-ui-control-radius);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 
   .favorites-profile-group__row {

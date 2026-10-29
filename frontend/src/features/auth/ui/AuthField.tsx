@@ -17,7 +17,7 @@ export interface AuthFieldProps {
   placeholder?: string
   labelExtra?: ReactNode
   testIdQualifier: string
-  testIdScope?: 'login' | 'register'
+  testIdScope?: 'login' | 'register' | 'reset' | 'create-profile'
 }
 
 export function AuthField({
