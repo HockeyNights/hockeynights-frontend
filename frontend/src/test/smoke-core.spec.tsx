@@ -17,6 +17,7 @@ import type {League} from '@/entities/league'
 import type {LeagueScheduleImportResult} from '@/entities/league'
 import type {LeagueScheduleItem} from '@/entities/league'
 import type {LeagueTeamApplication} from '@/entities/league'
+import type {Message} from '@/entities/messenger'
 import type {HockeyProfile} from '@/entities/profile'
 import type {PlayerListItem} from '@/entities/profile'
 import type {PublicPlayerView} from '@/entities/profile'
@@ -413,6 +414,16 @@ describe('TASK-QA-01 UI smoke', () => {
     await waitFor(() => {
       expect(screen.getAllByText(/Goalkeeper SOS/i).length).toBeGreaterThan(0)
     })
+  })
+
+  it('POST /messenger/chats/{chatId}/messages сохраняет текст и отдаёт его в ленте', async () => {
+    const sent = await mockApiPost<Message>('/messenger/chats/chat-1/messages', {
+      content: 'Проверка отправки',
+    })
+    expect(sent.content).toBe('Проверка отправки')
+    expect(sent.chatId).toBe('chat-1')
+    const messages = await mockApiGet<Message[]>('/messenger/chats/chat-1/messages')
+    expect(messages.some((item) => item.id === sent.id)).toBe(true)
   })
 
   /** @spec SPEC-FR-6.2.1 */

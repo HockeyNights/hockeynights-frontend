@@ -16,6 +16,7 @@ import {
   fetchChats,
   fetchChatTopics,
   selectChats,
+  sendChatMessage,
   toggleChatPin,
 } from '@/entities/messenger'
 import {
@@ -160,22 +161,28 @@ export function MessengerPage() {
     setMobileView('list')
   }
 
+  const sendMessageMutation = useMutation({
+    mutationFn: (text: string) =>
+      sendChatMessage(activeChatId!, {
+        content: text,
+        topicId: activeTopicId ?? undefined,
+      }),
+    onSuccess: (message) => {
+      queryClient.setQueryData<Message[]>(
+        ['messenger-messages', activeChatId, activeTopicId],
+        (prev = []) => [...prev, message],
+      )
+      void queryClient.invalidateQueries({queryKey: ['messenger-chats']})
+      setStatusMessage(null)
+    },
+    onError: () => {
+      setStatusMessage('Не удалось отправить сообщение')
+    },
+  })
+
   function handleSendMessage(text: string) {
-    if (!activeChatId) return
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
-      chatId: activeChatId,
-      senderId: 'me',
-      senderName: 'Я',
-      type: 'text',
-      content: text,
-      topicId: activeTopicId ?? undefined,
-      timestamp: new Date().toISOString(),
-    }
-    queryClient.setQueryData<Message[]>(
-      ['messenger-messages', activeChatId, activeTopicId],
-      (prev = []) => [...prev, newMessage],
-    )
+    if (!activeChatId || sendMessageMutation.isPending) return
+    sendMessageMutation.mutate(text)
   }
 
   const unreadTotal = chats.reduce((total, chat) => total + Math.max(0, chat.unreadCount), 0)

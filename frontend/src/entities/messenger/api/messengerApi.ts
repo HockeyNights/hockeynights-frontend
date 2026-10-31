@@ -29,6 +29,16 @@ export function fetchChatMessages(chatId: string): Promise<Message[]> {
   return apiRequest<Message[]>(`/messenger/chats/${chatId}/messages`)
 }
 
+export function sendChatMessage(
+  chatId: string,
+  payload: {content: string; topicId?: string},
+): Promise<Message> {
+  return apiRequest<Message>(`/messenger/chats/${chatId}/messages`, {
+    method: 'POST',
+    body: payload,
+  })
+}
+
 export function fetchChatMessagesByTopic(chatId: string, topicId?: string): Promise<Message[]> {
   const params = new URLSearchParams()
   if (topicId) params.set('topicId', topicId)
