@@ -434,6 +434,32 @@ export function openMockDiscoverableChat(chatId: string, userId = 'user-001'): C
   return chat
 }
 
+export function appendMockMessage(
+  chatId: string,
+  input: {content: string; topicId?: string},
+  user: {id: string; displayName: string} = mockUser,
+): Message | 'missing' | 'forbidden' | 'invalid' {
+  const content = input.content.trim()
+  if (!content) return 'invalid'
+  const chat = mockChats.find((item) => item.id === chatId)
+  if (!chat) return 'missing'
+  if (chat.memberIds && !chat.memberIds.includes(user.id)) return 'forbidden'
+
+  const message: Message = {
+    id: `msg-${Date.now()}`,
+    chatId,
+    topicId: input.topicId,
+    senderId: user.id,
+    senderName: user.displayName,
+    type: 'text',
+    content,
+    timestamp: new Date().toISOString(),
+  }
+  mockMessages[chatId] = [...(mockMessages[chatId] ?? []), message]
+  chat.lastMessage = message
+  return message
+}
+
 export function getMockMessages(chatId: string, topicId?: string, userId = 'user-001'): Message[] {
   const visibleTopicIds = new Set(getMockVisibleTopics(chatId, userId).map((topic) => topic.id))
   const messages = (mockMessages[chatId] ?? []).filter(

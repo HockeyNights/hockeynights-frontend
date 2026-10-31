@@ -13,6 +13,7 @@ export {
   resolveMessageAction,
   searchChatUsers,
   searchDiscoverableChats,
+  sendChatMessage,
   toggleChatPin,
   updateChannelSettings,
 } from './api/messengerApi'

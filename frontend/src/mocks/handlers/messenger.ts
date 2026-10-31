@@ -8,6 +8,7 @@ import type {
 } from '@/entities/messenger'
 import {resolveMockMessageAction} from '@/mocks/data/messageActions'
 import {
+  appendMockMessage,
   createDirectMockChat,
   createMockChannelOrChat,
   createMockTopic,
@@ -90,6 +91,24 @@ export const messengerHandlers = [
     }
     const topic = createMockTopic(params.chatId as string, body)
     return HttpResponse.json(topic)
+  }),
+
+  http.post('/mock-api/v1/messenger/chats/:chatId/messages', async ({params, request}) => {
+    const body = (await request.json()) as {content?: string; topicId?: string}
+    const result = appendMockMessage(params.chatId as string, {
+      content: body.content ?? '',
+      topicId: body.topicId,
+    })
+    if (result === 'invalid') {
+      return HttpResponse.json({message: 'content is required'}, {status: 400})
+    }
+    if (result === 'missing') {
+      return HttpResponse.json({message: 'Chat not found'}, {status: 404})
+    }
+    if (result === 'forbidden') {
+      return HttpResponse.json({message: 'Not a chat member'}, {status: 403})
+    }
+    return HttpResponse.json(result, {status: 201})
   }),
 
   http.get('/mock-api/v1/messenger/chats/:chatId/messages', ({params, request}) => {
