@@ -9,7 +9,9 @@ import {useSessionAccess} from '@/features/access'
 import {
   ACCESS_LABELS,
   EVENT_TYPE_LABELS,
+  EventDetailsTabs,
   EventFactRow,
+  EventLinesBoard,
   EventOrganizerCard,
   EventRsvpBoard,
   EventSlotsCard,
@@ -21,6 +23,8 @@ import {
   resolveTrainingUserName,
   SKILL_LEVEL_LABELS,
   TrainingRegistrationControl,
+  useEventDetailsTab,
+  useEventLinesAccess,
 } from '@/features/events'
 import {TeamRsvpResponseControl} from '@/features/radar'
 import {isNotFoundError} from '@/shared/api/client'
@@ -56,6 +60,8 @@ export function GameDetailsPage() {
     () => Object.fromEntries(players.map((player) => [player.userId, player.displayName])),
     [players],
   )
+  const linesAccess = useEventLinesAccess(event?.teamId)
+  const [tab, setTab] = useEventDetailsTab()
 
   if (isLoading) {
     return (
@@ -105,6 +111,7 @@ export function GameDetailsPage() {
   const filledTotal = event.requiredSlots.reduce((acc, slot) => acc + slot.filledCount, 0)
   const fillPercent = requiredTotal > 0 ? Math.round((filledTotal / requiredTotal) * 100) : 0
   const isFull = event.registrationStatus === 'full'
+  const activeTab = linesAccess.canView ? tab : 'roster'
 
   return (
     <PageHub
@@ -242,37 +249,61 @@ export function GameDetailsPage() {
             </div>
           </IceCard>
 
-          <section className="events-screen__section">
-            <SectionHeading
-              title={
-                <span data-testid={testId('events', 'game-page', 'text', 'slots-title', event.id)}>
-                  Слоты и укомплектованность
-                </span>
-              }
-            />
-            <EventSlotsCard
-              event={event}
-              section="game-page"
-              currentUserId={userId}
-              resolveName={(id) => resolveTrainingUserName(id, event, playerNames)}
-            />
-          </section>
+          {linesAccess.canView ? (
+            <EventDetailsTabs value={activeTab} onChange={setTab} section="game-page" />
+          ) : null}
 
-          {event.hasTeamRsvp && (
+          {activeTab === 'roster' ? (
+            <>
+              <section className="events-screen__section">
+                <SectionHeading
+                  title={
+                    <span
+                      data-testid={testId('events', 'game-page', 'text', 'slots-title', event.id)}
+                    >
+                      Слоты и укомплектованность
+                    </span>
+                  }
+                />
+                <EventSlotsCard
+                  event={event}
+                  section="game-page"
+                  currentUserId={userId}
+                  resolveName={(id) => resolveTrainingUserName(id, event, playerNames)}
+                />
+              </section>
+
+              {event.hasTeamRsvp && (
+                <section
+                  className="events-screen__section"
+                  data-testid={testId('events', 'game-page', 'panel', 'rsvp', event.id)}
+                >
+                  <SectionHeading
+                    title={
+                      <span
+                        data-testid={testId('events', 'game-page', 'text', 'rsvp-title', event.id)}
+                      >
+                        RSVP команды
+                      </span>
+                    }
+                  />
+                  <IceCard padding="l">
+                    <EventRsvpBoard eventId={event.id} hideTitle />
+                  </IceCard>
+                </section>
+              )}
+            </>
+          ) : (
             <section
               className="events-screen__section"
-              data-testid={testId('events', 'game-page', 'panel', 'rsvp', event.id)}
+              data-testid={testId('events', 'game-page', 'panel', 'lines', event.id)}
             >
-              <SectionHeading
-                title={
-                  <span data-testid={testId('events', 'game-page', 'text', 'rsvp-title', event.id)}>
-                    RSVP команды
-                  </span>
-                }
+              <EventLinesBoard
+                eventId={event.id}
+                currentUserId={userId}
+                roster={linesAccess.roster}
+                canEdit={linesAccess.canEdit}
               />
-              <IceCard padding="l">
-                <EventRsvpBoard eventId={event.id} hideTitle />
-              </IceCard>
             </section>
           )}
         </div>

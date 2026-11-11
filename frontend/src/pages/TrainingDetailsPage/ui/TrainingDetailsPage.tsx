@@ -11,7 +11,9 @@ import {
   ACCESS_LABELS,
   canViewTraining,
   countOpenSlots,
+  EventDetailsTabs,
   EventFactRow,
+  EventLinesBoard,
   EventOrganizerCard,
   EventSlotsCard,
   EventStatTile,
@@ -25,6 +27,8 @@ import {
   SKILL_LEVEL_LABELS,
   TRAINING_FORMAT_LABELS,
   TrainingRegistrationControl,
+  useEventDetailsTab,
+  useEventLinesAccess,
 } from '@/features/events'
 import {isNotFoundError} from '@/shared/api/client'
 import {LAUNCH_REGION} from '@/shared/config/geo'
@@ -64,6 +68,8 @@ export function TrainingDetailsPage() {
     () => Object.fromEntries(players.map((player) => [player.userId, player.displayName])),
     [players],
   )
+  const linesAccess = useEventLinesAccess(event?.teamId)
+  const [tab, setTab] = useEventDetailsTab()
 
   if (isLoading) {
     return (
@@ -146,6 +152,7 @@ export function TrainingDetailsPage() {
     canOrganizeEvents &&
     (event.organizerUserId === userId || roles.includes('admin') || roles.includes('club_admin'))
   const isFull = event.registrationStatus === 'full'
+  const activeTab = linesAccess.canView ? tab : 'roster'
 
   return (
     <PageHub
@@ -308,23 +315,41 @@ export function TrainingDetailsPage() {
             </div>
           </IceCard>
 
-          <section className="events-screen__section">
-            <SectionHeading
-              title={
-                <span
-                  data-testid={testId('events', 'training-page', 'text', 'slots-title', event.id)}
-                >
-                  Слоты и укомплектованность
-                </span>
-              }
-            />
-            <EventSlotsCard
-              event={event}
-              section="training-page"
-              currentUserId={userId}
-              resolveName={(id) => resolveTrainingUserName(id, event, playerNames)}
-            />
-          </section>
+          {linesAccess.canView ? (
+            <EventDetailsTabs value={activeTab} onChange={setTab} section="training-page" />
+          ) : null}
+
+          {activeTab === 'roster' ? (
+            <section className="events-screen__section">
+              <SectionHeading
+                title={
+                  <span
+                    data-testid={testId('events', 'training-page', 'text', 'slots-title', event.id)}
+                  >
+                    Слоты и укомплектованность
+                  </span>
+                }
+              />
+              <EventSlotsCard
+                event={event}
+                section="training-page"
+                currentUserId={userId}
+                resolveName={(id) => resolveTrainingUserName(id, event, playerNames)}
+              />
+            </section>
+          ) : (
+            <section
+              className="events-screen__section"
+              data-testid={testId('events', 'training-page', 'panel', 'lines', event.id)}
+            >
+              <EventLinesBoard
+                eventId={event.id}
+                currentUserId={userId}
+                roster={linesAccess.roster}
+                canEdit={linesAccess.canEdit}
+              />
+            </section>
+          )}
         </div>
 
         <aside className="event-details__aside">

@@ -31,5 +31,5 @@ export {
   shouldUsePartnerWorkspace,
 } from './lib/sessionPersona'
 export type {TeamPermissions} from './lib/teamAccess'
-export {resolveTeamPermissions} from './lib/teamAccess'
+export {canManageEventLines, resolveTeamPermissions} from './lib/teamAccess'
 export {useSessionAccess} from './lib/useSessionAccess'
