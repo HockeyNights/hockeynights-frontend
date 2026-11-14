@@ -98,6 +98,7 @@ npm run format && npm run lint:fix && npm run typecheck && npm test && npm run b
 | `eslint` + `@eslint/js`            | v9     | `eslint-plugin-jsx-a11y@6` поддерживает только eslint ≤ 9 |
 | `lint-staged`                      | v15    | major обновлять вручную — влияет на husky pre-commit      |
 | `eslint-plugin-simple-import-sort` | v12    | v13+ меняет порядок импортов (большой diff)               |
+| `typescript`                       | v6     | `typescript-eslint@8` принимает только TypeScript < 6.1   |
 
 **Dependabot** (`.github/dependabot.yml`):
 
