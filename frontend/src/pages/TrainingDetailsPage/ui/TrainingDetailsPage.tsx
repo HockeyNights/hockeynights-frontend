@@ -11,7 +11,9 @@ import {
   ACCESS_LABELS,
   canViewTraining,
   countOpenSlots,
+  EventDetailsTabs,
   EventFactRow,
+  EventLinesBoard,
   EventOrganizerCard,
   EventSlotsCard,
   EventStatTile,
@@ -25,6 +27,8 @@ import {
   SKILL_LEVEL_LABELS,
   TRAINING_FORMAT_LABELS,
   TrainingRegistrationControl,
+  useEventDetailsTab,
+  useEventLinesAccess,
 } from '@/features/events'
 import {isNotFoundError} from '@/shared/api/client'
 import {LAUNCH_REGION} from '@/shared/config/geo'
@@ -64,8 +68,10 @@ export function TrainingDetailsPage() {
     () => Object.fromEntries(players.map((player) => [player.userId, player.displayName])),
     [players],
   )
+  const linesAccess = useEventLinesAccess(event?.teamId)
+  const [tab, setTab] = useEventDetailsTab()
 
-  if (isLoading) {
+  if (isLoading || linesAccess.isLoading) {
     return (
       <PageHub data-testid={testId('events', 'training-page', 'loader')}>
         <ScoreboardLoader label="Загрузка тренировки..." />
@@ -146,6 +152,7 @@ export function TrainingDetailsPage() {
     canOrganizeEvents &&
     (event.organizerUserId === userId || roles.includes('admin') || roles.includes('club_admin'))
   const isFull = event.registrationStatus === 'full'
+  const activeTab = linesAccess.canView ? tab : 'roster'
 
   return (
     <PageHub
@@ -308,23 +315,62 @@ export function TrainingDetailsPage() {
             </div>
           </IceCard>
 
-          <section className="events-screen__section">
-            <SectionHeading
-              title={
-                <span
-                  data-testid={testId('events', 'training-page', 'text', 'slots-title', event.id)}
+          {linesAccess.isError ? (
+            <QueryErrorState
+              title="Не удалось загрузить состав команды"
+              onRetry={() => void linesAccess.refetch()}
+              testIdPrefix="events"
+              data-testid={testId('events', 'training-page', 'error', 'roster')}
+            />
+          ) : (
+            <>
+              {linesAccess.canView ? (
+                <EventDetailsTabs value={activeTab} onChange={setTab} section="training-page" />
+              ) : null}
+
+              <section
+                className="events-screen__section"
+                hidden={linesAccess.canView && activeTab !== 'roster'}
+              >
+                <SectionHeading
+                  title={
+                    <span
+                      data-testid={testId(
+                        'events',
+                        'training-page',
+                        'text',
+                        'slots-title',
+                        event.id,
+                      )}
+                    >
+                      Слоты и укомплектованность
+                    </span>
+                  }
+                />
+                <EventSlotsCard
+                  event={event}
+                  section="training-page"
+                  currentUserId={userId}
+                  resolveName={(id) => resolveTrainingUserName(id, event, playerNames)}
+                />
+              </section>
+
+              {linesAccess.canView ? (
+                <section
+                  className="events-screen__section"
+                  hidden={activeTab !== 'lines'}
+                  data-testid={testId('events', 'training-page', 'panel', 'lines', event.id)}
                 >
-                  Слоты и укомплектованность
-                </span>
-              }
-            />
-            <EventSlotsCard
-              event={event}
-              section="training-page"
-              currentUserId={userId}
-              resolveName={(id) => resolveTrainingUserName(id, event, playerNames)}
-            />
-          </section>
+                  <EventLinesBoard
+                    eventId={event.id}
+                    currentUserId={userId}
+                    roster={linesAccess.roster}
+                    canEdit={linesAccess.canEdit}
+                  />
+                </section>
+              ) : null}
+            </>
+          )}
         </div>
 
         <aside className="event-details__aside">

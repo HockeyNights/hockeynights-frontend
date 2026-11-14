@@ -7,8 +7,10 @@ import type {EventRsvpBoard, EventRsvpStatus, UpdateEventRsvpPayload} from '@/en
 import type {
   CalendarFilters,
   CreateEventPayload,
+  EventLines,
   GameEvent,
   RosterStatus,
+  UpdateEventLinesPayload,
   UpdateEventPayload,
 } from '@/entities/event/model'
 import {apiRequest} from '@/shared/api/client'
@@ -84,6 +86,19 @@ export function updateAttendance(
     method: 'PATCH',
     body: {status, displayName},
   })
+}
+
+/** Звенья (пятёрки) на событие команды — видят участники команды. */
+export function fetchEventLines(eventId: string): Promise<EventLines> {
+  return apiRequest<EventLines>(`/events/${eventId}/lines`)
+}
+
+/** Сохранить звенья события — только тренер команды. */
+export function updateEventLines(
+  eventId: string,
+  payload: UpdateEventLinesPayload,
+): Promise<EventLines> {
+  return apiRequest<EventLines>(`/events/${eventId}/lines`, {method: 'PUT', body: payload})
 }
 
 /**

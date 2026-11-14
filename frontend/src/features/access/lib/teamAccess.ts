@@ -30,6 +30,18 @@ function teamRank(role: TeamRole): number {
 }
 
 /**
+ * Звенья (пятёрки) события настраивает только тренер: роль «Тренер» в сессии
+ * и место в составе команды не ниже штаба. Капитан и админы только смотрят.
+ */
+export function canManageEventLines(
+  sessionRoles: UserRole[],
+  teamRole: TeamRole | undefined,
+): boolean {
+  if (!teamRole) return false
+  return sessionRoles.includes('coach') && teamRank(teamRole) >= TEAM_ROLE_RANK.coach
+}
+
+/**
  * Права в команде = роль в сессии ∩ роль в составе.
  * Игрок без captain/coach в сессии всегда только просматривает.
  */

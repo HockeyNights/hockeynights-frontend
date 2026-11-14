@@ -75,6 +75,9 @@ export {
   getUserTeamIds,
   resolveTrainingUserName,
 } from './lib/trainingAccess'
+export type {EventDetailsTab} from './lib/useEventDetailsTab'
+export {useEventDetailsTab} from './lib/useEventDetailsTab'
+export {useEventLinesAccess} from './lib/useEventLinesAccess'
 export {AttendanceControl} from './ui/AttendanceControl'
 export {EventCard} from './ui/EventCard'
 export {EventCreateForm} from './ui/EventCreateForm'
@@ -87,6 +90,8 @@ export {
   formatEventLongDate,
   formatEventTimeRange,
 } from './ui/EventDetailsBlocks'
+export {EventDetailsTabs} from './ui/EventDetailsTabs'
+export {EventLinesBoard} from './ui/EventLinesBoard'
 export {EventRsvpBoard} from './ui/EventRsvpBoard'
 export {OrganizerAgreementsPanel} from './ui/OrganizerAgreementsPanel'
 export {OrganizerProfilePanel} from './ui/OrganizerProfilePanel'
