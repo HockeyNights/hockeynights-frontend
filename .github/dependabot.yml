@@ -23,6 +23,15 @@ updates:
       # v13+ меняет порядок сортировки импорта (большая разница)
       - dependency-name: eslint-plugin-simple-import-sort
         update-types: ["version-update:semver-major"]
+      # v8 меняет Dialog, Select и DropdownMenu
+      - dependency-name: "@gravity-ui/uikit"
+        update-types: ["version-update:semver-major"]
+      # v3 меняет useLottie и типы рефа
+      - dependency-name: "lottie-react"
+        update-types: ["version-update:semver-major"]
+      # v3 меняет опции setupWorker / setupServer
+      - dependency-name: "msw"
+        update-types: ["version-update:semver-major"]
     groups:
       # Runtime deps - один группированный PR в неделю (патч/минор)
       production-dependencies:
