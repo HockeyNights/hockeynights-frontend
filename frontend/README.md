@@ -92,6 +92,9 @@ npm run format && npm run lint:fix && npm run typecheck && npm test && npm run b
 
 | Пакет                              | Сейчас | Ограничение                                               |
 | ---------------------------------- | ------ | --------------------------------------------------------- |
+| `@gravity-ui/uikit`                | v7     | v8 меняет Dialog, Select и DropdownMenu                   |
+| `lottie-react`                     | v2     | v3 меняет `useLottie` и типы рефа                         |
+| `msw`                              | v2     | v3 меняет опции `setupWorker` / `setupServer`             |
 | `eslint` + `@eslint/js`            | v9     | `eslint-plugin-jsx-a11y@6` поддерживает только eslint ≤ 9 |
 | `lint-staged`                      | v15    | major обновлять вручную — влияет на husky pre-commit      |
 | `eslint-plugin-simple-import-sort` | v12    | v13+ меняет порядок импортов (большой diff)               |
