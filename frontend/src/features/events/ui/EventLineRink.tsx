@@ -11,7 +11,7 @@ import {EVENT_LINE_SLOT_KEYS, EVENT_LINE_SLOT_LABELS} from '@/entities/event'
 import {
   type EventLinePlayer,
   playerInitials,
-  playerShortName,
+  slotFaceLabel,
 } from '@/features/events/lib/eventLinesModel'
 import {testId} from '@/shared/testing/testId'
 
@@ -49,10 +49,12 @@ export function EventLineRink({
 
       {EVENT_LINE_SLOT_KEYS.map((slot) => {
         const userId = line.slots[slot]
-        const player = userId ? players.get(userId) : undefined
-        const isMe = Boolean(userId && userId === currentUserId)
+        const stored = userId ? players.get(userId) : undefined
+        const player = stored && stored.eligible !== false ? stored : undefined
+        const isMe = Boolean(player && player.userId === currentUserId)
         const isSelected = editing && selectedSlot === slot
-        const label = player ? (isMe ? 'Вы' : playerShortName(player.displayName)) : 'Свободно'
+        const label = slotFaceLabel(userId, player, currentUserId)
+        const faceLabel = editing && !userId ? 'Добавить' : label
         const className = [
           'event-lines-slot',
           `event-lines-slot--${slot}`,
@@ -78,9 +80,7 @@ export function EventLineRink({
         const content = (
           <>
             {avatar}
-            <span className="event-lines-slot__name">
-              {editing && !player ? 'Добавить' : label}
-            </span>
+            <span className="event-lines-slot__name">{faceLabel}</span>
           </>
         )
         const slotTestId = testId('events', 'lines', 'btn', 'slot', line.number, slot)
@@ -99,7 +99,7 @@ export function EventLineRink({
             type="button"
             className={className}
             aria-pressed={editing ? isSelected : undefined}
-            aria-label={`${EVENT_LINE_SLOT_LABELS[slot]}: ${player?.displayName ?? 'свободно'}`}
+            aria-label={`${EVENT_LINE_SLOT_LABELS[slot]}: ${player?.displayName ?? (userId ? 'не в составе' : 'свободно')}`}
             onClick={() => onSlotClick?.(slot)}
             data-testid={slotTestId}
           >

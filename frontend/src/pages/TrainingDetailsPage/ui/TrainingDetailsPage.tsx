@@ -71,7 +71,7 @@ export function TrainingDetailsPage() {
   const linesAccess = useEventLinesAccess(event?.teamId)
   const [tab, setTab] = useEventDetailsTab()
 
-  if (isLoading) {
+  if (isLoading || linesAccess.isLoading) {
     return (
       <PageHub data-testid={testId('events', 'training-page', 'loader')}>
         <ScoreboardLoader label="Загрузка тренировки..." />
@@ -315,40 +315,61 @@ export function TrainingDetailsPage() {
             </div>
           </IceCard>
 
-          {linesAccess.canView ? (
-            <EventDetailsTabs value={activeTab} onChange={setTab} section="training-page" />
-          ) : null}
-
-          {activeTab === 'roster' ? (
-            <section className="events-screen__section">
-              <SectionHeading
-                title={
-                  <span
-                    data-testid={testId('events', 'training-page', 'text', 'slots-title', event.id)}
-                  >
-                    Слоты и укомплектованность
-                  </span>
-                }
-              />
-              <EventSlotsCard
-                event={event}
-                section="training-page"
-                currentUserId={userId}
-                resolveName={(id) => resolveTrainingUserName(id, event, playerNames)}
-              />
-            </section>
+          {linesAccess.isError ? (
+            <QueryErrorState
+              title="Не удалось загрузить состав команды"
+              onRetry={() => void linesAccess.refetch()}
+              testIdPrefix="events"
+              data-testid={testId('events', 'training-page', 'error', 'roster')}
+            />
           ) : (
-            <section
-              className="events-screen__section"
-              data-testid={testId('events', 'training-page', 'panel', 'lines', event.id)}
-            >
-              <EventLinesBoard
-                eventId={event.id}
-                currentUserId={userId}
-                roster={linesAccess.roster}
-                canEdit={linesAccess.canEdit}
-              />
-            </section>
+            <>
+              {linesAccess.canView ? (
+                <EventDetailsTabs value={activeTab} onChange={setTab} section="training-page" />
+              ) : null}
+
+              <section
+                className="events-screen__section"
+                hidden={linesAccess.canView && activeTab !== 'roster'}
+              >
+                <SectionHeading
+                  title={
+                    <span
+                      data-testid={testId(
+                        'events',
+                        'training-page',
+                        'text',
+                        'slots-title',
+                        event.id,
+                      )}
+                    >
+                      Слоты и укомплектованность
+                    </span>
+                  }
+                />
+                <EventSlotsCard
+                  event={event}
+                  section="training-page"
+                  currentUserId={userId}
+                  resolveName={(id) => resolveTrainingUserName(id, event, playerNames)}
+                />
+              </section>
+
+              {linesAccess.canView ? (
+                <section
+                  className="events-screen__section"
+                  hidden={activeTab !== 'lines'}
+                  data-testid={testId('events', 'training-page', 'panel', 'lines', event.id)}
+                >
+                  <EventLinesBoard
+                    eventId={event.id}
+                    currentUserId={userId}
+                    roster={linesAccess.roster}
+                    canEdit={linesAccess.canEdit}
+                  />
+                </section>
+              ) : null}
+            </>
           )}
         </div>
 

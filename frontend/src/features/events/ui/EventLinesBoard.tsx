@@ -36,6 +36,7 @@ import {
   EVENT_LINE_ROLE_LABELS,
   type EventLinePlayer,
   type EventLineRole,
+  goalieSelectPlaceholder,
   jerseyColorLabel,
   pickSlotCandidates,
   playerInitials,
@@ -106,12 +107,13 @@ export function EventLinesBoard({eventId, currentUserId, roster, canEdit}: Event
   const players = useMemo(() => {
     const avatars = new Map(playersList.map((item) => [item.userId, item.avatarUrl]))
     const map = new Map<string, EventLinePlayer>()
-    roster.filter(isLinesRosterMember).forEach((member) => {
+    roster.forEach((member) => {
       map.set(member.userId, {
         userId: member.userId,
         displayName: member.displayName,
         position: member.position,
         avatarUrl: avatars.get(member.userId),
+        eligible: isLinesRosterMember(member),
       })
     })
     return map
@@ -136,7 +138,7 @@ export function EventLinesBoard({eventId, currentUserId, roster, canEdit}: Event
   const goalies = goaliesDraft ?? data.goalies
   const linesForAssigned = edit ? upsertLine(lines, edit.draft) : lines
   const assigned = collectAssignedUserIds(goalies, linesForAssigned)
-  const playerList = [...players.values()]
+  const playerList = [...players.values()].filter((player) => player.eligible !== false)
   const myLine = lines.find((line) => Object.values(line.slots).includes(currentUserId))
   const filledCount = collectAssignedUserIds(data.goalies, lines).size
   const busy = mutation.isPending
@@ -157,11 +159,13 @@ export function EventLinesBoard({eventId, currentUserId, roster, canEdit}: Event
 
   const selectSlot = (slot: EventLineSlotKey) => {
     if (!edit) return
+    const occupantId = edit.draft.slots[slot]
+    const occupant = occupantId ? players.get(occupantId) : undefined
     setEdit({
       ...edit,
       selectedSlot: slot,
       role: EVENT_LINE_SLOT_ROLE[slot],
-      pendingUserId: edit.draft.slots[slot] ?? '',
+      pendingUserId: occupant && occupant.eligible !== false && occupantId ? occupantId : '',
     })
   }
 
@@ -453,10 +457,18 @@ export function EventLinesBoard({eventId, currentUserId, roster, canEdit}: Event
         <div className="event-lines-goalies__list">
           {EVENT_GOALIE_SLOT_KEYS.map((slot) => {
             const userId = goalies[slot]
-            const player = userId ? players.get(userId) : undefined
+            const stored = userId ? players.get(userId) : undefined
+            const player = stored && stored.eligible !== false ? stored : undefined
 
             if (editingGoalies) {
               const candidates = pickSlotCandidates(playerList, 'goalie', assigned, userId)
+              const options = candidates.map((item) => ({
+                value: item.userId,
+                content: item.displayName,
+              }))
+              if (userId && !candidates.some((item) => item.userId === userId)) {
+                options.unshift({value: userId, content: 'Не в составе'})
+              }
               return (
                 <Select
                   key={slot}
@@ -464,13 +476,10 @@ export function EventLinesBoard({eventId, currentUserId, roster, canEdit}: Event
                   width="max"
                   size="l"
                   hasClear
-                  placeholder={candidates.length ? 'Не назначен' : 'В команде нет вратарей'}
-                  disabled={!candidates.length}
+                  placeholder={goalieSelectPlaceholder(playerList, candidates)}
+                  disabled={!candidates.length && !userId}
                   value={userId ? [userId] : []}
-                  options={candidates.map((item) => ({
-                    value: item.userId,
-                    content: item.displayName,
-                  }))}
+                  options={options}
                   onUpdate={(value) =>
                     setGoaliesDraft(
                       assignGoalie(goalies, slot, value[0] ? String(value[0]) : undefined),
@@ -500,7 +509,9 @@ export function EventLinesBoard({eventId, currentUserId, roster, canEdit}: Event
                       ? player.userId === currentUserId
                         ? 'Вы'
                         : player.displayName
-                      : 'Не назначен'}
+                      : userId
+                        ? 'Не в составе'
+                        : 'Не назначен'}
                   </span>
                   <span className="event-lines-goalie__role">{EVENT_GOALIE_SLOT_LABELS[slot]}</span>
                 </span>

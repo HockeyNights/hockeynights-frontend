@@ -13,6 +13,11 @@
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+
+  /* Класс задаёт display и перебивает нативное [hidden] без !important. */
+  &[hidden] {
+    display: none;
+  }
 }
 
 /* Плашки амплуа в составах раздела: ВР — зелёная, ЗЩ — синяя, НП — красная. */

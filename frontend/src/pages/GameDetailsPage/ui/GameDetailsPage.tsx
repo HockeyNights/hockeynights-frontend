@@ -63,7 +63,7 @@ export function GameDetailsPage() {
   const linesAccess = useEventLinesAccess(event?.teamId)
   const [tab, setTab] = useEventDetailsTab()
 
-  if (isLoading) {
+  if (isLoading || linesAccess.isLoading) {
     return (
       <PageHub data-testid={testId('events', 'game-page', 'loader')}>
         <ScoreboardLoader label="Загрузка игры..." />
@@ -249,13 +249,23 @@ export function GameDetailsPage() {
             </div>
           </IceCard>
 
-          {linesAccess.canView ? (
-            <EventDetailsTabs value={activeTab} onChange={setTab} section="game-page" />
-          ) : null}
-
-          {activeTab === 'roster' ? (
+          {linesAccess.isError ? (
+            <QueryErrorState
+              title="Не удалось загрузить состав команды"
+              onRetry={() => void linesAccess.refetch()}
+              testIdPrefix="events"
+              data-testid={testId('events', 'game-page', 'error', 'roster')}
+            />
+          ) : (
             <>
-              <section className="events-screen__section">
+              {linesAccess.canView ? (
+                <EventDetailsTabs value={activeTab} onChange={setTab} section="game-page" />
+              ) : null}
+
+              <section
+                className="events-screen__section"
+                hidden={linesAccess.canView && activeTab !== 'roster'}
+              >
                 <SectionHeading
                   title={
                     <span
@@ -273,9 +283,10 @@ export function GameDetailsPage() {
                 />
               </section>
 
-              {event.hasTeamRsvp && (
+              {event.hasTeamRsvp ? (
                 <section
                   className="events-screen__section"
+                  hidden={linesAccess.canView && activeTab !== 'roster'}
                   data-testid={testId('events', 'game-page', 'panel', 'rsvp', event.id)}
                 >
                   <SectionHeading
@@ -291,20 +302,23 @@ export function GameDetailsPage() {
                     <EventRsvpBoard eventId={event.id} hideTitle />
                   </IceCard>
                 </section>
-              )}
+              ) : null}
+
+              {linesAccess.canView ? (
+                <section
+                  className="events-screen__section"
+                  hidden={activeTab !== 'lines'}
+                  data-testid={testId('events', 'game-page', 'panel', 'lines', event.id)}
+                >
+                  <EventLinesBoard
+                    eventId={event.id}
+                    currentUserId={userId}
+                    roster={linesAccess.roster}
+                    canEdit={linesAccess.canEdit}
+                  />
+                </section>
+              ) : null}
             </>
-          ) : (
-            <section
-              className="events-screen__section"
-              data-testid={testId('events', 'game-page', 'panel', 'lines', event.id)}
-            >
-              <EventLinesBoard
-                eventId={event.id}
-                currentUserId={userId}
-                roster={linesAccess.roster}
-                canEdit={linesAccess.canEdit}
-              />
-            </section>
           )}
         </div>
 

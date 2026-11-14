@@ -12,6 +12,8 @@ export interface EventLinePlayer {
   displayName: string
   position: PlayerPosition
   avatarUrl?: string
+  /** Активный или запасной. `false` — приглашён, отказался или удалён из состава. */
+  eligible?: boolean
 }
 
 export type EventLineRole = 'forward' | 'defense' | 'goalie'
@@ -39,6 +41,7 @@ export function pickSlotCandidates(
   currentUserId?: string,
 ): EventLinePlayer[] {
   return players
+    .filter((player) => player.eligible !== false)
     .filter((player) => player.position === role || player.position === 'any')
     .filter((player) => player.userId === currentUserId || !assigned.has(player.userId))
     .sort((a, b) => a.displayName.localeCompare(b.displayName, 'ru'))
@@ -130,6 +133,33 @@ export function playerInitials(displayName: string): string {
 /** Короткое имя под кружком: фамилия. */
 export function playerShortName(displayName: string): string {
   return displayName.split(/\s+/)[0] ?? displayName
+}
+
+/**
+ * Подпись кружка. Игрок с userId, которого нет среди доступных,
+ * не показывается как свободная позиция.
+ */
+export function slotFaceLabel(
+  userId: string | undefined,
+  player: EventLinePlayer | undefined,
+  currentUserId: string,
+): string {
+  if (userId && !player) return 'Не в составе'
+  if (!player) return 'Свободно'
+  if (player.userId === currentUserId) return 'Вы'
+  return playerShortName(player.displayName)
+}
+
+/** Пустой слот вратаря: нет вратарей в команде или все уже стоят в другом слоте. */
+export function goalieSelectPlaceholder(
+  eligiblePlayers: EventLinePlayer[],
+  candidates: EventLinePlayer[],
+): string {
+  if (candidates.length > 0) return 'Не назначен'
+  const teamHasGoalie = eligiblePlayers.some(
+    (player) => player.position === 'goalie' || player.position === 'any',
+  )
+  return teamHasGoalie ? 'Все вратари уже назначены' : 'В команде нет вратарей'
 }
 
 export const EVENT_LINE_ROLE_LABELS: Record<EventLineRole, string> = {

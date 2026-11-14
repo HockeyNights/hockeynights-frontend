@@ -15,18 +15,21 @@ export function isLinesRosterMember(member: RosterMember): boolean {
 
 export function useEventLinesAccess(teamId: string | undefined) {
   const {userId, roles} = useSessionAccess()
-  const {data: roster = [], isLoading} = useQuery({
+  const rosterQuery = useQuery({
     queryKey: ['roster', teamId],
     queryFn: () => fetchTeamRoster(teamId ?? ''),
     enabled: Boolean(teamId),
   })
+  const roster = rosterQuery.data ?? []
 
   const member = roster.find((item) => item.userId === userId && isLinesRosterMember(item))
   const canView = Boolean(teamId && userId && member)
 
   return {
     roster,
-    isLoading: Boolean(teamId) && isLoading,
+    isLoading: Boolean(teamId) && rosterQuery.isLoading,
+    isError: Boolean(teamId) && rosterQuery.isError,
+    refetch: rosterQuery.refetch,
     canView,
     canEdit: canView && canManageEventLines(roles, member?.teamRole),
   }
